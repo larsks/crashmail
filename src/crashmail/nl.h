@@ -1,7 +1,7 @@
 #ifndef NL_H
 #define NL_H
 
-#include "node4d.h"
+#include <shared/node4d.h>
 
 struct Nodelist
 {

@@ -199,7 +199,9 @@ bool WriteDupes(uchar *file)
 
    if(!(fh=osOpen(file,MODE_NEWFILE)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Couldn't save dupe table to %s ",file);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
    }
 

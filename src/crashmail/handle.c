@@ -59,6 +59,12 @@ bool GetDescription(uchar *area,struct ConfigNode *node,uchar *desc)
             }
             osClose(fh);
          }
+			else
+			{
+				ulong err=osError();
+				LogWrite(1,SYSTEMERR,"Failed to open file \"%s\"\n",arealist->AreaFile);
+				LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+			}
       }
    }
    return(FALSE);
@@ -241,7 +247,8 @@ struct Area *AddArea(uchar *name,struct Node4D *node,struct Node4D *mynode,ulong
    strcpy(temparea->Tagname,name);
 
    temparea->Aka=tempaka;
-
+	temparea->AreaType = AREATYPE_ECHOMAIL;
+	
    if(tempcnode)
    {
       temparea->Group=tempcnode->DefaultGroup;
@@ -287,7 +294,7 @@ bool WriteBad(struct MemMessage *mm,uchar *reason)
    struct TextChunk *chunk;
 
    for(temparea=(struct Area *)config.AreaList.First;temparea;temparea=temparea->Next)
-      if(temparea->Flags & AREA_BAD) break;
+      if(temparea->AreaType == AREATYPE_BAD) break;
 
    if(!temparea)
    {
@@ -497,7 +504,6 @@ uchar *StripRe(uchar *str)
    return (str);
 }
 
-
 bool HandleEchomail(struct MemMessage *mm)
 {
    struct Area *temparea;
@@ -705,7 +711,8 @@ bool HandleEchomail(struct MemMessage *mm)
       if(config.cfg_Flags & CFG_STRIPRE)
          strcpy(mm->Subject,StripRe(mm->Subject));
 
-      (*temparea->Messagebase->importfunc)(mm,temparea);
+      if(!(*temparea->Messagebase->importfunc)(mm,temparea))
+			return(FALSE);
    }
 
    return(TRUE);
@@ -802,85 +809,6 @@ bool IsLoopMail(struct MemMessage *mm)
    return(FALSE);
 }
 
-/* Expand destpat */
-
-bool iswildcard(uchar *str)
-{
-   int c;
-
-   for(c=0;c<strlen(str);c++)
-      if(str[c]=='*' || str[c]=='?') return(TRUE);
-
-   return(FALSE);
-}
-
-void ExpandNodePat(struct Node4DPat *temproute,struct Node4D *dest,struct Node4D *sendto)
-{
-   long region,hub;
-	struct Node4D n4d;
-	   
-   region=0;
-   hub=0; 
-   
-   if(config.cfg_NodelistType)
-   {
-		Copy4D(&n4d,dest);
-		n4d.Point=0;
-
-      if(temproute->Type == PAT_REGION) region=(*config.cfg_NodelistType->nlGetRegion)(&n4d);
-      if(temproute->Type == PAT_HUB) hub=(*config.cfg_NodelistType->nlGetHub)(&n4d);
-     
-      if(region == -1) region=0;
-      if(hub == -1) hub=0;
-   }
-   
-   if(region == 0) region=dest->Net;
-   
-   switch(temproute->Type)
-   {
-      case PAT_PATTERN:
-         sendto->Zone  = iswildcard(temproute->Zone)  ? dest->Zone  : atoi(temproute->Zone);
-         sendto->Net   = iswildcard(temproute->Net)   ? dest->Net   : atoi(temproute->Net);
-         sendto->Node  = iswildcard(temproute->Node)  ? dest->Node  : atoi(temproute->Node);
-         sendto->Point = iswildcard(temproute->Point) ? dest->Point : atoi(temproute->Point);
-         break;
-
-      case PAT_ZONE:
-         sendto->Zone = dest->Zone;
-         sendto->Net = dest->Zone;
-         sendto->Node = 0;
-         sendto->Point = 0;
-         break;
-
-      case PAT_REGION:
-         sendto->Zone = dest->Zone;
-         sendto->Net = region;
-         sendto->Node = 0;
-         sendto->Point = 0;
-         break;
-
-      case PAT_NET:
-         sendto->Zone = dest->Zone;
-         sendto->Net = dest->Net;
-         sendto->Node = 0;
-         sendto->Point = 0;
-         break;
-
-      case PAT_HUB:
-         sendto->Zone = dest->Zone;
-         sendto->Net = dest->Net;
-         sendto->Node = hub;
-         sendto->Point = 0;
-         break;
-
-      case PAT_NODE:
-         sendto->Zone = dest->Zone;
-         sendto->Net = dest->Net;
-         sendto->Node = dest->Node;
-         sendto->Point = 0;
-         break;
-   }
-}
 
 /* Bouncing and receipts */
 
@@ -1251,23 +1179,39 @@ bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
 
    if(!(fh=osOpen(name,MODE_NEWFILE)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Unable to write RFC-message to %s",name);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+			
       return(FALSE);
    }
 
    /* Write header */
 
-   osFPrintf(fh,"From: %s (%s)\n",fromaddr,mm->From);
-   osFPrintf(fh,"To: %s (%s)\n",toaddr,mm->To);
-   osFPrintf(fh,"Subject: %s\n",mm->Subject);
-   osFPrintf(fh,"Date: %s\n",mm->DateTime);
+   if(!osFPrintf(fh,"From: %s (%s)\n",fromaddr,mm->From))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
+   if(!osFPrintf(fh,"To: %s (%s)\n",toaddr,mm->To))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
+   if(!osFPrintf(fh,"Subject: %s\n",mm->Subject))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
+   if(!osFPrintf(fh,"Date: %s\n",mm->DateTime))
+		{ ioerror=TRUE; ioerrornum=osError(); }
 
    if(mm->MSGID[0]!=0)
-      osFPrintf(fh,"Message-ID: <%s>\n",mm->MSGID);
-
+	{	
+      if(!osFPrintf(fh,"Message-ID: <%s>\n",mm->MSGID))
+			{ ioerror=TRUE; ioerrornum=osError(); }
+	}
+	
    if(mm->REPLY[0]!=0)
-      osFPrintf(fh,"References: <%s>\n",mm->REPLY);
-
+	{
+      if(!osFPrintf(fh,"References: <%s>\n",mm->REPLY))
+			{ ioerror=TRUE; ioerrornum=osError(); }
+	}
+	
    /* Write kludges */
 
    for(tmp=(struct TextChunk *)mm->TextChunks.First;tmp;tmp=tmp->Next)
@@ -1279,11 +1223,16 @@ bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
          for(d=c;d<tmp->Length && tmp->Data[d]!=13 && tmp->Data[d]!=10;d++);
          if(tmp->Data[d]==13 || tmp->Data[d]==10) d++;
 
-         if(tmp->Data[c]==1)
+         if(tmp->Data[c]==1 && d-c-2!=0)
          {
-            osPuts(fh,"X-Fido-");
-            if(d-c-2!=0) osWrite(fh,&tmp->Data[c+1],d-c-2);
-            osPuts(fh,"\n");
+				if(!osPuts(fh,"X-Fido-"))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+
+				if(!osWrite(fh,&tmp->Data[c+1],d-c-2))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+
+            if(!osPuts(fh,"\n"))
+					{ ioerror=TRUE; ioerrornum=osError(); }
          }
          c=d;
       }
@@ -1291,7 +1240,8 @@ bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
 
    /* Write end-of-header */
 
-   osPuts(fh,"\n");
+   if(!osPuts(fh,"\n"))
+		{ ioerror=TRUE; ioerrornum=osError(); }
 
    /* Write message text */
 
@@ -1328,13 +1278,19 @@ bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
 
          if(buffer[0]!=1)
          {
-            osPuts(fh,buffer);
-            osPutChar(fh,'\n');
+            if(!osPuts(fh,buffer))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+
+            if(!osPutChar(fh,'\n'))
+					{ ioerror=TRUE; ioerrornum=osError(); }
          }
       }
    }
 
    osClose(fh);
+
+   if(ioerror)
+      return(FALSE);
 
 	return(TRUE);
 }
@@ -1385,18 +1341,25 @@ bool WriteMSG(struct MemMessage *mm,uchar *file)
 
    if(!(fh=osOpen(file,MODE_NEWFILE)))
    {
-      printf("Failed to write to %s\n",file);
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"Unable to write message to %s",file);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+
       return(FALSE);
    }
 
    /* Write header */
 
-   osWrite(fh,&Msg,sizeof(struct StoredMsg));
+	if(!osWrite(fh,&Msg,sizeof(struct StoredMsg)))
+		{ ioerror=TRUE; ioerrornum=osError(); }
 
    /* Write text */
 
    for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
-      osWrite(fh,chunk->Data,chunk->Length);
+	{
+      if(!osWrite(fh,chunk->Data,chunk->Length))
+			{ ioerror=TRUE; ioerrornum=osError(); }
+	}	
 
    /* Write seen-by */
 
@@ -1411,7 +1374,10 @@ bool WriteMSG(struct MemMessage *mm,uchar *file)
       }
 
       if(sbbuf[0])
-         osWrite(fh,sbbuf,(ulong)strlen(sbbuf));
+		{
+         if(!osWrite(fh,sbbuf,(ulong)strlen(sbbuf)))
+				{ ioerror=TRUE; ioerrornum=osError(); }
+		}	
 
       osFree(sbbuf);
    }
@@ -1422,16 +1388,22 @@ bool WriteMSG(struct MemMessage *mm,uchar *file)
       for(c=0;c<path->Paths;c++)
          if(path->Path[c][0]!=0)
          {
-            osWrite(fh,"\x01PATH: ",7);
-            osWrite(fh,path->Path[c],(ulong)strlen(path->Path[c]));
-            osWrite(fh,"\x0d",1);
+				if(!osWrite(fh,"\x01PATH: ",7))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+				
+            if(!osWrite(fh,path->Path[c],(ulong)strlen(path->Path[c])))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+
+            if(!osWrite(fh,"\x0d",1))
+					{ ioerror=TRUE; ioerrornum=osError(); }
          }
 
-   osPutChar(fh,0);
+   if(!osPutChar(fh,0))
+		{ ioerror=TRUE; ioerrornum=osError(); }
 
    osClose(fh);
 
-   if(diskfull)
+   if(ioerror)
       return(FALSE);
 
    return(TRUE);
@@ -1455,7 +1427,7 @@ bool HandleNetmail(struct MemMessage *mm)
    struct TextChunk *tmpchunk,*chunk;
    bool istext;
    uchar buf[400],buf2[200],buf3[200],subjtemp[80];
-   ulong c,d,arcres;
+   ulong c,d,arcres,jbcpos;
    time_t t;
    struct tm *tp;
    ulong size;
@@ -1641,7 +1613,7 @@ bool HandleNetmail(struct MemMessage *mm)
    /* Find correct area */
 
    for(tmparea=(struct Area *)config.AreaList.First;tmparea;tmparea=tmparea->Next)
-      if(tmparea->Flags & AREA_NETMAIL)
+      if(tmparea->AreaType == AREATYPE_NETMAIL)
       {
          if(Compare4D(&tmparea->Aka->Node,&mm->DestNode)==0)
             break;
@@ -1665,7 +1637,7 @@ bool HandleNetmail(struct MemMessage *mm)
       if(aka || (istossing && (config.cfg_Flags & CFG_NOROUTE)))
       {
          for(tmparea=(struct Area *)config.AreaList.First;tmparea;tmparea=tmparea->Next)
-            if(tmparea->Flags & AREA_NETMAIL) break;
+            if(tmparea->AreaType == AREATYPE_NETMAIL) break;
       }
    }
 
@@ -1703,12 +1675,20 @@ bool HandleNetmail(struct MemMessage *mm)
          tmparea->NewTexts++;
 
          if(tmparea->Messagebase)
-            (*tmparea->Messagebase->importfunc)(mm,tmparea);
+			{
+		      toss_import++;
+
+   		   if(config.cfg_Flags & CFG_STRIPRE)
+	      	   strcpy(mm->Subject,StripRe(mm->Subject));
+
+            if(!(*tmparea->Messagebase->importfunc)(mm,tmparea))
+					return(FALSE);
+			}
       }
       else
       {
          Print4D(&mm->OrigNode,buf);
-         LogWrite(4,TOSSINGINFO,"Killed empty netmail from %s at %ld",mm->From,buf);
+         LogWrite(4,TOSSINGINFO,"Killed empty netmail from %s at %s",mm->From,buf);
       }
 
       if((mm->Attr & FLAG_RREQ) && (config.cfg_Flags & CFG_ANSWERRECEIPT))
@@ -1992,56 +1972,53 @@ bool HandleNetmail(struct MemMessage *mm)
             }
          }
 
-         c=0;
-         subjtemp[0]=0;
+			strcpy(subjtemp,mm->Subject);
+			mm->Subject[0]=0;
 
-         while(mm->Subject[c]!=0)
-         {
-            d=0;
-            while(mm->Subject[c]!=0 && mm->Subject[c]!=32 && mm->Subject[c]!=',' && d<80)
-               buf[d++]=mm->Subject[c++];
+			for(c=0;subjtemp[c];c++)
+				if(subjtemp[c]==',') subjtemp[c]=' ';
 
-            buf[d]=0;
+			jbcpos=0;
+			
+			while(jbstrcpy(buf,subjtemp,80,&jbcpos))
+			{
+				if(mm->Subject[0] != 0) strcat(mm->Subject," ");
+         	strcat(mm->Subject,GetFilePart(buf));
 
-            while(mm->Subject[c]==32 || mm->Subject[c]==',') c++;
+            LogWrite(4,TOSSINGINFO,"Routing file %s to %lu:%lu/%lu.%lu",GetFilePart(buf),Dest4D.Zone,Dest4D.Net,Dest4D.Node,Dest4D.Point);
 
-            if(buf[0]!=0)
-            {
-               strcat(subjtemp,GetFilePart(buf));
-
-               LogWrite(4,TOSSINGINFO,"Routing file %s to %lu:%lu/%lu.%lu",GetFilePart(buf),Dest4D.Zone,Dest4D.Net,Dest4D.Node,Dest4D.Point);
-
-               if(isscanning)
+            if(isscanning)
+            {				
+					if(osExists(buf))
                {
-						if(osExists(buf))
-                  {
-							MakeFullPath(config.cfg_PacketDir,GetFilePart(buf),buf2,200);
-                     CopyFile(buf,buf2);
-                     AddFlow(buf2,&Dest4D,mm->Type,FLOW_DELETE);
-                  }
-                  else
-                  {
-                     AddFlow(buf,&Dest4D,mm->Type,FLOW_NONE);
-                  }
+						MakeFullPath(config.cfg_PacketDir,GetFilePart(buf),buf2,200);
+                  copyfile(buf,buf2);
+
+						if(nomem || ioerror)
+							return(FALSE);
+								
+                  AddFlow(buf2,&Dest4D,mm->Type,FLOW_DELETE);
                }
                else
                {
-						MakeFullPath(config.cfg_Inbound,GetFilePart(buf),buf2,200);
-						MakeFullPath(config.cfg_PacketDir,GetFilePart(buf),buf3,200);
+                  AddFlow(buf,&Dest4D,mm->Type,FLOW_NONE);
+               }
+            }
+            else
+            {
+					MakeFullPath(config.cfg_Inbound,GetFilePart(buf),buf2,200);
+					MakeFullPath(config.cfg_PacketDir,GetFilePart(buf),buf3,200);
 
-                  if(MoveFile(buf2,buf3))
-                  {
-                     AddFlow(buf3,&Dest4D,mm->Type,FLOW_DELETE);
-                  }
-                  else
-                  {
-                     AddFlow(buf2,&Dest4D,mm->Type,FLOW_DELETE);
-                  }
+               if(movefile(buf2,buf3))
+               {
+                  AddFlow(buf3,&Dest4D,mm->Type,FLOW_DELETE);
+               }
+               else
+               {
+                  AddFlow(buf2,&Dest4D,mm->Type,FLOW_DELETE);
                }
             }
          }
-
-         strcpy(mm->Subject,subjtemp);
       }
 
       time(&t);

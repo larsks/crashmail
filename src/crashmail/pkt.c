@@ -110,7 +110,9 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
 
    if(!(fh=osOpen(pkt,MODE_OLDFILE)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Unable to open %s",pkt);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       mmFree(mm);
       return(TRUE);
    }
@@ -255,7 +257,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
 
       mystrncpy(domain,&PktHeader[PKTHEADER45_ORIGDOMAIN],9);
 
-      LogWrite(1,ACTIONINFO,"Tossing %s (%luK) from %ld:%ld/%ld.%ld@%s%s",
+      LogWrite(1,ACTIONINFO,"Tossing %s (%luK) from %ld:%ld/%ld.%ld@%s %s",
                                                               fe->Name,
                                                               (fe->Size+512)/1024,
                                                               PktOrig.Zone,
@@ -274,7 +276,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
       if(month > 11)
          month=12;
 
-      LogWrite(1,ACTIONINFO,"Tossing %s (%luK) from %ld:%ld/%ld.%ld (%02ld-%s-%02ld %02ld:%02ld:%02ld)%s",
+      LogWrite(1,ACTIONINFO,"Tossing %s (%luK) from %ld:%ld/%ld.%ld (%02ld-%s-%02ld %02ld:%02ld:%02ld) %s",
          fe->Name,
          (fe->Size+512)/1024,
          PktOrig.Zone,
@@ -388,7 +390,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
       if(strncmp(buf,"AREA:",5)==0)
       {
          mystrncpy(mm->Area,&buf[5],40);
-         strip(mm->Area); /* Strip spaces from area name */
+         stripleadtrail(mm->Area); /* Strip spaces from area name */
       }
       else
       {
@@ -517,7 +519,9 @@ struct Pkt
 
 void pktWrite(struct Pkt *pkt,uchar *buf,ulong len)
 {
-   osWrite(pkt->fh,buf,len);
+   if(!osWrite(pkt->fh,buf,len))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
    pkt->Len+=len;
 }
 
@@ -570,7 +574,9 @@ struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Aka *ak
 
    if(!(pkt->fh=osOpen(buf,MODE_NEWFILE)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Unable to create packet %s",buf);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       osFree(pkt);
       return(NULL);
    }
@@ -623,7 +629,7 @@ struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Aka *ak
 
    pktWrite(pkt,PktHeader,SIZE_PKTHEADER);
 
-   if(diskfull)
+   if(ioerror)
    {
       osClose(pkt->fh);
       osFree(pkt);
@@ -671,7 +677,13 @@ void FinishPacket(struct Pkt *pkt)
 
       MakeFullPath(config.cfg_PacketCreate,buf1,oldname,200);
       MakeFullPath(config.cfg_PacketCreate,buf2,newname,200);
-      osRename(oldname,newname);
+
+		if(!osRename(oldname,newname))
+		{
+			ulong err=osError();
+			LogWrite(1,SYSTEMERR,"Failed to rename %s to %s",oldname,newname);
+			LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+		}	
    }
    
    jbFreeNode(&PktList,(struct jbNode *)pkt);
@@ -710,7 +722,7 @@ bool WriteMsgHeader(struct Pkt *pkt,struct MemMessage *mm)
    WriteNull(pkt,mm->From);
    WriteNull(pkt,mm->Subject);
 
-   if(diskfull)
+   if(ioerror)
       return(FALSE);
 
    return(TRUE);
@@ -730,7 +742,7 @@ bool WritePath(struct Pkt *pkt,struct jbList *list)
             pktWrite(pkt,"\x0d",1);
          }
 
-   if(diskfull)
+   if(ioerror)
       return(FALSE);
 
    return(TRUE);
@@ -793,14 +805,14 @@ bool WriteEchoMail(struct MemMessage *mm,struct ConfigNode *node, struct Aka *ak
 
    pktWrite(pkt,buf,(ulong)strlen(buf));
 
-   if(diskfull)
+   if(ioerror)
       return(FALSE);
 
    for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
    {
       pktWrite(pkt,chunk->Data,chunk->Length);
       
-      if(diskfull)
+      if(ioerror)
          return(FALSE);
    }
 
@@ -915,7 +927,7 @@ bool WriteNetMail(struct MemMessage *mm,struct Node4D *dest,struct Aka *aka)
    {
       pktWrite(pkt,chunk->Data,chunk->Length);
 
-      if(diskfull)
+      if(ioerror)
          return(FALSE);
    }
 

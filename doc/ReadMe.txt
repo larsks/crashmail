@@ -22,7 +22,7 @@ For suggestions, bug reports and questions, don't hesitate to contact me:
 
  Johan Billing
 
- Fidonet: 2:201/128.77
+ Fidonet: 2:205/454.77
  E-mail: billing@df.lth.se
 
 (Vi ankau povas skribi min en Esperanto!)
@@ -279,6 +279,19 @@ crashwrite DIR <directory> ...
   Use these keywords to set the header of the message. You only need to enter
   TONAME and TOADDR for netmails. 
 
+ PKTFROMADDR <string>
+ PKTTOADDR <string>
+ 
+  Use these if you want to set the origin and destination address of the packet
+  to something other than the origin and destination address of the message 
+  inside the packet. If you do not specify these keywords, FROMADDR and 
+  TOADDR will be used for the packet as well.
+
+ PASSWORD <string>
+
+  You can use this keyword to set a password for the packet. The maximum
+  length of the password is eight characters.
+
  AREA <area>
  
   The area the message should be posted in. If you do not enter an area, the
@@ -305,6 +318,7 @@ crashwrite DIR <directory> ...
  
   Sets the file-attach flag for netmails. The filename should be put in the
   subject line.
+
 
 Paths
 -----

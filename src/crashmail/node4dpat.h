@@ -1,10 +1,5 @@
-#ifndef NODE4D_H
-#define NODE4D_H
-
-struct Node4D
-{
-   ushort Zone,Net,Node,Point;
-};
+#ifndef NODE4DPAT_H
+#define NODE4DPAT_H
 
 #define PAT_PATTERN   0
 #define PAT_ZONE      1
@@ -28,11 +23,6 @@ struct Node2DPat
    uchar Node[10];
 };
 
-bool Parse4D(uchar *buf, struct Node4D *node);
-void Copy4D(struct Node4D *node1,struct Node4D *node2);
-int Compare4D(struct Node4D *node1,struct Node4D *node2);
-void Print4D(struct Node4D *n4d,uchar *dest);
-
 bool Parse4DPat(uchar *buf, struct Node4DPat *node);
 bool Parse4DDestPat(uchar *buf, struct Node4DPat *node);
 int Compare4DPat(struct Node4DPat *nodepat,struct Node4D *node);
@@ -42,7 +32,6 @@ bool Check4DPatNodelist(struct Node4DPat *pat);
 
 bool Parse2DPat(uchar *buf, struct Node2DPat *node);
 int Compare2DPat(struct Node2DPat *nodepat,ushort net,ushort node);
-
-bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain);
+void ExpandNodePat(struct Node4DPat *temproute,struct Node4D *dest,struct Node4D *sendto);
 
 #endif

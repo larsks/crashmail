@@ -3,71 +3,77 @@
 # General
 
 PLATFORMDEF = -DPLATFORM_OS2
-MBDEFS = -DMSGBASE_JAM -DMSGBASE_MSG
-NLDEFS = -DNODELIST_CMNL
-
 EXESUFFIX = .exe
-
-DEFS = $(PLATFORMDEF) $(MBDEFS) $(NLDEFS)
-
-# Directories
 
 BINDIR = ../bin
 OBJDIR = obj
 INCDIR = ./
 
-# Libraries
-
 OSLIB = oslib_os2/oslib.a
 JAMLIB = jamlib/jamlib.a
 CMNLLIB = cmnllib/cmnllib.a
 
+# Nodelists
+
+NLDEFS = -DNODELIST_CMNL
+NLOBJS = obj/nl_cmnl.o $(CMNLLIB)
+
+# Messagebases
+
+# *.msg
+MBDEFS_MSG = -DMSGBASE_MSG
+MBOBJS_MSG = obj/mb_msg.o
+
+# JAM
+MBDEFS_JAM = -DMSGBASE_JAM
+MBOBJS_JAM = $(OBJDIR)/mb_jam.o $(JAMLIB)
+
+# Sum them up. Only include the messagebases you want to use
+MBDEFS = $(MBDEFS_MSG) $(MBDEFS_JAM)
+MBOBJS = $(MBOBJS_MSG) $(MBOBJS_JAM)
+
+DEFS = $(PLATFORMDEF) $(MBDEFS) $(NLDEFS)
+
 # Commands
 
-CC = gcc $(DEFS) -I $(INCDIR) -Wall 
+CC = gcc $(DEFS) -I $(INCDIR) -Wall
 RM = del
 STRIP = emxbind -s
 
 # Objects
 
 SHOBJS = $(OBJDIR)/jblist.o \
-	 $(OBJDIR)/jbstrcpy.o \
-	 $(OBJDIR)/mystrncpy.o \
+         $(OBJDIR)/jbstrcpy.o \
+         $(OBJDIR)/mystrncpy.o \
          $(OBJDIR)/parseargs.o \
+         $(OBJDIR)/node4d.o \
          $(OBJDIR)/path.o 
 
-MBOBJS = $(OBJDIR)/mb.o \
-      	 $(OBJDIR)/mb_msg.o \
-	 $(OBJDIR)/mb_jam.o \
-	 jamlib/jamlib.a
-
-NLOBJS = $(OBJDIR)/nl.o \
-      	 $(OBJDIR)/nl_cmnl.o \
-	 cmnllib/cmnllib.a
-
 CMOBJS = $(OBJDIR)/crashmail.o \
-      	 $(OBJDIR)/logwrite.o \
-	 $(OBJDIR)/dupe.o \
-	 $(OBJDIR)/stats.o \
-	 $(OBJDIR)/misc.o \
-	 $(OBJDIR)/safedel.o \
-	 $(OBJDIR)/toss.o \
-	 $(OBJDIR)/pkt.o \
-	 $(OBJDIR)/handle.o \
-	 $(OBJDIR)/node4d.o \
-	 $(OBJDIR)/config.o \
-	 $(OBJDIR)/memmessage.o \
-	 $(OBJDIR)/scan.o \
-	 $(OBJDIR)/outbound.o \
-	 $(OBJDIR)/areafix.o
+      	$(OBJDIR)/logwrite.o \
+			$(OBJDIR)/dupe.o \
+			$(OBJDIR)/stats.o \
+			$(OBJDIR)/misc.o \
+			$(OBJDIR)/safedel.o \
+			$(OBJDIR)/toss.o \
+			$(OBJDIR)/pkt.o \
+			$(OBJDIR)/mb.o \
+			$(OBJDIR)/nl.o \
+			$(OBJDIR)/handle.o \
+			$(OBJDIR)/node4dpat.o \
+			$(OBJDIR)/config.o \
+			$(OBJDIR)/memmessage.o \
+			$(OBJDIR)/scan.o \
+			$(OBJDIR)/outbound.o \
+			$(OBJDIR)/areafix.o
 
-files : $(BINDIR)/crashmail$(EXESUFFIX) \
-        $(BINDIR)/crashstats$(EXESUFFIX) \
-	$(BINDIR)/crashlist$(EXESUFFIX) \
-	$(BINDIR)/crashgetnode$(EXESUFFIX) \
-        $(BINDIR)/crashmaint$(EXESUFFIX) \
-	$(BINDIR)/crashwrite$(EXESUFFIX) \
-	$(BINDIR)/crashexport$(EXESUFFIX)        
+files :  $(BINDIR)/crashmail$(EXESUFFIX) \
+         $(BINDIR)/crashstats$(EXESUFFIX) \
+			$(BINDIR)/crashlist$(EXESUFFIX) \
+    		$(BINDIR)/crashgetnode$(EXESUFFIX) \
+         $(BINDIR)/crashmaint$(EXESUFFIX) \
+			$(BINDIR)/crashwrite$(EXESUFFIX) \
+			$(BINDIR)/crashexport$(EXESUFFIX)            
 
 $(BINDIR)/crashmail$(EXESUFFIX) : $(CMOBJS) $(SHOBJS) $(NLOBJS) $(MBOBJS) $(OSLIB)
 	$(CC) -o $(BINDIR)/crashmail$(EXESUFFIX) $(CMOBJS) $(SHOBJS) $(NLOBJS) $(MBOBJS) $(OSLIB)
@@ -95,7 +101,7 @@ $(BINDIR)/crashwrite$(EXESUFFIX) : tools/crashwrite.c $(SHOBJS) $(OSLIB)
 
 $(BINDIR)/crashexport$(EXESUFFIX) : tools/crashexport.c $(SHOBJS) $(OSLIB)
 	$(CC) -o $(BINDIR)/crashexport$(EXESUFFIX) tools/crashexport.c $(SHOBJS) $(OSLIB)
-	$(STRIP) $(BINDIR)/crashexport$(EXESUFFIX)                          
+	$(STRIP) $(BINDIR)/crashexport$(EXESUFFIX)     
 
 # crashmail
 
@@ -132,8 +138,8 @@ $(OBJDIR)/memmessage.o : crashmail/memmessage.c
 $(OBJDIR)/handle.o : crashmail/handle.c 
 	$(CC) -c crashmail/handle.c -o $(OBJDIR)/handle.o
 
-$(OBJDIR)/node4d.o : crashmail/node4d.c 
-	$(CC) -c crashmail/node4d.c -o $(OBJDIR)/node4d.o
+$(OBJDIR)/node4dpat.o : crashmail/node4dpat.c 
+	$(CC) -c crashmail/node4dpat.c -o $(OBJDIR)/node4dpat.o
 
 $(OBJDIR)/config.o : crashmail/config.c 
 	$(CC) -c crashmail/config.c -o $(OBJDIR)/config.o
@@ -161,6 +167,9 @@ $(OBJDIR)/parseargs.o : shared/parseargs.c
 $(OBJDIR)/path.o : shared/path.c
 	$(CC) -c shared/path.c -o $(OBJDIR)/path.o
 
+$(OBJDIR)/node4d.o : shared/node4d.c
+	$(CC) -c shared/node4d.c -o $(OBJDIR)/node4d.o
+
 # mb
 
 $(OBJDIR)/mb.o : crashmail/mb.c
@@ -185,4 +194,3 @@ $(OBJDIR)/nl_cmnl.o : crashmail/nl_cmnl.c
 clean : 
 	$(RM) obj\*.o
 	
-

@@ -36,7 +36,9 @@ struct Packer *DetectPacker(uchar *file)
 
    if(!(fh=osOpen(file,MODE_OLDFILE)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Unable to open %s",file);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(NULL);
    }
 
@@ -123,7 +125,9 @@ bool TossBundle(uchar *file,struct osFileEntry *fe)
 
    if(!osReadDir(config.cfg_TempDir,&FEList,IsPkt))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_TempDir);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
    }
 
@@ -180,7 +184,9 @@ bool TossDir(uchar *dir)
 
    if(!osReadDir(dir,&PktFEList,IsBad))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",dir);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       AfterScanToss(FALSE);
       return(FALSE);
    }
@@ -194,7 +200,9 @@ bool TossDir(uchar *dir)
 
    if(!osReadDir(dir,&PktFEList,IsPkt))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",dir);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       AfterScanToss(FALSE);
       return(FALSE);
    }
@@ -203,7 +211,9 @@ bool TossDir(uchar *dir)
 
    if(!osReadDir(dir,&ArcFEList,IsArc))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",dir);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       jbFreeList(&PktFEList);
       AfterScanToss(FALSE);
       return(FALSE);
@@ -273,7 +283,9 @@ bool TossFile(uchar *file)
 
    if(!(fe=osGetFileEntry(file)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read file \"%s\"",file);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
    }
 

@@ -1,6 +1,8 @@
 #ifndef OS_OSFILE_H
 #define OS_OSFILE_H
 
+#include <stdarg.h>
+
 #include "shared/types.h"
 
 typedef void *osFile;
@@ -16,12 +18,13 @@ osFile osOpen(uchar *name,ulong mode);
 void osClose(osFile os);
 int osGetChar(osFile os);
 ulong osRead(osFile os,void *buf,ulong bytes);
-void osPutChar(osFile os, uchar ch);
-void osWrite(osFile os,const void *buf, ulong bytes);
-void osPuts(osFile os,uchar *str);
 ulong osFGets(osFile os,uchar *str,ulong max);
 ulong osFTell(osFile os);
-void osFPrintf(osFile os,uchar *fmt,...);
+bool osPutChar(osFile os, uchar ch);
+bool osWrite(osFile os,const void *buf, ulong bytes);
+bool osPuts(osFile os,uchar *str);
+bool osFPrintf(osFile os,uchar *fmt,...);
+bool osVFPrintf(osFile os,uchar *fmt,va_list args);
 void osSeek(osFile os,ulong offset,short mode);
 
 #endif

@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include <shared/types.h>
 #include <shared/jblist.h>
@@ -114,4 +115,14 @@ void osSleep(int secs)
    sleep(secs);
 }
 
+
+uchar *osErrorMsg(ulong errnum)
+{
+	return (uchar *)strerror(errnum);
+}
+
+ulong osError(void)
+{
+	return (ulong)errno;
+}
 

@@ -122,7 +122,9 @@ bool FindList(uchar *dir,uchar *file,uchar *dest)
 			
    if(!osScanDir(dir,scandirfunc))
    {
+		ulong err=osError();
       printf("Failed to scan directory %s\n",dir);
+		printf("Error: %s",osErrorMsg(err));		
       return(FALSE);
    }
 
@@ -148,7 +150,9 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,ushort defzone)
 	
 	if(!(nfh=osOpen(buf,MODE_OLDFILE)))
 	{
+		ulong err=osError();
 		printf("Failed to read %s\n",buf);
+		printf("Error: %s",osErrorMsg(err));		
 		return;
 	}
 
@@ -271,7 +275,9 @@ int main(int argc, char **argv)
 		
    if(!(lfh=osOpen(buf,MODE_OLDFILE)))
    {
+		ulong err=osError();
       printf("Failed to open %s for reading\n",buf);
+		printf("Error: %s",osErrorMsg(err));		
       osEnd();
       exit(OS_EXIT_ERROR);
    }
@@ -280,7 +286,9 @@ int main(int argc, char **argv)
 
    if(!(ifh=osOpen(buf,MODE_NEWFILE)))
    {
+		ulong err=osError();
       printf("Failed to open %s for writing (nodelist in use?)\n",buf);
+		printf("Error: %s",osErrorMsg(err));		
 		osClose(lfh);
       osEnd();
       exit(OS_EXIT_ERROR);
@@ -291,20 +299,21 @@ int main(int argc, char **argv)
    while(osFGets(lfh,cfgbuf,200))
    {
 		if(cfgbuf[0]!=';')
-		
-      jbcpos=0;
+		{		
+	      jbcpos=0;
 
-      if(jbstrcpy(file,cfgbuf,100,&jbcpos))
-		{
-			zone=0;
+	      if(jbstrcpy(file,cfgbuf,100,&jbcpos))
+			{
+				zone=0;
 			
-			if(jbstrcpy(buf,cfgbuf,10,&jbcpos))
-				zone=atoi(buf);
+				if(jbstrcpy(buf,cfgbuf,10,&jbcpos))
+					zone=atoi(buf);
 				
-			ProcessList(dir,file,ifh,zone);
-		}
-   }
-
+				ProcessList(dir,file,ifh,zone);
+			}
+	   }
+	}
+	
 	osClose(lfh);
 	osClose(ifh);
 

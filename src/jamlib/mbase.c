@@ -10,7 +10,9 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "jam.h"
+#include "structrw.h"
 
 #if defined( __OS2__ )
 #include <os2.h>	/* ANSI C does not include file locking :-( */
@@ -284,9 +286,7 @@ int JAM_ReadMBHeader( s_JamBase* Base_PS, s_JamBaseHeader* Header_PS )
 	return JAM_IO_ERROR;
     }
 
-    if ( 1 > fread( Header_PS, sizeof( s_JamBaseHeader ),
-		    1, Base_PS->HdrFile_PS ) ) {
-
+    if ( 1 > freadjambaseheader(Base_PS->HdrFile_PS,Header_PS) ) {
 	Base_PS->Errno_I = errno;
 	return JAM_IO_ERROR;
     }
@@ -317,8 +317,7 @@ int JAM_WriteMBHeader( s_JamBase* Base_PS, s_JamBaseHeader* Header_PS )
     memcpy( Header_PS->Signature, HEADERSIGNATURE, 4 );
     Header_PS->ModCounter++;
 
-    if ( 1 > fwrite( Header_PS, sizeof( s_JamBaseHeader ),
-		     1, Base_PS->HdrFile_PS ) ) {
+    if ( 1 > fwritejambaseheader(Base_PS->HdrFile_PS,Header_PS) ) {
 	Base_PS->Errno_I = errno;
 	return JAM_IO_ERROR;
     }
@@ -350,8 +349,7 @@ int JAM_FindUser( s_JamBase*	Base_PS,
     /* scan file */
     for ( MsgNo_I = 0; ; MsgNo_I++ ) {
 	s_JamIndex Index_S;
-	if ( 1 > fread( &Index_S, sizeof( s_JamIndex ),
-		        1, Base_PS->IdxFile_PS ) ) {
+   if ( 1 > freadjamindex(Base_PS->IdxFile_PS,&Index_S) ) {
             if ( feof(Base_PS->IdxFile_PS) )
 		return JAM_NO_USER;
 	    Base_PS->Errno_I = errno;

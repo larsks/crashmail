@@ -1,6 +1,6 @@
 INCDIR = ../
 
-CC = gcc -DPLATFORM_OS2 -I $(INCDIR) --ansi -Wall
+CC = gcc -DPLATFORM_OS2 -I $(INCDIR) -Wall
 AR = ar -ru
 RM = del
 

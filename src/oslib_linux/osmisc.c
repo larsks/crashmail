@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include <shared/types.h>
 #include <shared/jblist.h>
@@ -9,6 +10,8 @@
 #include <oslib/osmisc.h>
 
 #include <sys/stat.h>
+#include <sys/wait.h>
+
 #include <unistd.h>
 
 void osSetComment(uchar *file,uchar *comment)
@@ -29,8 +32,8 @@ int osChDirExecute(uchar *dir,uchar *cmd)
    if(chdir(dir) != 0)
       return(-1);
 
-   res=system(cmd);
-
+   res=osExecute(cmd);
+	
    chdir(olddir);
 
    return(res);
@@ -38,7 +41,11 @@ int osChDirExecute(uchar *dir,uchar *cmd)
 
 int osExecute(uchar *cmd)
 {
-   return system(cmd);
+	int res;
+	
+	res=system(cmd);
+
+   return WEXITSTATUS(res);
 }
 
 bool osExists(uchar *file)
@@ -80,3 +87,12 @@ void osSleep(int secs)
    sleep(secs);
 }
 
+uchar *osErrorMsg(ulong errnum)
+{
+	return (uchar *)strerror(errnum);
+}
+
+ulong osError(void)
+{
+	return (ulong)errno;
+}

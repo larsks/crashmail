@@ -7,6 +7,7 @@ DIR directory
 [FROMNAME string] [FROMADDR node] [TONAME string] [TOADDR node]
 [SUBJECT string]
 [AREA area] [ORIGIN origin] [TEXT filename] [NOMSGID] [FILEATTACH]
+[PKTFROMADDR node] [PKTTOADDR node] PASSWORD [string]
 .SH DESCRIPTION
 CrashWrite reads a text file and creates a .pkt file that can be processed
 by CrashMail. This can be used to post announcements and other messages in
@@ -30,6 +31,21 @@ DIRECTORY. If you do not enter a keyword, a default value will be used.
 Use these keywords to set the header of the message. You only need to enter
 TONAME and TOADDR for netmails.
 .PD
+.TP
+.PD 0
+.TP
+.I PKTFROMADDR node
+.TP
+.I PKTTOADDR node
+Use these if you want to set the origin and destination address of the packet to 
+something other than the origin and destination address of the message 
+inside the packet. If you do not specify these keywords, FROMADDR and 
+TOADDR will be used for the packet as well.
+.PD
+.TP
+.I PASSWORD string
+You can use this keyword to set a password for the packet. The maximum
+length of the password is eight characters.
 .TP
 .I AREA area
 The area the message should be posted in. If you do not enter an area, the

@@ -150,6 +150,8 @@ Changes in version 0.52
  - You can now use the environment variable CMCONFIGFILE to set the default
    configuration file for CrashMail.
 	
+ - CrashMail would incorrectly import FMPT kludges to JAM areas. Fixed.
+
  CrashExport:
  
  - CrashExport did not write netmail areas correctly to a GoldED configuration
@@ -159,13 +161,13 @@ Changes in version 0.52
  
  - CrashExport no longer exports areas with the UNCONFIRMED keyword.
  
- CrashStats
+ CrashStats:
  
  - The total number of messages per day were not calculated correctly in the
    LAST7 mode, instead a random number would be shown. The average total number 
    of messages per day was also incorrect.  These bugs have now been fixed.
 
- CrashMaint
+ CrashMaint:
 
  - You can now use the environment variable CMCONFIGFILE to set the default
    configuration file for CrashMail.
@@ -184,4 +186,75 @@ Changes in version 0.52
 
  - Peter Karlsson has ported CrashMail II to OS/2. Thanks, Peter!
 	
+Changes in version 0.6
+
+ CrashMail: 
+
+ - The AreaFix no longer truncates area names longer than 30 characters in
+   the response messages.
+
+ - The Linux version of CrashMail now shows the real return code (using 
+   WEXITSTATUS()) when an external command returns an error.
+
+ - Two default areas may now have the same path
+
+ - Cleaned up the Makefiles
+
+ - CrashMail no longer sets the Sent flag on all imported message. CrashMail
+   now only exports messages with the Local flag set and the Sent flag cleared.
+
+ - CrashMail can now also export JAM messages with very long kludges without 
+   problems. Previous versions had problems with kludges longer than 200 chars.
+
+ - LF characters are stripped when importing messsages to a JAM messagebase.
+ 
+ - Space characters are stripped in AreaFix commands. This means that AreaFix
+   commands will work even if they begin with one or several space characters.
+
+ - Node numbers can now be abbreviated on the EXPORT lines. See example.prefs
+   for an example on how this works. Thanks to Per Lundberg for idea and 
+   original patch.
+
+ - You can now define local areas in crashmail.prefs using the keyword 
+   LOCALAREA. Local areas are not used by CrashMail, but are included in config
+   files created by CrashExport and are maintained when running CrashMaint.
+
+ CrashWrite:
+ 
+ - There are two new options PKTFROMADDR and PKTTOADDR that can be used to 
+   set the origin and destination address to something other than the origin
+   and destination address of the message inside the packet.
+
+ - A new option PASSWORD that can be used to set the password of the created
+   packet.
+
+ JAMLIB:
+
+ - JAMLIB could crash on corrupt messagebases. Fixed.
+
+ - JAMLIB lo longer reads or writes structures directly from/to disk. This 
+   makes JAMLIB even more portable and ensures that the Intel byte-order will
+	be used on all platforms regardless of the processor used.
+
+ All programs:
+ 
+ - The Win32 version of CrashMail did not work if you were tossing mail to 
+   many downlinks since you could only open a limited number of files with 
+   fopen() (about 40). Because of this, the Win32 version has been rewritten
+   to use Windows' I/O functions rather than the standard C stdio. The problem
+   is solved and the Win32 version is now also slightly faster. Note that 
+   JAMLIB still uses fopen() so do not use too high a value for JAM_MAXOPEN.
+
+ - Improved the error messages in all programs. Now CrashMail will also 
+   tell you why an I/O error occurred using the response given by the 
+   operating system. (To do this, the functions osError() and osErrorMsg() 
+   were added to oslib.)
+
+ - Added function osVFPrintf() to oslib
+
+ - Changed error message "Too many arguments" in command line parsing to  
+   to "Unknown keyword %s". This should make it easier to find the
+   problem.
+
+ - Several cosmetic changes to program output and source code
 

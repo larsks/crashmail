@@ -15,6 +15,10 @@ These are the modifications done by me:
  * Improved ANSI-C compatibilty by changing the header files 
    included and using feof() to check for EOF.
 
+ * JAMLIB been rewritten so that it no longer reads or writes structs
+   directly from or to disk. This makes JAMLIB more portable and ensures
+	that the Intel byte-order is used on all platforms.
+
  * Some other bugfixes
 
  / Johan Billing

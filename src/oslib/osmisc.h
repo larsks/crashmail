@@ -15,4 +15,7 @@ bool osDelete(uchar *file);
 bool osMkDir(uchar *dir);
 void osSleep(int secs);
 
+ulong osError(void);
+uchar *osErrorMsg(ulong errnum);
+
 #endif

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -47,7 +48,7 @@ bool parseargs(struct argument *arg,int argc, char **argv)
 
          if(!arg[j].type)
          {
-            printf("Too many arguments\n");
+            printf("Unknown keyword %s\n",argv[i]);
             return(FALSE);
          }
 

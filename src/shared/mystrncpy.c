@@ -1,5 +1,6 @@
 #include "shared/types.h"
 #include <string.h>
+#include <stdlib.h>
 
 void mystrncpy(uchar *dest,uchar *src,ulong len)
 {

@@ -17,7 +17,9 @@ bool LockBasename(uchar *basename)
 	
 	if(!(fp=osOpen(buf,MODE_NEWFILE)))
 	{
-		printf("Failed to create busy file %s\n",buf);
+		ulong err=osError();
+		LogWrite(1,SYSTEMERR,"Failed to create busy file %s\n",buf);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
 		return(FALSE);
 	}
 	
@@ -190,7 +192,7 @@ void ReadIndex(void)
 		
 	while(osFGets(fh,buf,200))
 	{
-		strip(buf);
+		striptrail(buf);
 
 		jbcpos=0;
 
@@ -398,7 +400,9 @@ void HandleOrphan(uchar *name)
    
    if(!(fh=osOpen(name,MODE_OLDFILE)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open orphan file \"%s\"",name);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
       return;
    }
 
@@ -468,7 +472,9 @@ void MakeOrphan(uchar *file,struct Node4D *n4d,char type,long mode)
    
    if(!(fh=osOpen(buf,MODE_NEWFILE)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open \"%s\", cannot make .orphan file",buf);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
       return;
    }
    
@@ -505,13 +511,15 @@ bool doAddFlow(uchar *filename,uchar *basename,uchar type,long mode)
 
    if(!(fh=osOpen(buf,MODE_READWRITE)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open \"%s\"",buf);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
       return(FALSE);
    }
    
    while(osFGets(fh,buf,200))
    {
-      strip(buf);
+      striptrail(buf);
 
       if(buf[0]=='#') strcpy(buf,&buf[1]);
       if(buf[0]=='~') strcpy(buf,&buf[1]);
@@ -563,15 +571,20 @@ bool AddFlow(uchar *filename,struct Node4D *n4d,uchar type,long mode)
 	return(TRUE);
 }
 
-void MakePktTmp(uchar *name)
+bool MakePktTmp(uchar *name)
 {
 	uchar buf[200];
 	
 	MakeFullPath(config.cfg_PacketDir,GetFilePart(name),buf,200);
    strcpy(&buf[strlen(buf)-6],"pkttmp"); /* Change suffix */
 
-   if(!MoveFile(name,buf))
+   if(!movefile(name,buf))
+	{
    	LogWrite(1,SYSTEMERR,"Failed to move file \"%s\" to \"%s\"",name,buf);
+		return(FALSE);
+	}
+	
+	return(TRUE);
 }
 
 void UpdateFile(uchar *name)
@@ -729,7 +742,7 @@ bool PackFile(char *file)
 				cnode->Node.Node,
 				cnode->Node.Point);
 
-         if(!MoveFile(file,pktname))
+         if(!movefile(file,pktname))
          {
             LogWrite(1,SYSTEMERR,"Failed to move file \"%s\" to \"%s\"",file,pktname);
 				UnlockBasename(basename);
@@ -780,7 +793,9 @@ bool PackFile(char *file)
 		
 		if(!(ifh=osOpen(file,MODE_OLDFILE)))
 		{
+			ulong err=osError();
 			LogWrite(1,SYSTEMERR,"Failed to open \"%s\"",file);
+			LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
 			osFree(copybuf);
 			UnlockBasename(basename);
 			return(FALSE);
@@ -790,7 +805,9 @@ bool PackFile(char *file)
 		{
 			if(!(ofh=osOpen(buf,MODE_READWRITE)))
 			{
+				ulong err=osError();
 				LogWrite(1,SYSTEMERR,"Failed to open \"%s\"",file);
+				LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
 				osClose(ifh);
 				osFree(copybuf);
 				UnlockBasename(basename);
@@ -804,7 +821,9 @@ bool PackFile(char *file)
 		{
 			if(!(ofh=osOpen(buf,MODE_NEWFILE)))
 			{
+				ulong err=osError();
 				LogWrite(1,SYSTEMERR,"Failed to open \"%s\"",file);
+				LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
 				osClose(ifh);
 				osFree(copybuf);
 				UnlockBasename(basename);
@@ -813,8 +832,11 @@ bool PackFile(char *file)
 		}
 
 		while((readlen=osRead(ifh,copybuf,COPYBUFSIZE)))
-			osWrite(ofh,copybuf,readlen);
-		
+		{
+			if(!osWrite(ofh,copybuf,readlen))
+				{ ioerror=TRUE; ioerrornum=osError(); }
+		}
+				
 		osClose(ifh);
 		osClose(ofh);
 		osFree(copybuf);
@@ -823,6 +845,9 @@ bool PackFile(char *file)
    }
 
 	UnlockBasename(basename);
+	
+	if(ioerror)
+		return(FALSE);
 	
 	return(TRUE);
 }
@@ -839,7 +864,9 @@ bool ArchiveOutbound(void)
 
    if(!(osReadDir(config.cfg_PacketDir,&ArcList,IsOrphan)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
       return(FALSE);
    }
 
@@ -859,7 +886,9 @@ bool ArchiveOutbound(void)
 
    if(!(osReadDir(config.cfg_PacketDir,&ArcList,IsArc)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
       return(FALSE);
    }
 
@@ -873,8 +902,10 @@ bool ArchiveOutbound(void)
 	
    if(!(osReadDir(config.cfg_PacketDir,&PktList,IsPktTmp)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
-      jbFreeList(&PktList);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
+      jbFreeList(&ArcList);
       return(FALSE);
    }
 
@@ -896,8 +927,10 @@ bool ArchiveOutbound(void)
 
    if(!(osReadDir(config.cfg_PacketCreate,&PktList,IsNewPkt)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketCreate);
-      jbFreeList(&PktList);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
+      jbFreeList(&ArcList);
       return(FALSE);
    }
 	
@@ -908,7 +941,12 @@ bool ArchiveOutbound(void)
       MakeFullPath(config.cfg_PacketCreate,fe->Name,buf,200);
 
       if(!PackFile(buf))
-			MakePktTmp(buf);
+			if(!MakePktTmp(buf))
+			{
+      		jbFreeList(&PktList);
+      		jbFreeList(&ArcList);
+		      return(FALSE);
+			}
    }
 
    jbFreeList(&PktList);

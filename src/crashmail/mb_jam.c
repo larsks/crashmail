@@ -1,6 +1,10 @@
-#include "crashmail.h"
-
 #include <jamlib/jam.h>
+
+#define NO_TYPEDEF_UCHAR
+#define NO_TYPEDEF_USHORT
+#define NO_TYPEDEF_ULONG
+
+#include "crashmail.h"
 
 #define MIN(a,b)  ((a)<(b)? (a):(b))
 
@@ -296,7 +300,7 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
    s_JamSubPacket*	SubPacket_PS;
    s_JamMsgHeader	Header_S;
    uchar buf[100],domain[20],newflags[100],flag[10];
-   ulong c,d,jbcpos;
+   ulong c,f,jbcpos,linebegin,linelen;
    uchar *msgtext;
    ulong msgsize,msgpos;
    int res;
@@ -375,8 +379,6 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
 
    /* Header attributes */
 
-   Header_S.Attribute |= MSG_SENT;
-
    for(c=0;jam_flagarray[c].name;c++)
       if(mm->Attr & jam_flagarray[c].fidoflagbit)
          Header_S.Attribute |= jam_flagarray[c].jamflagbit;
@@ -389,11 +391,11 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
 
       while(mm->Subject[c]!=0)
       {
-         d=0;
-         while(mm->Subject[c]!=0 && mm->Subject[c]!=32 && mm->Subject[c]!=',' && d<80)
-            buf[d++]=mm->Subject[c++];
+         f=0;
+         while(mm->Subject[c]!=0 && mm->Subject[c]!=32 && mm->Subject[c]!=',' && f<80)
+            buf[f++]=mm->Subject[c++];
 
-         buf[d]=0;
+         buf[f]=0;
 
          while(mm->Subject[c]==32 || mm->Subject[c]==',') c++;
 
@@ -410,11 +412,11 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
 
       while(mm->Subject[c]!=0)
       {
-         d=0;
-         while(mm->Subject[c]!=0 && mm->Subject[c]!=32 && mm->Subject[c]!=',' && d<80)
-            buf[d++]=mm->Subject[c++];
+         f=0;
+         while(mm->Subject[c]!=0 && mm->Subject[c]!=32 && mm->Subject[c]!=',' && f<80)
+            buf[f++]=mm->Subject[c++];
 
-         buf[d]=0;
+         buf[f]=0;
 
          while(mm->Subject[c]==32 || mm->Subject[c]==',') c++;
 
@@ -438,34 +440,48 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
    for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
       for(c=0;c<chunk->Length;)
       {
-         d=0;
-         while(chunk->Data[c+d]!=13 && c+d<chunk->Length) d++;
-         if(chunk->Data[c+d]==13) d++;
+			linebegin=msgpos;
+			
+         while(chunk->Data[c]!=13 && c<chunk->Length)
+			{ 
+				if(chunk->Data[c]!=10) 
+					msgtext[msgpos++]=chunk->Data[c];
+					
+				c++;
+			}
 
-         if(d!=0)
+         if(chunk->Data[c]==13 && c<chunk->Length)
+				msgtext[msgpos++]=chunk->Data[c++];
+
+			linelen=msgpos-linebegin;
+
+         if(linelen!=0)
          {
-            if(d>=6 && strncmp(&chunk->Data[c],"\x01PID: ",6)==0)
+            if(linelen>=5 && strncmp(&msgtext[linebegin],"\x01""PID:",5)==0)
             {
-               mystrncpy(buf,&chunk->Data[c+6],MIN(100,d-6+1));
-               strip(buf);
+               mystrncpy(buf,&msgtext[linebegin+5],MIN(100,linelen-5));
+               stripleadtrail(buf);
                jam_addfield(SubPacket_PS,JAMSFLD_PID,buf);
+					msgpos=linebegin;
             }
-            else if(d>=8 && strncmp(&chunk->Data[c],"\x01MSGID: ",8)==0)
+            else if(linelen>=7 && strncmp(&msgtext[linebegin],"\x01""MSGID:",7)==0)
             {
-               mystrncpy(buf,&chunk->Data[c+8],MIN(100,d-8+1));
-               strip(buf);
+               mystrncpy(buf,&msgtext[linebegin+7],MIN(100,linelen-7));
+               stripleadtrail(buf);
                jam_addfield(SubPacket_PS,JAMSFLD_MSGID,buf);
+					msgpos=linebegin;
             }
-            else if(d>=8 && strncmp(&chunk->Data[c],"\x01REPLY: ",8)==0)
+            else if(linelen>=7 && strncmp(&msgtext[linebegin],"\x01""REPLY:",7)==0)
             {
-               mystrncpy(buf,&chunk->Data[c+8],MIN(100,d-8+1));
-               strip(buf);
+               mystrncpy(buf,&msgtext[linebegin+7],MIN(100,linelen-7));
+               stripleadtrail(buf);
                jam_addfield(SubPacket_PS,JAMSFLD_REPLYID,buf);
+					msgpos=linebegin;
             }
-            else if(d>=8 && strncmp(&chunk->Data[c],"\x01FLAGS: ",8)==0)
+            else if(linelen>=7 && strncmp(&msgtext[linebegin],"\x01""FLAGS:",7)==0)
             {
-               mystrncpy(buf,&chunk->Data[c+8],MIN(100,d-8+1));
-               strip(buf);
+               mystrncpy(buf,&msgtext[linebegin+7],MIN(100,linelen-7));
+               stripleadtrail(buf);
 
                jbcpos=0;
                newflags[0]=0;
@@ -485,35 +501,41 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
                   }
                }
 
-               strip(newflags);
+               stripleadtrail(newflags);
 
                if(newflags[0]!=0)
                   jam_addfield(SubPacket_PS,JAMSFLD_FLAGS,newflags);
+
+					msgpos=linebegin;
             }
-            else if(d>=5 && strncmp(&chunk->Data[c],"\x01INTL",5)==0)
+            else if(linelen>=5 && strncmp(&msgtext[linebegin],"\x01""INTL",5)==0)
             {
                /* Remove this kludge */
+					msgpos=linebegin;
             }
-            else if(d>=5 && strncmp(&chunk->Data[c],"\x01TOPT",5)==0)
+            else if(linelen>=5 && strncmp(&msgtext[linebegin],"\x01""TOPT",5)==0)
             {
                /* Remove this kludge */
+					msgpos=linebegin;
             }
-            else if(d>=5 && strncmp(&chunk->Data[c],"\x01FMPT",5)==0)
+            else if(linelen>=5 && strncmp(&msgtext[linebegin],"\x01""FMPT",5)==0)
             {
                /* Remove this kludge */
+					msgpos=linebegin;
             }
-            else if(chunk->Data[c]==1)
+            else if(msgtext[linebegin]==1)
             {
-               mystrncpy(buf,&chunk->Data[c+1],MIN(100,d-1+1));
-               strip(buf);
+               mystrncpy(buf,&msgtext[linebegin+1],MIN(100,linelen-1));
+               stripleadtrail(buf);
                jam_addfield(SubPacket_PS,JAMSFLD_FTSKLUDGE,buf);
+					msgpos=linebegin;
             }
             else
             {
-               if(!hasorigin && d>11 && strncmp(&chunk->Data[c]," * Origin: ",11)==0)
+               if(!hasorigin && linelen>11 && strncmp(&msgtext[linebegin]," * Origin: ",11)==0)
                {
-                  mystrncpy(buf,&chunk->Data[c+11],MIN(100,d-11+1));
-                  strip(buf);
+	               mystrncpy(buf,&msgtext[linebegin+11],MIN(100,linelen-11));
+                  stripleadtrail(buf);
 
                   if(ExtractAddress(buf,&n4d,domain))
                   {
@@ -524,13 +546,8 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
                      jam_addfield(SubPacket_PS,JAMSFLD_OADDRESS,buf);
                   }
                }
-
-               memcpy(&msgtext[msgpos],&chunk->Data[c],d);
-               msgpos+=d;
             }
          }
-
-         c+=d;
       }
 
    /* Seen-by */
@@ -611,12 +628,17 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
 
 void jam_makekludge(struct MemMessage *mm,uchar *pre,uchar *data,ulong len)
 {
-   uchar buf[200];
+   uchar *buf;
 
+	if(!(buf=osAlloc(strlen(pre)+len+10))) /* A few bytes extra */
+		return;
+	
    strcpy(buf,pre);
    if(len && data) mystrncpy(&buf[strlen(buf)],data,len+1);
    strcat(buf,"\x0d");
-   mmAddLine(mm,buf);;
+   mmAddLine(mm,buf);
+	
+	osFree(buf);
 }
 
 bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemMessage *mm))
@@ -668,18 +690,21 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
 
    if(Header_S.Attribute & MSG_DELETED)
    {
-      /* Message already sent */
+      /* Message deleted */
       JAM_DelSubPacket(SubPacket_PS);
       return(TRUE);
    }
 
    /* Check if already sent */
 
-   if((Header_S.Attribute & MSG_SENT) && !isrescanning)
-   {
-      /* Message already sent */
-      JAM_DelSubPacket(SubPacket_PS);
-      return(TRUE);
+	if(!isrescanning)
+	{
+		if((Header_S.Attribute & MSG_SENT) || !(Header_S.Attribute & MSG_LOCAL))
+		{
+			/* Don't touch if the message is sent or not local */
+	      JAM_DelSubPacket(SubPacket_PS);
+   	   return(TRUE);
+		}
    }
 
    /* Read message text */
@@ -714,7 +739,7 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
       return(FALSE);
    }
 
-   if(area->Flags & AREA_NETMAIL)
+   if(area->AreaType == AREATYPE_NETMAIL)
       strcpy(mm->Area,"");
 
    else
@@ -872,7 +897,7 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
 
    /* Add own kludges */
 
-   if(area->Flags & AREA_NETMAIL)
+   if(area->AreaType == AREATYPE_NETMAIL)
    {
       if(mm->OrigNode.Zone != mm->DestNode.Zone || (config.cfg_Flags & CFG_FORCEINTL))
       {
@@ -938,7 +963,7 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
 
 		if(config.cfg_Flags & CFG_ALLOWKILLSENT)
 		{
-			if((oldattr & FLAG_KILLSENT) && (area->Flags & AREA_NETMAIL))
+			if((oldattr & FLAG_KILLSENT) && (area->AreaType == AREATYPE_NETMAIL))
 			{
 				/* Delete message with KILLSENT flag */
 			

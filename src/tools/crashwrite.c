@@ -9,6 +9,7 @@
 #include <shared/jbstrcpy.h>
 #include <shared/path.h>
 #include <shared/mystrncpy.h>
+#include <shared/node4d.h>
 
 #include <oslib/os.h>
 #include <oslib/osfile.h>
@@ -41,25 +42,26 @@ uchar *ver="$VER: CrashWrite "VERSION" ("__COMMODORE_DATE__")";
 #define ARG_TEXT         8
 #define ARG_NOMSGID      9
 #define ARG_FILEATTACH  10
+#define ARG_PKTFROMADDR 11
+#define ARG_PKTTOADDR   12
+#define ARG_PASSWORD    13
 
 struct argument args[] =
-   { { ARGTYPE_STRING, "FROMNAME",     0,                 NULL },
-     { ARGTYPE_STRING, "FROMADDR",     0,                 NULL },
-     { ARGTYPE_STRING, "TONAME",       0,                 NULL },
-     { ARGTYPE_STRING, "TOADDR",       0,                 NULL },
-     { ARGTYPE_STRING, "SUBJECT",      0,                 NULL },
-     { ARGTYPE_STRING, "AREA",         0,                 NULL },
-     { ARGTYPE_STRING, "ORIGIN",       0,                 NULL },
-     { ARGTYPE_STRING, "DIR",          ARGFLAG_MANDATORY, NULL },
-     { ARGTYPE_STRING, "TEXT",         0,                 NULL },
-	  { ARGTYPE_BOOL,   "NOMSGID",      0,                 NULL },
-	  { ARGTYPE_BOOL,   "FILEATTACH",   0,                 NULL },
-     { ARGTYPE_END,     NULL,          0,                 0    } };
-
-struct Node4D
-{
-   ushort Zone,Net,Node,Point;
-};
+   { { ARGTYPE_STRING, "FROMNAME",      0,                 NULL },
+     { ARGTYPE_STRING, "FROMADDR",      0,                 NULL },
+     { ARGTYPE_STRING, "TONAME",        0,                 NULL },
+     { ARGTYPE_STRING, "TOADDR",        0,                 NULL },
+     { ARGTYPE_STRING, "SUBJECT",       0,                 NULL },
+     { ARGTYPE_STRING, "AREA",          0,                 NULL },
+     { ARGTYPE_STRING, "ORIGIN",        0,                 NULL },
+     { ARGTYPE_STRING, "DIR",           ARGFLAG_MANDATORY, NULL },
+     { ARGTYPE_STRING, "TEXT",          0,                 NULL },
+	  { ARGTYPE_BOOL,   "NOMSGID",       0,                 NULL },
+	  { ARGTYPE_BOOL,   "FILEATTACH",    0,                 NULL },
+     { ARGTYPE_STRING, "PKTFROMADDR",   0,                 NULL },
+     { ARGTYPE_STRING, "PKTTOADDR",     0,                 NULL },
+     { ARGTYPE_STRING, "PASSWORD",      0,                 NULL },
+     { ARGTYPE_END,     NULL,           0,                 0    } };
 
 uchar PktMsgHeader[SIZE_PKTMSGHEADER];
 uchar PktHeader[SIZE_PKTHEADER];
@@ -75,53 +77,6 @@ void putuword(uchar *buf,ulong offset,ushort num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
-}
-
-bool Parse4D(uchar *buf, struct Node4D *node)
-{
-   ulong c=0,val=0;
-   bool GotZone=FALSE,GotNet=FALSE,GotNode=FALSE;
-
-   node->Zone=0;
-   node->Net=0;
-   node->Node=0;
-   node->Point=0;
-
-	for(c=0;c<strlen(buf);c++)
-	{
-		if(buf[c]==':')
-		{
-         if(GotZone || GotNet || GotNode) return(FALSE);
-			node->Zone=val;
-         GotZone=TRUE;
-			val=0;
-	   }
-		else if(buf[c]=='/')
-		{
-         if(GotNet || GotNode) return(FALSE);
-         node->Net=val;
-         GotNet=TRUE;
-			val=0;
-		}
-		else if(buf[c]=='.')
-		{
-         if(GotNode) return(FALSE);
-         node->Node=val;
-         GotNode=TRUE;
-			val=0;
-		}
-		else if(buf[c]>='0' && buf[c]<='9')
-		{
-         val*=10;
-         val+=buf[c]-'0';
-		}
-		else return(FALSE);
-	}
-   if(GotZone && !GotNet)  node->Net=val;
-   else if(GotNode)        node->Point=val;
-   else                    node->Node=val;
-
-   return(TRUE);
 }
 
 void MakeFidoDate(time_t tim,uchar *dest)
@@ -149,7 +104,7 @@ void WriteNull(osFile ofh,uchar *str)
 
 int main(int argc, char **argv)
 {
-   struct Node4D from4d,to4d;
+   struct Node4D from4d,to4d,pktfrom4d,pktto4d;
    osFile ifh,ofh;
 	time_t t;
 	struct tm *tp;
@@ -204,13 +159,36 @@ int main(int argc, char **argv)
       }
 	}
 
+	Copy4D(&pktfrom4d,&from4d);
+	Copy4D(&pktto4d,&to4d);
+
+   if(args[ARG_PKTFROMADDR].data)
+   {
+      if(!(Parse4D((uchar *)args[ARG_FROMADDR].data,&pktfrom4d)))
+      {
+         printf("Invalid address \"%s\"\n",(uchar *)args[ARG_PKTFROMADDR].data);
+			osEnd();
+			exit(OS_EXIT_ERROR);
+      }
+	}
+
+   if(args[ARG_PKTTOADDR].data)
+   {
+      if(!(Parse4D((uchar *)args[ARG_TOADDR].data,&pktto4d)))
+      {
+         printf("Invalid address \"%s\"\n",(uchar *)args[ARG_PKTFROMADDR].data);
+			osEnd();
+			exit(OS_EXIT_ERROR);
+      }
+	}
+
    time(&t);
    tp=localtime(&t);
 
 	/* Create packet header */
 
-   putuword(PktHeader,PKTHEADER_ORIGNODE,from4d.Node);
-   putuword(PktHeader,PKTHEADER_DESTNODE,to4d.Node);
+   putuword(PktHeader,PKTHEADER_ORIGNODE,pktfrom4d.Node);
+   putuword(PktHeader,PKTHEADER_DESTNODE,pktto4d.Node);
    putuword(PktHeader,PKTHEADER_DAY,tp->tm_mday);
    putuword(PktHeader,PKTHEADER_MONTH,tp->tm_mon);
    putuword(PktHeader,PKTHEADER_YEAR,tp->tm_year+1900);
@@ -219,21 +197,21 @@ int main(int argc, char **argv)
    putuword(PktHeader,PKTHEADER_SECOND,tp->tm_sec);
    putuword(PktHeader,PKTHEADER_BAUD,0);
    putuword(PktHeader,PKTHEADER_PKTTYPE,2);
-   putuword(PktHeader,PKTHEADER_ORIGNET,from4d.Net);
-   putuword(PktHeader,PKTHEADER_DESTNET,to4d.Net);
+   putuword(PktHeader,PKTHEADER_ORIGNET,pktfrom4d.Net);
+   putuword(PktHeader,PKTHEADER_DESTNET,pktto4d.Net);
    PktHeader[PKTHEADER_PRODCODELOW]=0xfe;
    PktHeader[PKTHEADER_REVMAJOR]=VERSION_MAJOR;
-   putuword(PktHeader,PKTHEADER_QORIGZONE,from4d.Zone);
-   putuword(PktHeader,PKTHEADER_QDESTZONE,to4d.Zone);
+   putuword(PktHeader,PKTHEADER_QORIGZONE,pktfrom4d.Zone);
+   putuword(PktHeader,PKTHEADER_QDESTZONE,pktto4d.Zone);
    putuword(PktHeader,PKTHEADER_AUXNET,0);
    putuword(PktHeader,PKTHEADER_CWVALIDCOPY,0x0100);
    PktHeader[PKTHEADER_PRODCODEHIGH]=0;
    PktHeader[PKTHEADER_REVMINOR]=VERSION_MINOR;
    putuword(PktHeader,PKTHEADER_CAPABILWORD,0x0001);
-   putuword(PktHeader,PKTHEADER_ORIGZONE,from4d.Zone);
-   putuword(PktHeader,PKTHEADER_DESTZONE,to4d.Zone);
-   putuword(PktHeader,PKTHEADER_ORIGPOINT,from4d.Point);
-   putuword(PktHeader,PKTHEADER_DESTPOINT,to4d.Point);
+   putuword(PktHeader,PKTHEADER_ORIGZONE,pktfrom4d.Zone);
+   putuword(PktHeader,PKTHEADER_DESTZONE,pktto4d.Zone);
+   putuword(PktHeader,PKTHEADER_ORIGPOINT,pktfrom4d.Point);
+   putuword(PktHeader,PKTHEADER_DESTPOINT,pktto4d.Point);
    PktHeader[PKTHEADER_PRODDATA]=0;
    PktHeader[PKTHEADER_PRODDATA+1]=0;
    PktHeader[PKTHEADER_PRODDATA+2]=0;
@@ -241,6 +219,9 @@ int main(int argc, char **argv)
 
    for(c=0;c<8;c++)
       PktHeader[PKTHEADER_PASSWORD+c]=0;
+
+   if(args[ARG_PASSWORD].data)
+      strncpy(&PktHeader[PKTHEADER_PASSWORD],args[ARG_PASSWORD].data,8);
 
 	/* Create message header */
 
@@ -287,7 +268,9 @@ int main(int argc, char **argv)
 
    if(!(ofh=osOpen(fullname,MODE_NEWFILE)))
    {
-      printf("Unable to create packet %s",fullname);
+		ulong err=osError();
+      printf("Unable to create packet %s\n",fullname);
+		printf("Error: %s\n",osErrorMsg(err));		
 		osEnd();
       exit(OS_EXIT_ERROR);
    }
@@ -334,7 +317,9 @@ int main(int argc, char **argv)
 		
 	   if(!(ifh=osOpen((uchar *)args[ARG_TEXT].data,MODE_OLDFILE)))
    	{
+			ulong err=osError();
       	printf("Unable to open \"%s\" for reading\n",(uchar *)args[ARG_TEXT].data);
+			printf("Error: %s\n",osErrorMsg(err));		
 			osClose(ofh);
 			osDelete(fullname);
 			exit(OS_EXIT_ERROR);

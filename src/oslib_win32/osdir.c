@@ -1,10 +1,4 @@
-#include <string.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <time.h>
-
-#include <dirent.h>
-#include <sys/stat.h>
+#include <windows.h>
 
 #include <shared/types.h>
 #include <shared/jblist.h>
@@ -14,85 +8,142 @@
 #include <oslib/osmem.h>
 #include <oslib/osdir.h>
 
+void win32finddata_to_fileentry(WIN32_FIND_DATA *w32,struct osFileEntry *fe)
+{
+   FILETIME local;
+   SYSTEMTIME systime;
+   struct tm tp;
+
+   mystrncpy(fe->Name,w32->cFileName,100);
+
+   fe->Size=w32->nFileSizeLow;
+
+   FileTimeToLocalFileTime(&w32->ftLastWriteTime,&local);
+   FileTimeToSystemTime(&local,&systime);
+
+   tp.tm_sec=systime.wSecond;
+   tp.tm_min=systime.wMinute;
+   tp.tm_hour=systime.wHour;
+   tp.tm_mday=systime.wDay;
+   tp.tm_mon=systime.wMonth-1;
+   tp.tm_year=systime.wYear-1900;
+   tp.tm_wday=0;
+   tp.tm_yday=0;
+   tp.tm_isdst=-1;
+
+   fe->Date=mktime(&tp);
+
+   if(fe->Date == -1) /* Just in case */
+      time(&fe->Date);
+}
+
+bool win32readdiraddfile(WIN32_FIND_DATA *FindFileData,struct jbList *filelist,bool (*acceptfunc)(uchar *filename))
+{
+   bool add;
+   struct osFileEntry *tmp;
+
+   if(!acceptfunc)   add=TRUE;
+   else              add=(*acceptfunc)(FindFileData->cFileName);
+
+   if(add)
+   {
+      if(!(tmp=(struct osFileEntry *)osAllocCleared(sizeof(struct osFileEntry))))
+      {
+         jbFreeList(filelist);
+         return(FALSE);
+      }
+
+      win32finddata_to_fileentry(FindFileData,tmp);
+      jbAddNode(filelist,(struct jbNode *)tmp);
+   }
+
+   return(TRUE);
+}
+
 bool osReadDir(uchar *dirname,struct jbList *filelist,bool (*acceptfunc)(uchar *filename))
 {
-   DIR *dir;
-   struct dirent *dirent;
-   struct osFileEntry *tmp;
+   WIN32_FIND_DATA FindFileData;
+   HANDLE hFind;
    char buf[200];
 
    jbNewList(filelist);
 
-   if(!(dir=opendir(dirname)))
+   mystrncpy(buf,dirname,190);
+
+   if(buf[strlen(buf)-1] != '\\')
+      strcat(buf,"\\");
+
+   strcat(buf,"*");
+
+   hFind = FindFirstFile(buf,&FindFileData);
+
+   if (hFind == INVALID_HANDLE_VALUE)
       return(FALSE);
 
-   while((dirent=readdir(dir)))
+   if(!win32readdiraddfile(&FindFileData,filelist,acceptfunc))
    {
-      bool add;
+      FindClose(hFind);
+      return(FALSE);
+   }
 
-      if(!acceptfunc)   add=TRUE;
-      else              add=(*acceptfunc)(dirent->d_name);
-
-      if(add)
+   while(FindNextFile(hFind,&FindFileData))
+   {
+      if(!win32readdiraddfile(&FindFileData,filelist,acceptfunc))
       {
-         struct stat st;
-
-         MakeFullPath(dirname,dirent->d_name,buf,200);
-
-	 if(stat(buf,&st) == 0)
-	 {
-            if(!(tmp=(struct osFileEntry *)osAllocCleared(sizeof(struct osFileEntry))))
-            {
-               jbFreeList(filelist);
-               closedir(dir);
-               return(FALSE);
-            }
-
-            mystrncpy(tmp->Name,dirent->d_name,100);
-            tmp->Size=st.st_size;
-            tmp->Date=st.st_mtime;
-
-            jbAddNode(filelist,(struct jbNode *)tmp);
-         }
+         FindClose(hFind);
+         return(FALSE);
       }
    }
 
-   closedir(dir);
+   FindClose(hFind);
 
    return(TRUE);
 }
 
 bool osScanDir(uchar *dirname,void (*func)(uchar *file))
 {
-   DIR *dir;
-   struct dirent *dirent;
+   WIN32_FIND_DATA FindFileData;
+   HANDLE hFind;
+   char buf[200];
 
-   if(!(dir=opendir(dirname)))
+   mystrncpy(buf,dirname,190);
+
+   if(buf[strlen(buf)-1] != '\\')
+      strcat(buf,"\\");
+
+   strcat(buf,"*");
+
+   hFind = FindFirstFile(buf,&FindFileData);
+
+   if (hFind == INVALID_HANDLE_VALUE)
       return(FALSE);
 
-   while((dirent=readdir(dir)))
-      (*func)(dirent->d_name);
+   (*func)(FindFileData.cFileName);
 
-   closedir(dir);
+   while(FindNextFile(hFind,&FindFileData))
+      (*func)(FindFileData.cFileName);
+
+   FindClose(hFind);
 
    return(TRUE);
 }
 
 struct osFileEntry *osGetFileEntry(uchar *file)
 {
-   struct stat st;
+   WIN32_FIND_DATA FindFileData;
+   HANDLE hFind;
    struct osFileEntry *tmp;
 
-   if(stat(file,&st) != 0)
-      return(FALSE);
+   hFind = FindFirstFile(file,&FindFileData);
+   FindClose(hFind);
+
+   if (hFind == INVALID_HANDLE_VALUE)
+      return(NULL);
 
    if(!(tmp=(struct osFileEntry *)osAllocCleared(sizeof(struct osFileEntry))))
-      return(FALSE);
+      return(NULL);
 
-   mystrncpy(tmp->Name,GetFilePart(file),100);
-
-   tmp->Size=st.st_size;
-   tmp->Date=st.st_mtime;
+   win32finddata_to_fileentry(&FindFileData,tmp);
 
    return(tmp);
 }

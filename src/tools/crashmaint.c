@@ -4,6 +4,12 @@
 #include <signal.h>
 #include <errno.h>
 
+#include <jamlib/jam.h>
+
+#define NO_TYPEDEF_UCHAR
+#define NO_TYPEDEF_ULONG
+#define NO_TYPEDEF_USHORT
+
 #include <shared/parseargs.h>
 #include <shared/jblist.h>
 #include <shared/jbstrcpy.h>
@@ -19,34 +25,49 @@
 #include <shared/storedmsg.h>
 #include <shared/fidonet.h>
 
-#include <jamlib/jam.h>
-
 #define VERSION "1.1"
 
 #ifdef PLATFORM_AMIGA
 uchar *ver="$VER: CrashMaint "VERSION" ("__COMMODORE_DATE__")";
 #endif
 
-#define MB_MSG   1
-#define MB_JAM   2
-
 struct Area
 {
    struct Area *Next;
    uchar Tagname[80];
    uchar Path[80];
+	uchar Messagebase[20];
    ulong KeepNum,KeepDays;
-   int Type;
-};
-
-struct Msg
-{
-   struct Msg *Next;
-   ulong Num,NewNum,Day;
 };
 
 struct jbList AreaList;
-struct jbList MsgList;
+
+struct Messagebase
+{
+	uchar *Name;
+	bool (*processfunc)(struct Area *area,bool maint,bool pack,bool verbose);
+};
+
+#ifdef MSGBASE_MSG
+bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose);
+#endif
+
+#ifdef MSGBASE_JAM
+bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose);
+#endif
+
+struct Messagebase Messagebases[] = 
+{ 
+#ifdef MSGBASE_JAM
+	{ "JAM", ProcessAreaJAM },
+#endif
+
+#ifdef MSGBASE_MSG
+	{ "MSG", ProcessAreaMSG },
+#endif								  
+
+	{ NULL,  NULL       } 
+};
 
 #define ARG_MAINT      0
 #define ARG_PACK       1
@@ -62,13 +83,24 @@ struct argument args[] =
      { ARGTYPE_STRING, "PATTERN",      0, NULL },
      { ARGTYPE_END,     NULL,          0, 0    } };
 
-bool diskfull;
 bool ctrlc;
 
 void breakfunc(int x)
 {
    ctrlc=TRUE;
 }
+
+/******************** *.msg *********************/
+
+#ifdef MSGBASE_MSG
+
+struct Msg
+{
+   struct Msg *Next;
+   ulong Num,NewNum,Day;
+};
+
+struct jbList MsgList;
 
 int Compare(const void *a1,const void *a2)
 {
@@ -174,7 +206,7 @@ void scanfunc(uchar *str)
    msg->Day=day;
 }
 
-bool ProcessAreaMSG(struct Area *area)
+bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose)
 {
    ulong today,num,del,highwater,oldhighwater;
    struct Msg *msg;
@@ -193,7 +225,9 @@ bool ProcessAreaMSG(struct Area *area)
 
    if(!(osScanDir(area->Path,scanfunc)))
    {
+		ulong err=osError();
       printf(" Error: Couldn't scan directory %s\n",area->Path);
+		printf(" Error: %s\n",osErrorMsg(err));
       jbFreeList(&MsgList);
       return(TRUE);
    }
@@ -236,7 +270,7 @@ bool ProcessAreaMSG(struct Area *area)
       osClose(fh);
    }
 
-   if(args[ARG_MAINT].data && area->KeepNum!=0)
+   if(maint && area->KeepNum!=0)
    {
       num=0;
 
@@ -257,7 +291,7 @@ bool ProcessAreaMSG(struct Area *area)
          if(msg->Num == highwater)
             highwater=0;
 
-         if(args[ARG_VERBOSE].data)
+         if(verbose)
             printf(" Deleting message #%lu by number\n",msg->Num);
 
          osDelete(buf);
@@ -276,7 +310,7 @@ bool ProcessAreaMSG(struct Area *area)
       printf(" %lu messages deleted by number, %lu messages left\n",del,num);
    }
 
-   if(args[ARG_MAINT].data && area->KeepDays!=0)
+   if(maint && area->KeepDays!=0)
    {
       del=0;
       num=0;
@@ -293,7 +327,7 @@ bool ProcessAreaMSG(struct Area *area)
             if(msg->Num == highwater)
                highwater=0;
 
-            if(args[ARG_VERBOSE].data)
+            if(verbose)
                printf(" Deleting message #%lu by date\n",msg->Num);
 
             osDelete(buf);
@@ -316,7 +350,7 @@ bool ProcessAreaMSG(struct Area *area)
       printf(" %lu messages deleted by date, %lu messages left\n",del,num);
    }
 
-   if(args[ARG_PACK].data)
+   if(pack)
    {
       num=2;
 
@@ -346,7 +380,7 @@ bool ProcessAreaMSG(struct Area *area)
             if(highwater == msg->Num)
                highwater=msg->NewNum;
 
-            if(args[ARG_VERBOSE].data)
+            if(verbose)
                printf(" Renaming message %lu to %lu\n",msg->Num,msg->NewNum);
 
             osRename(buf,newbuf);
@@ -397,8 +431,13 @@ bool ProcessAreaMSG(struct Area *area)
    return(TRUE);
 }
 
+#endif
 
-bool ProcessAreaJAM(struct Area *area)
+/*************************** JAM ************************/
+
+#ifdef MSGBASE_JAM
+
+bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 {
    ulong today,active,basenum,total,del,num,day;
    s_JamBase *Base_PS,*NewBase_PS;
@@ -452,7 +491,7 @@ bool ProcessAreaJAM(struct Area *area)
       return(TRUE);
    }
 
-   if(args[ARG_MAINT].data && area->KeepNum!=0)
+   if(maint && area->KeepNum!=0)
    {		
 		num=0;
 		del=0;
@@ -469,7 +508,7 @@ bool ProcessAreaJAM(struct Area *area)
 				{
 					/* Not already deleted */
 
-		         if(args[ARG_VERBOSE].data)
+		         if(verbose)
       		      printf(" Deleting message #%lu by number\n",basenum+num);
 	
 					Header_S.Attribute |= MSG_DELETED;
@@ -496,7 +535,7 @@ bool ProcessAreaJAM(struct Area *area)
       printf(" %lu messages deleted by number, %lu messages left\n",del,active);
    }
 
-   if(args[ARG_MAINT].data && area->KeepDays!=0)
+   if(maint && area->KeepDays!=0)
    {
       del=0;
       num=0;
@@ -523,7 +562,7 @@ bool ProcessAreaJAM(struct Area *area)
 				{
 					/* Not already deleted and too old*/
 
-		         if(args[ARG_VERBOSE].data)
+		         if(verbose)
       		      printf(" Deleting message #%lu by date\n",basenum+num);
 	
 					Header_S.Attribute |= MSG_DELETED;
@@ -550,7 +589,7 @@ bool ProcessAreaJAM(struct Area *area)
       printf(" %lu messages deleted by date, %lu messages left\n",del,active);
    }
 
-   if(args[ARG_PACK].data)
+   if(pack)
    {
 		strcpy(buf,area->Path);
 		strcat(buf,".cmtemp");
@@ -796,21 +835,28 @@ bool ProcessAreaJAM(struct Area *area)
    return(TRUE);
 }
 
+#endif
+
+/************************** end of messagebases *******************/
+
 uchar cfgbuf[4000];
 
 bool ReadConfig(uchar *file)
 {
    osFile fh;
    uchar cfgword[20];
-   uchar tag[80];
-   uchar path[80];
+   uchar tag[80],aka[80],path[80],mb[20];
    struct Area *tmparea,*LastArea;
    ulong jbcpos;
-   int type;
 
    if(!(fh=osOpen(file,MODE_OLDFILE)))
+	{
+		ulong err=osError();
+      printf("Failed to open file %s for reading\n",file);
+		printf("Error: %s\n",osErrorMsg(err));
       return(FALSE);
-
+	}
+	
 	LastArea=NULL;
 
    while(osFGets(fh,cfgbuf,4000))
@@ -830,40 +876,30 @@ bool ReadConfig(uchar *file)
             LastArea->KeepNum=atol(tag);
       }
 
-      if(stricmp(cfgword,"AREA")==0 || stricmp(cfgword,"NETMAIL")==0)
+      if(stricmp(cfgword,"AREA")==0 || stricmp(cfgword,"NETMAIL")==0 || stricmp(cfgword,"LOCALAREA")==0)
       {
-         jbstrcpy(tag,cfgbuf,80,&jbcpos);
-         jbstrcpy(path,cfgbuf,80,&jbcpos);
-         jbstrcpy(path,cfgbuf,80,&jbcpos);
+         jbstrcpy(tag,cfgbuf,80,&jbcpos); 
+         jbstrcpy(aka,cfgbuf,80,&jbcpos);
 
-         type=0;
-
-         if(stricmp(path,"MSG")==0)
-            type=MB_MSG;
-
-         if(stricmp(path,"JAM")==0)
-            type=MB_JAM;
-
-         if(type)
+         if(stricmp(tag,"DEFAULT")!=0 && strnicmp(tag,"DEFAULT_",8)!=0)
          {
-            if(stricmp(tag,"DEFAULT")!=0 && strnicmp(tag,"DEFAULT_",8)!=0)
-            {
-               if(jbstrcpy(path,cfgbuf,80,&jbcpos))
+				if(jbstrcpy(mb,cfgbuf,20,&jbcpos))
+				{
+				   jbstrcpy(path,cfgbuf,80,&jbcpos);
+					
+               if(!(tmparea=(struct Area *)osAllocCleared(sizeof(struct Area))))
                {
-                  if(!(tmparea=(struct Area *)osAllocCleared(sizeof(struct Area))))
-                  {
-            		   printf("Out of memory\n");
-                     osClose(fh);
-                     return(FALSE);
-                  }
+         		   printf("Out of memory\n");
+                  osClose(fh);
+                  return(FALSE);
+               }                  
+					
+					jbAddNode(&AreaList,(struct jbNode *)tmparea);
+               LastArea=tmparea;
 
-                  jbAddNode(&AreaList,(struct jbNode *)tmparea);
-                  LastArea=tmparea;
-
-                  strcpy(tmparea->Tagname,tag);
-                  strcpy(tmparea->Path,path);
-                  tmparea->Type=type;
-               }
+               strcpy(tmparea->Tagname,tag);
+               strcpy(tmparea->Messagebase,mb);
+               strcpy(tmparea->Path,path);
             }
          }
       }
@@ -877,7 +913,9 @@ int main(int argc, char **argv)
 {
    struct Area *area;
    uchar *cfg;
-   
+   bool maint,pack,verbose;
+	int i;
+		
    signal(SIGINT,breakfunc);
 
    if(!osInit())
@@ -898,7 +936,20 @@ int main(int argc, char **argv)
 
    jbNewList(&AreaList);
 
-   if(!args[ARG_MAINT].data && !args[ARG_PACK].data)
+	maint=FALSE;
+	pack=FALSE;
+	verbose=FALSE;
+
+   if(args[ARG_MAINT].data)
+		maint=TRUE;
+	
+	if(args[ARG_PACK].data)
+		pack=TRUE;
+
+   if(args[ARG_VERBOSE].data)
+		verbose=TRUE;
+
+   if(!maint && !pack)
    {
       printf("Nothing to do.\n");
       osEnd();
@@ -925,7 +976,6 @@ int main(int argc, char **argv)
 
    if(!(ReadConfig(cfg)))
    {
-      printf("Couldn't read config \"%s\"\n",cfg);
       jbFreeList(&AreaList);
       osEnd();
       exit(OS_EXIT_ERROR);
@@ -945,17 +995,20 @@ int main(int argc, char **argv)
 
       if(match)
       {
-         if(area->Type == MB_JAM)
-         {
-            if(!ProcessAreaJAM(area))
-               exit(OS_EXIT_ERROR);
-         }
+			for(i=0;Messagebases[i].Name;i++)
+				if(stricmp(Messagebases[i].Name,area->Messagebase)==0) break;
 
-         if(area->Type == MB_MSG)
+			if(Messagebases[i].processfunc)
          {
-            if(!ProcessAreaMSG(area))
+            if(!Messagebases[i].processfunc(area,maint,pack,verbose))
                exit(OS_EXIT_ERROR);
          }
+			else
+			{
+				printf("Cannot process area %s, messagebase %s not supported by CrashMaint\n",
+					area->Tagname,
+					area->Messagebase);
+			}
       }
    }
 
@@ -967,4 +1020,3 @@ int main(int argc, char **argv)
 
    exit(OS_EXIT_OK);
 }
-

@@ -52,14 +52,17 @@
 #define CFG_AMIGA_UNATTENDED        (1L<<0)
 #endif
 
-#define AREA_NETMAIL        1
-#define AREA_UNCONFIRMED    2
-#define AREA_BAD            4
-#define AREA_MANDATORY      8
-#define AREA_DEFREADONLY   16
-#define AREA_IGNOREDUPES   32
-#define AREA_IGNORESEENBY  64
-#define AREA_DEFAULT      128
+#define AREA_UNCONFIRMED    1
+#define AREA_MANDATORY      2
+#define AREA_DEFREADONLY    4
+#define AREA_IGNOREDUPES    8
+#define AREA_IGNORESEENBY  16
+
+#define AREATYPE_NETMAIL	1
+#define AREATYPE_ECHOMAIL  2
+#define AREATYPE_DEFAULT   3
+#define AREATYPE_BAD       4
+#define AREATYPE_LOCAL     5
 
 struct Area
 {
@@ -67,6 +70,7 @@ struct Area
    bool changed;
    struct Aka  *Aka;
    uchar Flags;
+	uchar AreaType;
    uchar Tagname[80];
    uchar Description[80];
    struct Messagebase *Messagebase;

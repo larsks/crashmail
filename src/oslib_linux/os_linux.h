@@ -30,7 +30,3 @@ typedef unsigned short UINT16; /* Unsigned 16-bit integer */
 #define stricmp strcasecmp
 #define strnicmp strncasecmp
 
-/* work-around */
-
-int strcasecmp(const char *s1, const char *s2);
-int strncasecmp(const char *s1, const char *s2,size_t n);
