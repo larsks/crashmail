@@ -1,9 +1,16 @@
+crashmail (0.70-1) unstable; urgency=low
+
+  * New upstream release.
+  * Updated copyright file to match current license terms.
+
+ -- Peter Karlsson <peterk@debian.org>  Sun, 14 Dec 2003 00:00:00 +0100
+
 crashmail (0.62-1) unstable; urgency=low
 
   * New upstream release.
   * Updated to Standards-Version 3.5.5:
    - Move the AreafixHelp.txt to /usr/share/crashmail since it is
-     references from the sample configuration.
+     referenced from the sample configuration.
 
  -- peter karlsson <peterk@debian.org>  Fri, 17 Aug 2001 22:45:00 +0200
 

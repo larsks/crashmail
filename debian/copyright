@@ -1,27 +1,25 @@
-This package was debianized by peter karlsson <peter@softwolves.pp.se> on
-Tue, 19 Oct 1999 20:54:38 +0200.
+Obtained from: http://www.df.lth.se/~billing/crashmail.html
+Packaged for Debian by: Peter Karlsson <peterk@debian.org>
+Upstream author: Johan Billing <2:201/128.77> <billing@df.lth.se>
 
-It was downloaded from http://www.df.lth.se/~billing/crashmail.html
+JAMLIB is copyright 1999 Björn Stenberg. JAMLIB is released under the
+GNU Lesser General Public License. On Debian systems, the complete text of
+the GNU Lesser General Public License can be found in the
+/usr/share/common-licenses/LGPL file.
 
-Upstream Author(s): Johan Billing <2:201/128.77> <billing@df.lth.se>
-
-Copyright:
-
-JAMLIB is copyright 1996 Björn Stenberg. Permission to use, copy, and
-distribute this software and its documentation is hereby granted without
-fee, provided that the above copyright notice appear in all copies and that
-the copyright notice and this permission notice appear in supporting
-documentation.
-
-Except where explicitly stated otherwise, all other parts of CrashMail are 
-copyright 1999 Johan Billing. Permission to use, copy and distribute CrashMail 
-is granted provided that this copyright notice is included. Permission to 
-modify CrashMail is granted. Distributing modified versions of CrashMail is 
-allowed provided that the documentation clearly states that it is a modified 
-version. Parts of CrashMail may be freely used in other projects as long as 
-the documentation mentions the original copyright holder.
+Except where explicitly stated otherwise, all other parts of CrashMail are
+copyright 1999 Johan Billing. Permission to use, copy and distribute
+CrashMail is granted provided that this copyright notice is included.
+Permission to modify CrashMail is granted. Distributing modified versions of
+CrashMail is allowed provided that the documentation clearly states that it
+is a modified version. Parts of CrashMail may be freely used in other
+projects as long as the documentation mentions the original copyright
+holder.
 
 The JAM message base proposal is:
 JAM(mbp) - Copyright 1993 Joaquim Homrighausen, Andrew Milner,
                           Mats Birch, Mats Wallin.
                           ALL RIGHTS RESERVED
+
+This version constitutes a modified version, as some of the of the
+configuration defaults have been changed to conform to the Debian policy.
