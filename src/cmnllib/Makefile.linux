@@ -1,9 +1,17 @@
-CC      = gcc -D__LINUX__ -I "../" --ansi -Wall
+INCDIR = ../
+
+CC = gcc -DPLATFORM_LINUX -I $(INCDIR) --ansi -Wall
+AR = ar -ru
+RM = rm -f
+
 OBJS    = cmnllib.o
 
 cmnllib.a : $(OBJS) 
-	ar -ru cmnllib.a $(OBJS)
-	cp cmnllib.a ../
+	$(AR) cmnllib.a $(OBJS)
 	
 cmnllib.o: cmnllib.c
 	$(CC) -c cmnllib.c -o cmnllib.o
+
+clean :
+	$(RM) *.o *.a
+	

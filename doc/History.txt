@@ -29,3 +29,11 @@ Nytt i version 0.3:
 
  - Outboundhanteringen är klar
  
+Nytt i version 0.4
+
+ - Loggar inte allt som LOG_INFO till sysloggen längre
+ 
+ - CrashMaint fixad
+ 
+ - Slängde in AreafixHelp.txt
+ 

@@ -1,5 +1,6 @@
 #include "crashmail.h"
-#include "jam.h"
+
+#include <jamlib/jam.h>
 
 #define MIN(a,b)  ((a)<(b)? (a):(b))
 
@@ -1198,6 +1199,13 @@ int jam_linkmb(struct Area *area,ulong oldnum)
       {
          s_JamMsgHeader         Header_S;
   
+         if(JAM_LockMB(ja->Base_PS,10))
+         {
+            LogWrite(1,SYSTEMERR,"Timeout when trying to lock JAM messagebase \"%s\"",area->Path);
+            osFree(msgs);
+				return(FALSE);
+         }
+
          res = JAM_ReadMsgHeader( ja->Base_PS, c, &Header_S, NULL);
 
          if(!res)
@@ -1205,13 +1213,6 @@ int jam_linkmb(struct Area *area,ulong oldnum)
             Header_S.ReplyTo=msgs[c].ReplyTo;
             Header_S.Reply1st=msgs[c].Reply1st;
             Header_S.ReplyNext=msgs[c].ReplyNext;
-
-            if(JAM_LockMB(ja->Base_PS,10))
-            {
-               LogWrite(1,SYSTEMERR,"Timeout when trying to lock JAM messagebase \"%s\"",area->Path);
-               osFree(msgs);
-               return(FALSE);
-            }
 
             JAM_ChangeMsgHeader(ja->Base_PS,c,&Header_S);
             JAM_UnlockMB(ja->Base_PS);

@@ -3,8 +3,6 @@
 
 #include "node4d.h"
 
-#define NODELIST_CMNL
-
 struct Nodelist
 {
    uchar *name;

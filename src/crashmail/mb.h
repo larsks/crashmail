@@ -1,9 +1,6 @@
 #ifndef MB_H
 #define MB_H
 
-#define MSGBASE_MSG
-#define MSGBASE_JAM
-
 #include "shared/types.h"
 #include "memmessage.h"
 #include "config.h"

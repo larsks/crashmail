@@ -10,15 +10,20 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#ifndef __UCHAR_DEFINED__
+#define __UCHAR_DEFINED__
+
 typedef unsigned char  uchar;    /* must be  8 bits wide */
 typedef unsigned short ushort;   /* must be 16 bits wide */
 typedef unsigned long  ulong;    /* must be 32 bits wide */
+
+#endif
 
 /*
 **  Error codes
 */
 #define JAM_BAD_PARAM   1  /* one or more parameters are wrong */
-#define JAM_IO_ERROR	2  /* i/o error. check JAM_Errno() for details */
+#define JAM_IO_ERROR		2  /* i/o error. check JAM_Errno() for details */
 #define JAM_LOCK_FAILED 3  /* lock could not be set */
 #define JAM_NOT_LOCKED  4  /* the message base was not locked before writing */
 #define JAM_NO_MEMORY   5  /* out of memory! */
@@ -205,63 +210,82 @@ typedef struct {
 
 /* mbase.c */
 int JAM_OpenMB		( uchar* 		Basename_PC,
-			  s_JamBase** 		NewArea_PPS );
-int JAM_CloseMB		( s_JamBase* 		Area_PS );
+						  s_JamBase** 		NewArea_PPS );
+						  
+int JAM_CloseMB	( s_JamBase* 		Area_PS );
+
 int JAM_CreateMB	( uchar* 		Basename_PC,
-			  ulong 		BaseMsg_I,
-			  s_JamBase** 		NewArea_PPS );
+						  ulong 		BaseMsg_I,
+						  s_JamBase** 		NewArea_PPS );
+
 int JAM_RemoveMB	( s_JamBase* 		Area_PS,
-			  uchar* 		Basename_PC );
+						  uchar* 		Basename_PC );
+
 int JAM_LockMB		( s_JamBase* 		Area_PS,
-			  int			Timeout_I );
+						  int			Timeout_I );
+
 int JAM_UnlockMB	( s_JamBase* 		Area_PS );
+
 int JAM_ReadMBHeader	( s_JamBase* 		Area_PS,
-			  s_JamBaseHeader* 	Header_PS );
+							  s_JamBaseHeader* 	Header_PS );
+							  
 int JAM_WriteMBHeader	( s_JamBase* 		Area_PS,
-			  s_JamBaseHeader* 	Header_PS );
+								  s_JamBaseHeader* 	Header_PS );
+								  
 int JAM_FindUser	( s_JamBase* 		Area_PS,
-			  ulong 		UserCrc_I,
-			  ulong 		StartMsg_I,
-			  ulong* 		MsgNo_PI );
+						  ulong 		UserCrc_I,
+						  ulong 		StartMsg_I,
+						  ulong* 		MsgNo_PI );
 int JAM_GetMBSize	( s_JamBase* 		Area_PS,
-			  ulong* 		Messages_PI );
+			 			  ulong* 		Messages_PI );
 
 /* message.c */
+
 int JAM_ReadMsgHeader	( s_JamBase* 		Area_PS, 
-			  ulong 		MsgNo_I,
-			  s_JamMsgHeader*	Header_PS, 
-			  s_JamSubPacket** 	SubfieldPack_PPS );
+								  ulong 		MsgNo_I,
+								  s_JamMsgHeader*	Header_PS, 
+								  s_JamSubPacket** 	SubfieldPack_PPS );
 int JAM_ReadMsgText	( s_JamBase* 		Area_PS, 
-			  ulong 		Offset_I,
-			  ulong 		Length_I,
-			  uchar* 		Buffer_PC );
+							  ulong 		Offset_I,
+							  ulong 		Length_I,
+							  uchar* 		Buffer_PC );
+							  
 int JAM_AddMessage	( s_JamBase* 		Area_PS,
-			  s_JamMsgHeader*	Header_PS, 
-			  s_JamSubPacket*	SubPack_PS,
-			  uchar*		Text_PC,
-			  ulong			TextLen_I );
+							  s_JamMsgHeader*	Header_PS, 
+							  s_JamSubPacket*	SubPack_PS,
+							  uchar*		Text_PC,
+							  ulong			TextLen_I );
+							  
+int JAM_AddEmptyMessage	(  s_JamBase* 		Area_PS );
+
 int JAM_ChangeMsgHeader	( s_JamBase* 		Area_PS,
-			  ulong 		MsgNo_I,
-			  s_JamMsgHeader* 	Header_PS );
+								  ulong 		MsgNo_I,
+								  s_JamMsgHeader* 	Header_PS );
+
 int JAM_ClearMsgHeader	( s_JamMsgHeader* 	Header_PS );
+
 int JAM_Errno		( s_JamBase* 		Area_PS );
 
 /* lastread.c */
+
 int JAM_ReadLastRead	( s_JamBase* 		Area_PS,
-			  ulong 		User_I,
-			  s_JamLastRead* 	Record_PS );
+							  ulong 		User_I,
+							  s_JamLastRead* 	Record_PS );
+
 int JAM_WriteLastRead	( s_JamBase* 		Area_PS,
-			  ulong 		User_I,
-			  s_JamLastRead* 	Record_PS );
+								  ulong 		User_I,
+								  s_JamLastRead* 	Record_PS );
 
 /* subpacket.c */
+
 s_JamSubPacket* JAM_NewSubPacket	( void );
 int 		JAM_DelSubPacket	( s_JamSubPacket* SubPack_PS );
 s_JamSubfield* 	JAM_GetSubfield		( s_JamSubPacket* SubPack_PS );
 int 		JAM_PutSubfield		( s_JamSubPacket* SubPack_PS,
-					  s_JamSubfield*  Field_PS );
+										  s_JamSubfield*  Field_PS );
 
 /* crc32.c */
+
 ulong JAM_Crc32		( uchar* Buffer_PC, ulong Length_I );
 
 #endif

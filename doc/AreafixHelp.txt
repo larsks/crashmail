@@ -1,0 +1,114 @@
+
+            Description of CrashMail's built-in AreaFix
+            ===========================================
+
+What is AreaFix?
+----------------
+AreaFix is a feature present at most FidoNet nodes, either built-in in
+the tosser or as a stand-alone program. AreaFix allows you to connect
+and disconnect to echomail areas, change your password and change some
+other things in your configuration without asking your feed/boss to do
+it for you.
+
+How do I talk to AreaFix?
+-------------------------
+You communicate with AreaFix using netmail messages. The message header
+of a message to AreaFix should look like this:
+
+From: Johan Billing
+  To: AreaFix
+Subj: <password> [<switches>]
+
+<AreaFix commands>
+...
+---
+
+<Password> is your private AreaFix password that you need to make sure
+that nobody else alters your configuration. Your AreaFix password is
+assigned to you by your boss/feed, so you may have to ask him about a 
+password.
+
+[<switches>] are extra commands that you can send to AreaFix. Currently
+there is only one switch:
+
+ -l or -q         Send list of all areas
+
+This switch is only here to be compatible with other AreaFix programs.
+It is recommended that you use the %-commands described later instead.
+
+"---" marks the end of an AreaFix message.
+
+NOTE: The name doesn't necessarily have to be AreaFix, your boss may have
+configured CrashMail to use other names instead.
+
+What commands can I put in the text?
+------------------------------------
+
+Change connected areas:
+
+[+]areaname[,R=<max>]   Connect to an area. The '+' is optional. If
+                        the R option is specified after the area,
+                        the specified number of old messages in the area
+                        will be rescanned and sent to you.
+
+-areaname               Disconnect from an area
+
+=areaname[,R=<max>]     Update. You can use this to rescan an area which you
+                        already are connected to.
+
+Special commands
+
+%HELP                   Send this text
+
+%LIST                   Send list of all areas
+%QUERY                  Send list of all linked areas
+%UNLINKED               Send list of all unlinked areas
+
+%PAUSE                  Do not send any echomail until a %RESUME is sent
+%RESUME                 Send echomail again. These commands can be useful
+                        if you are away for a few weeks and don't want to 
+                        get any echomail.
+
+%PWD <pw>               Changes your AreaFix password to the new password
+                        specified after the command.
+
+%COMPRESS <name>        Changes the packer used to compress your mail to
+                        the packer specified after the command. Send
+                        "%COMPRESS ?" to get a list of packers.
+
+%RESCAN                 All areas that are added or updated after this
+                        line will be rescanned, that is all old messages
+                        in those areas will be sent to you. This can be
+                        very dangerous since you don't know how many
+                        messages you will get so in most cases, it is
+                        better to use the R option when adding/updating
+                        areas instead.
+
+Examples:
+=========
+
+R20_TRASHCAN            Connect to R20_TRASHCAN
+
+%LIST                   Send list of areas
+
+R20_AMIGA,R=50          Connect to R20_AMIGA and get the last 50 messages
+                        in the area.
+
+%PWD xyzzy              Change your AreaFix password to "xyzzy".
+
+%COMPRESS ZIP           Change your compression method to ZIP.
+
+%PAUSE                  Turn off echomail for a while
+
+%RESUME                 Turn on echomail again
+
+=R20_AMIGA,R=100        Get the last 100 messages in R20_AMIGA (if you are
+                        already connected to the area)
+
+A few words on rescan
+=====================
+Messages that are rescanned might not look exactly like they originally did
+because of the way they are stored locally. When messages are rescanned from
+a JAM messagebase, all control lines ("kludges") will be at the beginning of
+the message regardless of where they originally were. You can easily tell if 
+a message has been rescanned, just look for the RESCANNED control line.

@@ -3,6 +3,18 @@
 #ifdef OS_HAS_SYSLOG
 #include <syslog.h>
 bool usesyslog;
+
+int syslogpri[] = {  LOG_INFO,		/* SYSTEMINFO */
+   						LOG_ERR, 		/* SYSTEMERR */
+   						LOG_INFO,		/* TOSSINGINFO */
+	   					LOG_ERR, 		/* TOSSINGERR */
+							LOG_INFO,		/* MISCINFO */
+							LOG_DEBUG,		/* DEBUG */
+							LOG_INFO,	   /* AREAFIX */
+							LOG_INFO,		/* ACTIONINFO */
+							LOG_ERR  		/* USERERR */ 
+   					};
+
 #endif
 
 osFile logfh;
@@ -64,13 +76,13 @@ void LogWrite(ulong level,ulong category,uchar *fmt,...)
 #ifdef OS_HAS_SYSLOG
 	if(usesyslog)
 	{
-		uchar buf[200];
-
 	   va_start(args, fmt);
+
 		vprintf(fmt,args);
 	   printf("\n");
-		vsprintf(buf,fmt,args);
-		syslog(LOG_INFO,buf);
+
+		vsyslog(syslogpri[category],fmt,args);
+
 	   va_end(args);
 
 		return;

@@ -20,6 +20,9 @@
 #include <oslib/ospattern.h>
 #include <oslib/osmisc.h>
 
+#include <shared/fidonet.h>
+#include <shared/storedmsg.h>        
+
 #include "nl.h"
 #include "mb.h"
 #include "memmessage.h"
@@ -33,18 +36,17 @@
 #include "safedel.h"
 #include "toss.h"
 #include "scan.h"
-#include "fidonet.h"
 #include "pkt.h"
 #include "handle.h"
 #include "outbound.h"
 #include "areafix.h"
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 3
+#define VERSION_MINOR 4
 
-#define VERSION "0.3"
+#define VERSION "0.4"
 
-#define TID_VERSION "0.3"
+#define TID_VERSION "0.4"
 
 extern struct jbList PktList;
 extern struct jbList DeleteList;

@@ -6,9 +6,9 @@
 bool osInit(void);
 void osEnd(void);
 
-#if defined(__WIN32__)
+#if defined(PLATFORM_WIN32)
  #include <oslib_win32/os_win32.h>
-#elif defined(__LINUX__)
+#elif defined(PLATFORM_LINUX)
  #include <oslib_linux/os_linux.h>
 #else
  #error Unsupported platform

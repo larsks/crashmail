@@ -1,5 +1,5 @@
 
-                               CrashMail II 0.3
+                               CrashMail II 0.4
 
                              The Next Generation!
 
@@ -22,10 +22,30 @@ For suggestions, bug reports and questions, don't hesitate to contact me:
 
  Johan Billing
 
- Fidonet: 2:200/108.7
+ Fidonet: 2:201/128.77
  E-mail: billing@df.lth.se
 
 (Vi ankau povas skribi min en Esperanto!)
+
+=========
+Copyright
+=========
+JAMLIB is copyright 1996 Bj”örn Stenberg. See src/jamlib/jamlib.doc for more
+information.
+
+All other parts of CrashMail are copyright 1999 Johan Billing. Permission to 
+use, copy and distribute CrashMail is granted provided that the copyright 
+notice above is included. Permission to modify CrashMail for personal use is
+granted. Distributing modified versions of CrashMail is allowed provided that
+the documentation clearly states that it is a modified version. Parts of 
+CrashMail may be freely used in other projects as long as the documentation
+mentions the original copyright holder.
+
+================
+Acknowledgements
+================
+Many thanks to Björn Stenberg for creating the excellent subroutine library
+JAMLIB which CrashMail uses for handling JAM messagebases.
 
 =============
 Documentation
@@ -69,7 +89,10 @@ Some notes on different platforms:
 
   As an extra bonus, the Linux version of CrashMail can use the syslog instead
   of using its own log file. Just use "syslog" as the name of your log file.
-  All messages will be logged with the priority LOG_INFO.
+
+  If the precompiled binaries in the CrashMail archive don't work on your
+  system, you will have to compile your own. See src/ReadMe.txt for more
+  information about this.
 
 Arguments
 ---------
@@ -186,6 +209,28 @@ crashgetnode <node> [<nodelist dir>]
  that was found. If no nodelist directory is specified, CrashGetNode uses
  the path specified in the environment variable CMNODELISTDIR.
 
+crashmaint [MAINT] [PACK] [VERBOSE] [SETTINGS <filename>] [PATTERN <pattern>]
+
+ Deletes old messages according to KEEPNUM and KEEPDAYS in crashmail.prefs. The
+ program can do two different operations on a messagebase, MAINT and PACK. The 
+ meaning of  these two modes are different for different messagebase formats. 
+
+ *.msg
+ 
+  MAINT deletes messages and PACK renumbers the area.
+  
+ JAM 
+ 
+  MAINT sets the Deleted flag for the messages. PACK removes all messages with
+  the Deleted flag from the messagebase.
+  
+ Both MAINT and PACK can be specified at the same time. You can specicy a 
+ config file other than the default with the SETTINGS keyword. Using the 
+ PATTERN, you can perform the operations on only some of your areas. VERBOSE
+ gives you a lot of information which you don't really need-
+
+ Example: crashmaint MAINT PACK PATTERN R20_AMIGA*
+
 Paths
 -----
 You should always use absolute paths in crashmail.prefs, otherwise CrashMail
@@ -194,7 +239,7 @@ will also use relative paths in flow files which might confuse your mailer.
 
 Outbound
 --------
-CrashMail uses a 5D BinkleyTerm outbound. If there is a domain for FrontDoor
+CrashMail uses a 5D BinkleyTerm outbound. If there is a demand for FrontDoor
 style outbounds (*.msg based), it might be implemented in a future version.
 
 Messagebase formats

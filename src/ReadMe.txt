@@ -12,7 +12,7 @@ depending on the platform which you want to compile CrashMail for. You will
 now find the binaries in the 'bin' directory.
 
 If you want to remove all object files that were created during the compilation,
-just type
+type
 
  make cleanlinux
  

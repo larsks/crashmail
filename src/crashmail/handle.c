@@ -1,5 +1,4 @@
 #include "crashmail.h"
-#include "storedmsg.h"
 
 bool HandleEchomail(struct MemMessage *mm);
 bool HandleNetmail(struct MemMessage *mm);

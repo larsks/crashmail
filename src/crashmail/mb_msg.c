@@ -1,5 +1,4 @@
 #include "crashmail.h"
-#include "storedmsg.h"
 
 struct msg_Area
 {

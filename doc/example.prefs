@@ -28,6 +28,9 @@ SYSOP "Johan Billing"
 ;  4  Extra
 ;  5  Extreme
 ;  6  Debug
+;
+; In the Linux version of CrashMail, it is possible to enter "syslog" as the
+; filename. If you do this, everything will be logged to the syslog instead.
 
 LOGFILE "c:\\fido\\logs\\crashmail.log"
 LOGLEVEL 5
@@ -487,7 +490,7 @@ REMAP "Johannes Nilsson" "*" "2:200/207.5"
 ;
 ; The file that is sent when a downlink issues a %HELP command.
 
-AREAFIXHELP "c:\\fido\\AreafixHelp.doc"
+AREAFIXHELP "c:\\fido\\AreafixHelp.txt"
 
 ; AREAFIXMAXLINES <max>
 ;

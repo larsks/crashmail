@@ -183,6 +183,7 @@ int JAM_RemoveMB( s_JamBase* Base_PS, uchar* Basename_PC )
     return 0;
 }
 
+
 /***********************************************************************
 **
 **  JAM_GetMBSize - Get the number of messages in message base
