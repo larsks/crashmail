@@ -1,5 +1,7 @@
 #include "crashmail.h"
 
+#define DUPES_IDENTIFIER      "CDU2"
+
 unsigned long cm_crc32tab[] = { /* CRC polynomial 0xedb88320 */
 0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988, 0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91,
@@ -35,115 +37,228 @@ unsigned long cm_crc32tab[] = { /* CRC polynomial 0xedb88320 */
 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-#define crc32add(crc,c) (cm_crc32tab[(unsigned char)crc ^ (unsigned char)c] ^ ((unsigned long)crc >> 8))
+ulong calcstringcrc(uchar *str)
+{
+   ulong crc;
+   int c;
 
-ulong dupe_firstentry;
-ulong dupe_lastentry;
-ulong dupe_nextpos;
-ulong dupe_emptyend;
-ulong dupe_lastinbuf;
+   crc=0xffffffff;
+
+   for(c=0;str[c];c++)
+      crc=(crc>>8) ^ cm_crc32tab[(unsigned char)crc ^ str[c]];
+
+   return(crc);
+}
+
+struct dupeentry
+{
+   ulong offset;
+   ulong crc32;
+};
 
 bool dupechanged;
 
-uchar dupeinfo[400];
-ulong dupelen;
+struct dupeentry *dupebuf;
+ulong dupeentrynum,dupeentrymax;
+osFile dupefh;
 
-uchar *dupebuf;
-
-void MakeDupeInfo(struct MemMessage *mm)
+void adddupeindex(ulong offset,ulong crc32)
 {
-   ulong crc=0xFFFFFFFF,c;
-   struct TextChunk *chunk;
+   dupebuf[dupeentrynum].offset=offset;
+   dupebuf[dupeentrynum].crc32=crc32;
 
-   for(c=0;c<strlen(mm->To);c++)
-      crc=crc32add(crc,(mm->To[c]));
+   dupeentrynum++;
 
-   for(c=0;c<strlen(mm->From);c++)
-      crc=crc32add(crc,(mm->From[c]));
+   if(dupeentrynum > dupeentrymax)
+      dupeentrymax=dupeentrynum;
 
-   for(c=0;c<strlen(mm->Subject);c++)
-      crc=crc32add(crc,(mm->Subject[c]));
-
-   for(c=0;c<strlen(mm->DateTime);c++)
-      crc=crc32add(crc,(mm->DateTime[c]));
-
-   if(mm->MSGID[0]==0)
-      for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
-         for(c=0;c<chunk->Length;c++)
-            crc=crc32add(crc,chunk->Data[c]);
-
-   memcpy(dupeinfo,&crc,sizeof(ulong));
-   c=sizeof(ulong);
-   dupeinfo[c]=0;
-   c++;
-
-   if(mm->MSGID[0]==0)
-   {
-      strcpy(&dupeinfo[c],mm->DateTime);
-      c+=strlen(mm->DateTime);
-   }
-   else
-   {
-      strcpy(&dupeinfo[c],mm->MSGID);
-      c+=strlen(mm->MSGID);
-   }
-
-   dupeinfo[c]=0;
-   c++;
-
-   strcpy(&dupeinfo[c],mm->Area);
-   c+=strlen(mm->Area);
-   dupeinfo[c]=0;
-
-   while(c%4 != 0)
-   {
-      c++;
-      dupeinfo[c]=0;
-   }
-
-   dupelen=c;
+   if(dupeentrynum == config.cfg_DupeSize)
+      dupeentrynum=0;
 }
 
-void AddDupeBuf(uchar *dat,ulong len)
+void copydupe(ushort c,osFile oldfh,osFile newfh)
 {
+   uchar buf[300];
    ushort size;
 
-   dupechanged=TRUE;
+   osSeek(oldfh,dupebuf[c].offset,OFFSET_BEGINNING);
 
-   while(dupe_emptyend-dupe_nextpos < len+2)
+   if(osRead(oldfh,&size,sizeof(ushort))!=sizeof(ushort))
+      return;
+
+   if(osRead(oldfh,buf,size) != size)
+      return;
+
+   if(!osWrite(newfh,&size,sizeof(ushort)))
    {
-      if(dupe_nextpos+len+2+2 >= config.cfg_DupeSize)
-      {
-         dupe_lastinbuf=dupe_nextpos;
-         dupe_firstentry=0;
-         dupe_emptyend=0;
-         dupe_nextpos=0;
-      }
-      else if(dupe_firstentry >= dupe_lastinbuf)
-      {
-         dupe_emptyend=config.cfg_DupeSize;
-
-         if(dupe_emptyend-dupe_nextpos < len+2)
-         {
-            dupe_firstentry=0;
-            dupe_emptyend=0;
-            dupe_nextpos=0;
-            dupe_lastinbuf+=len;
-         }
-      }
-      else
-      {
-         size= *(ushort *)(dupebuf+dupe_firstentry);
-         dupe_firstentry+=size;
-         dupe_emptyend+=size;
-      }
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"Failed to write to temporary dupe file");
+      LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+      return;
    }
 
-   dupe_lastentry=dupe_nextpos;
-   *(ushort *)(dupebuf+dupe_nextpos)=len+2;
-   dupe_nextpos+=2;
-   memcpy(dupebuf+dupe_nextpos,dat,(size_t)len);
-   dupe_nextpos+=len;
+   if(!osWrite(newfh,buf,size))
+   {
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"Failed to write to temporary dupe file");
+      LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+      return;
+   }
+}
+
+bool OpenDupeDB(void)
+{
+   uchar buf[300];
+   ulong offset,crc32,*crc32p;
+   ushort size,res;
+
+   if(!(dupebuf=osAlloc(config.cfg_DupeSize*sizeof(struct dupeentry))))
+   {
+      LogWrite(1,SYSTEMERR,"Not enough memory for dupe-check buffer\n");
+      return(FALSE);
+   }
+
+   dupeentrynum=0;
+   dupeentrymax=0;
+
+   dupechanged=FALSE;
+
+   if(!(dupefh=osOpen(config.cfg_DupeFile,MODE_READWRITE)))
+   {
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"Failed to open dupe file %s in read/write mode",config.cfg_DupeFile);
+      LogWrite(1,SYSTEMERR,"Error: %s",config.cfg_DupeFile,osErrorMsg(err));
+      return(FALSE);
+   }
+
+   res=osRead(dupefh,buf,4);
+   buf[4]=0;
+
+   if(res == 0)
+   {
+      /* New file */
+
+		LogWrite(3,TOSSINGINFO,"Creating new dupe file %s",config.cfg_DupeFile);
+
+      strcpy(buf,DUPES_IDENTIFIER);
+      osWrite(dupefh,buf,4);
+   }
+   else if(res != 4 || strcmp(buf,DUPES_IDENTIFIER)!=0)
+   {
+      LogWrite(1,SYSTEMERR,"Invalid format of dupe file %s, exiting...",config.cfg_DupeFile);
+      osClose(dupefh);
+      return(FALSE);
+   }
+
+   offset=4;
+
+   while(osRead(dupefh,&size,sizeof(ushort))==sizeof(ushort))
+   {
+      if(size == 0 || size > 300) /* Unreasonably big */
+      {
+         LogWrite(1,SYSTEMERR,"Error in dupe file %s, exiting...",config.cfg_DupeFile);
+         osClose(dupefh);
+         return(FALSE);
+      }
+
+      if(osRead(dupefh,buf,(ulong)size) != size)
+      {
+         LogWrite(1,SYSTEMERR,"Error in dupe file %s, exiting...",config.cfg_DupeFile);
+         osClose(dupefh);
+         return(FALSE);
+      }
+
+      crc32p=(ulong *)buf;
+      crc32=*crc32p;
+
+      adddupeindex(offset,crc32);
+
+      offset += size+2;
+   }
+
+   dupechanged=FALSE;
+
+   return(TRUE);
+}
+
+void CloseDupeDB(void)
+{
+   osFile newfh;
+   ulong c;
+   uchar duptemp[200];
+
+   if(!dupechanged)
+   {
+      osClose(dupefh);
+      return;
+   }
+
+   strcpy(duptemp,config.cfg_DupeFile);
+   strcat(duptemp,".tmp");
+
+   if(!(newfh=osOpen(duptemp,MODE_NEWFILE)))
+   {
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"Failed to open temporary dupe file %s for writing",duptemp);
+      LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+
+      osFree(dupebuf);
+      osClose(dupefh);
+
+      return;
+   }
+
+   osWrite(newfh,DUPES_IDENTIFIER,4);
+
+   for(c=dupeentrynum;c<dupeentrymax;c++)
+      copydupe(c,dupefh,newfh);
+
+   for(c=0;c<dupeentrynum;c++)
+      copydupe(c,dupefh,newfh);
+
+   osClose(dupefh);
+   osClose(newfh);
+   osFree(dupebuf);
+
+   dupechanged=FALSE;
+
+   osDelete(config.cfg_DupeFile);
+   osRename(duptemp,config.cfg_DupeFile);
+
+   return;
+}
+
+void AddDupeBuf(uchar *buf,ushort size)
+{
+   ulong crc;
+   ulong offset;
+   ulong crc32,*crc32p;
+
+   osSeek(dupefh,0,OFFSET_END);
+   offset=osFTell(dupefh);
+
+   crc32p=(ulong *)buf;
+   crc32=*crc32p;
+
+   if(!osWrite(dupefh,&size,sizeof(ushort)))
+   {
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"Failed to write to dupe file");
+      LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+      return;
+   }
+
+   if(!osWrite(dupefh,buf,size))
+   {
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"Failed to write to dupe file");
+      LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+      return;
+   }
+
+   adddupeindex(offset,crc);
+
+   dupechanged=TRUE;
 }
 
 int dupecomp(uchar *d1,uchar *d2,ulong len)
@@ -158,122 +273,43 @@ int dupecomp(uchar *d1,uchar *d2,ulong len)
 
 bool CheckDupe(struct MemMessage *mm)
 {
-   ulong pos;
-   ushort size;
+   ulong c,crc32,*crc32p;
+   ushort size,dsize;
+   uchar dbuf[300],buf[300];
 
-   MakeDupeInfo(mm);
+   if(mm->MSGID[0] == 0)
+      return(FALSE); /* No dupechecking for messages without MSGID */
 
-   pos=dupe_firstentry;
+   crc32=calcstringcrc(mm->MSGID);
 
-   for(;;)
-   {
-      size = *(ushort *)(dupebuf+pos);
+   crc32p=(ulong *)dbuf;
+   *crc32p=crc32;
+   dsize=4;
 
-      if(size-2 == dupelen)
-         if(dupecomp(dupebuf+pos+2,dupeinfo,dupelen)==0) return(TRUE);
+   strcpy(&dbuf[dsize],mm->MSGID);
+   dsize += strlen(mm->MSGID) + 1;
 
-      if(pos==dupe_lastentry)
-         break;
+   strcpy(&dbuf[dsize],mm->Area);
+   dsize += strlen(mm->Area) + 1;
 
-      pos+=size;
+   for(c=0;c<dupeentrymax;c++)
+      if(dupebuf[c].crc32 == crc32)
+      {
+         /* CRC matches, check rest */
 
-      if(pos>=dupe_lastinbuf && dupe_lastinbuf!=0)
-         pos=0;
-   }
+         osSeek(dupefh,dupebuf[c].offset,OFFSET_BEGINNING);
 
-   AddDupeBuf(dupeinfo,dupelen);
-   dupechanged=TRUE;
+         if(osRead(dupefh,&size,sizeof(ushort))==sizeof(ushort))
+            if(size == dsize)
+               if(osRead(dupefh,buf,(ulong)size) == size)
+                  if(dupecomp(buf,dbuf,dsize) == 0)
+                     return(TRUE); /* Dupe */
+      }
+
+
+   AddDupeBuf(dbuf,dsize);
 
    return(FALSE);
 }
 
-
-bool WriteDupes(uchar *file)
-{
-   osFile fh;
-   ushort size;
-   ulong pos;
-
-   if(!dupechanged)
-      return(TRUE);
-
-   if(!(fh=osOpen(file,MODE_NEWFILE)))
-   {
-		ulong err=osError();
-      LogWrite(1,SYSTEMERR,"Couldn't save dupe table to %s ",file);
-		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
-      return(FALSE);
-   }
-
-   pos=dupe_firstentry;
-
-   for(;;)
-   {
-      size= *(ushort *)(dupebuf+pos);
-      osWrite(fh,dupebuf+pos,(ulong)size);
-
-      if(pos==dupe_lastentry)
-         break;
-
-      pos+=size;
-
-      if(pos>=dupe_lastinbuf && dupe_lastinbuf!=0)
-         pos=0;
-   }
-
-   osClose(fh);
-   dupechanged=FALSE;
-
-   return(TRUE);
-}
-
-
-bool ReadDupes(uchar *file)
-{
-   osFile fh;
-   uchar buf[300];
-   ushort size;
-
-   if(!(fh=osOpen(file,MODE_OLDFILE)))
-      return(TRUE);
-
-   while(osRead(fh,&size,sizeof(ushort))==2)
-   {
-      if(size > 300)
-      {
-         osClose(fh);
-         LogWrite(1,SYSTEMERR,"Error in dupefile %s",file);
-         return(FALSE);
-      }
-
-      osRead(fh,buf,(ulong)size-sizeof(ushort));
-      AddDupeBuf(buf,(ulong)size-sizeof(ushort));
-   }
-
-   osClose(fh);
-   dupechanged=FALSE;
-
-   return(TRUE);
-}
-
-bool AllocDupebuf(void)
-{
-   if(!(dupebuf=osAlloc(config.cfg_DupeSize)))
-      return(FALSE);
-
-   dupe_firstentry=0;
-   dupe_lastentry=0;
-   dupe_nextpos=0;
-   dupe_emptyend=config.cfg_DupeSize;
-   dupe_lastinbuf=0;
-
-   dupechanged=FALSE;
-
-   return(TRUE);
-}
-
-void FreeDupebuf(void)
-{
-   osFree(dupebuf);
-}
 

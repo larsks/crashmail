@@ -2,5 +2,6 @@
 #define SHARED_JBSTRCPY_H
 
 bool jbstrcpy(uchar *dest,uchar *src,ulong maxlen,ulong *jbc);
+bool jbstrcpyrest(uchar *dest,uchar *src,ulong maxlen,ulong *jbc);
 
 #endif

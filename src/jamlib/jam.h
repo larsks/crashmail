@@ -17,11 +17,15 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
     Changes made by Johan Billing 2000-04-16:
-	 
+
     - Added #defines for JAM_NO_MESSAGE and JAM_CORRUPT_MSG
     - Added #ifndef linux around typedefs for ushort and ulong
     - Added prototype for JAM_AddEmptyMessage()
-*/	 
+
+    Backported changes from JAMLIB 1.4.7 made by Johan Billing 2003-10-26
+
+    - Added prototype for JAM_DeleteMessage()
+*/
 
 /***********************************************************************
 **
@@ -285,6 +289,9 @@ int JAM_AddMessage	( s_JamBase* 		Area_PS,
 			  ulong			TextLen_I );
 							  
 int JAM_AddEmptyMessage	( s_JamBase* 		Area_PS );
+
+int JAM_DeleteMessage	( s_JamBase*		Base_PS,
+			  ulong			MsgNo_I );
 
 int JAM_ChangeMsgHeader	( s_JamBase* 		Area_PS,
 			  ulong 		MsgNo_I,

@@ -16,17 +16,18 @@ void stripleadtrail(uchar *str);
 
 bool MatchFlags(uchar group,uchar *node);
 
-void ExpandRobot(uchar *cmd,uchar *dest,ulong destsize,
+void ExpandFilter(uchar *cmd,uchar *dest,ulong destsize,
    uchar *rfc1,
    uchar *rfc2,
    uchar *msg,
+   uchar *area,
    uchar *subj,
    uchar *time,
    uchar *from,
    uchar *to,
    uchar *orignode,
    uchar *destnode);
-   
+
 
 void MakeFidoDate(time_t tim,uchar *dest);
 bool AddTID(struct MemMessage *mm);
@@ -38,10 +39,12 @@ uchar ChangeType(struct Node4D *dest,uchar pri);
 bool MakeNetmailKludges(struct MemMessage *mm);
 time_t FidoToTime(uchar *date);
 bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain);
-bool ExtractAddress(uchar *origin, struct Node4D *n4d,uchar *domain);
+bool ExtractAddress(uchar *origin, struct Node4D *n4d);
 
 unsigned long hextodec(char *hex);
 
+bool WriteMSG(struct MemMessage *mm,uchar *file);
+bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr);
 
 
 

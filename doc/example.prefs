@@ -35,13 +35,13 @@ SYSOP "Johan Billing"
 LOGFILE "c:\\fido\\logs\\crashmail.log"
 LOGLEVEL 5
 
-; DUPEFILE <filename> <maxsize>
+; DUPEFILE <filename> <maxnumber>
 ; DUPEMODE BAD/KILL/IGNORE
 ;
 ; Here the file that CrashMail uses for its duplicate detection is specified.
-; Maxsize is specified in KB and sets the maximum size of the dupetable. Note
-; that CrashMail needs this amount of memory in a continous memory block.
-; Each stored message uses about 39.0865 bytes in the dupe table.
+; Maxnumber is the maximum number of the messages that should be stored in the
+; dupe buffer. Each message in the dupe buffer consumes 8 bytes of RAM and on
+; average about 40 bytes of disk space.
 ;
 ; These are the available modes for dupe checking:
 ;
@@ -133,6 +133,23 @@ PACKETDIR "c:\\fido\\packets"
 
 STATSFILE "c:\\fido\\crashmail.stats"
 
+; BEFORETOSS <command>
+;
+; CrashMail will execute this command before a *.pkt file is tossed. You can
+; use %f for the filename of the packet. CrashMail will abort tossing if this
+; command returns an error.
+
+;BEFORETOSS "cp %f /fido/toss-backup"
+
+; BEFOREPACK
+;
+; CrashMail will execute this command before a *.pkt file is added to an
+; archive. You can use %f for the filename of the packet. If the command
+; fails, CrashMail will try again the next time it processes the outbound
+; directory.
+
+;BEFOREPACK "cp %f /fido/pack-backup"
+
 ; Switches
 ; ========
 ;
@@ -147,7 +164,6 @@ STRIPRE
 ;
 ; CrashMail should add an INTL line to all messages even when the sender
 ; and the destination are in the same zone.
-; originating
 
 FORCEINTL
 
@@ -182,7 +198,7 @@ CHECKSEENBY
 ; CHECKPKTDEST
 ;
 ; CrashMail should check the destination node of all incoming .pkt files and
-; only toss them if thety are adressed to one of the local AKAs.
+; only toss them if they are adressed to one of the local AKAs.
 
 ;CHECKPKTDEST
 
@@ -195,7 +211,7 @@ PATH3D
 
 ; IMPORTEMPTYNETMAIL
 ;
-; Some mailers like FrontDoor like to send meaningsless empty netmails with
+; Some mailers like FrontDoor like to send meaningless empty netmails with
 ; no text. Spefify this options if you for some reason want to import such
 ; mails.
 
@@ -282,16 +298,16 @@ ALLOWRESCAN
 
 INCLUDEFORWARD
 
-; NOMAXOUTBOUNDZONE 
+; NOMAXOUTBOUNDZONE
 ;
 ; CrashMail normally puts outgoing mail for all zones >4095 in the outbound
-; directory for zone 4095 (usually outbound.fff). If this switch is turned 
-; on, CrashMail will use separate outbound directories also for zones >4095. 
-; The background of this option is that the Binkley outbound style originated 
-; on platforms where file names were limited to 8+3 characters. For 
+; directory for zone 4095 (usually outbound.fff). If this switch is turned
+; on, CrashMail will use separate outbound directories also for zones >4095.
+; The background of this option is that the Binkley outbound style originated
+; on platforms where file names were limited to 8+3 characters. For
 ; compatibility with many older mailers, leave this switch turned off.
-; There are however some mailers that also expect to find mail for zones 
-; >4095 in separate outbound directories. 
+; There are however some mailers that also expect to find mail for zones
+; >4095 in separate outbound directories.
 
 ;NOMAXOUTBOUNDZONE 
 
@@ -301,6 +317,21 @@ INCLUDEFORWARD
 ; the killsent flag after they have been expored
 
 ;ALLOWKILLSENT
+
+; FLOWCRLF
+;
+; If this option is used, CrashMail writes CRLF as the end-of-line character
+; in flow files instead of just LF. Apparently some mailers need this.
+
+;FLOWCRLF
+
+; NOEXPORTNETMAIL
+;
+; If this option is used, CrashMail will skip netmail areas when using the
+; SCAN or SCANLIST arguments. Use this if you want to use another program
+; to handle netmail.
+
+;NOEXPORTNETMAIL
 
 ; Groupnames
 ; ==========
@@ -383,20 +414,28 @@ DOMAIN "FidoNet"
 ; =====
 ;
 ; NODE <node> <packer name> <packet password> [<flags>]
+; PKTFROM <node>
 ; AREAFIXINFO <areafix password> <groups> <read-only groups> <add groups>
 ; DEFAULTGROUP <group>
-; REMOTEAF <areafix name> <areafix password>
+; REMOTEAF <areafix name> <areafix password> [NEEDSPLUS]
 ; REMOTESYSOP <name>
 ;
 ; These are the nodes you interchange mail with. You can only send echomail
-; to nodes specified here, but netmail can also be sent to other nodes. The
-; groups decide what areas a node may subscribe to in the AreaFix. If the
-; area is in one of the read-only groups, the node will be added as
-; read-only. If a new area is added in one of the add groups, this node will
-; automatically be subscribed to it. The default group is the group used for
-; areas that are autoadded from this node. REMOTEAF and REMOTESYSOP are
-; used when CrashMail needs to send messages to the AreaFix or the sysop of
-; this node.
+; to nodes specified here, but netmail can also be sent to other nodes.
+;
+; If PKTFROM is used, the node specified there will be used as the originating
+; node in all packet files sent to this node.
+;
+; The groups decide what areas a node may subscribe to in the AreaFix. If the
+; area is in one of the read-only groups, the node will be added as read-only.
+; If a new area is added in one of the add groups, this node will automatically
+; be subscribed to it. The default group is the group used for areas that are
+; autoadded from this node.
+;
+; REMOTEAF and REMOTESYSOP are used when CrashMail needs to send messages to
+; the AreaFix or the sysop of this node. Use NEEDSPLUS if the remote AreaFix
+; needs commands wants "+area" when subscribing to new areas instead of just
+; "area".
 ;
 ; The following flags can be set for a node:
 ;
@@ -468,58 +507,6 @@ NODE 2:200/207.5 "LHA" "secret" NOTIFY FORWARDREQ PACKNETMAIL AUTOADD
 AREAFIXINFO "secret" "" "" "" 
 REMOTESYSOP "Johannes Nilsson"
                    
-; Remap
-;
-; REMAP <pattern> <new name> <destination pattern>
-;
-; CrashMail remaps all messages addressed to a name that matches this
-; pattern on one of the local AKAs to the new name on another node.
-; Use "*" as new name to keep the old name. A destination pattern can
-; be used for the new node.
-
-REMAP "Johannes Nilsson" "*" "2:200/207.5"
-
-; REMAPNODE <node pattern> <destination pattern>
-;
-; CrashMail remaps all messages to addresses that match the node pattern
-; to the desination pattern.
-
-;REMAPNODE 2:999/*.* 2:200/*.*
-
-; Robotnames
-; ==========
-;
-; ROBOTNAME <pattern> <command>
-;
-; CrashMail executes the specified command when a message is received for
-; an address that matches the pattern. The following %-codes can be used;
-;
-;  %r  RFC-style with Fidonet addresses. Name of a file that contains a 
-;		 message in a text format similar to that used for e-mail messages on 
-;      the internet, but addresses are still in x:x/x.x@domain format.
-;  %R  RFC-style with RFC-style addresses. Name of a file that contains a 
-;		 message in a text format similar to that used for e-mail messages on 
-;      the internet, but addresses are in name@pX.fX.nX.zX.domain format.
-;  %m  Name of a file that contains the message as a *.msg file
-;  %f  From name
-;  %o  Originating node
-;  %t  To name
-;  %d  Destination node
-;  %s  Subject
-;  %x  Date and time of the message
-;   
-; CrashMail will react differently depending on what error the
-; executed command returned.
-;
-; 0     The message is not imported
-; 10    The message is imported
-; 20    CrashMail stops tossing
-
-;ROBOTNAME "James" "rx MAIL:Robots/James.rexx %r"
-;ROBOTNAME "Tomten" "rx MAIL:Robots/Tomten.rexx %r"
-;ROBOTNAME "Ghaana" "rx MAIL:Robots/MailGate.rexx %r"
-;ROBOTNAME "Raid" "Execute MAIL:Scripts/Raid %r"
-
 ; AreaFix
 ; =======
 ;
@@ -620,9 +607,26 @@ JAM_QUICKLINK
 
 JAM_MAXOPEN 5
 
+; Filter
+; ======
+;
+; CrashMail has a message filter that can be used for filtering out messages
+; that match the specified criteria and perform a number of commands on them.
+; See file doc/filter.txt for a complete description of the message filter.
+;
+; General syntax:
+;
+; FILTER <expression>
+; <command 1>
+; <command 2>
+; ...
+
+;FILTER SOURCE=TOSSED and TYPE=ECHOMAIL and TONAME="Johan Billing"
+;COPY PERSONAL_MESSAGES
+
 ; Areas
 ; =====
-; 
+;
 ; AREA/NETMAIL/LOCALAREA <tagname> <aka> [<messagebase> <path>]
 ; IMPORT/EXPORT <node1> <node2> ...
 ; BANNED <node1> <node2> ...

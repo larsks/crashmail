@@ -6,16 +6,18 @@ bool HandleRescan(struct MemMessage *mm);
 
 bool HandleMessage(struct MemMessage *mm)
 {
+   bool res;
+
    LogWrite(6,DEBUG,"Is in HandleMessage()");
 
-   if(istossing)
-      toss_total++;
+   handle_nesting++;
 
-   if(mm->Area[0]==0)
-      return HandleNetmail(mm);
+   if(mm->Area[0]==0) res=HandleNetmail(mm);
+   else               res=HandleEchomail(mm);
 
-   else
-      return HandleEchomail(mm);
+   handle_nesting--;
+
+   return(res);
 }
 
 /**************************** auto-add *****************************/
@@ -366,6 +368,16 @@ bool WriteBad(struct MemMessage *mm,uchar *reason)
       if(!((*temparea->Messagebase->importfunc)(mm,temparea)))
          return(FALSE);
    }
+
+   /* Remove first chunk again */
+
+   chunk=(struct TextChunk *)mm->TextChunks.First;
+
+   mm->TextChunks.First=(struct jbNode *)chunk->Next;
+   if((struct TextChunk *)mm->TextChunks.Last == chunk) mm->TextChunks.Last = NULL;
+
+   osFree(chunk);
+
    temparea->NewTexts++;
 
 	return(TRUE);
@@ -552,13 +564,13 @@ bool HandleEchomail(struct MemMessage *mm)
       
       if(!WriteBad(mm,"Unknown area (auto-added but not confirmed)"))
          return(FALSE);
-         
+
       return(TRUE);
    }
 
    /* Check if the node receives this area */
 
-   if(istossing && !mm->no_security)
+   if(!(mm->Flags & MMFLAG_EXPORTED) && !(mm->Flags & MMFLAG_NOSECURITY))
    {
       for(temptnode=(struct TossNode *)temparea->TossNodes.First;temptnode;temptnode=temptnode->Next)
          if(Compare4D(&temptnode->ConfigNode->Node,&mm->PktOrig)==0) break;
@@ -573,10 +585,10 @@ bool HandleEchomail(struct MemMessage *mm)
             mm->Area);
 
          toss_bad++;
-         
+
          if(!WriteBad(mm,"Node does not receive this area"))
             return(FALSE);
-            
+
          return(TRUE);
       }
 
@@ -657,7 +669,7 @@ bool HandleEchomail(struct MemMessage *mm)
 
    /* Dupecheck */
 
-   if(config.cfg_DupeMode!=DUPE_IGNORE && istossing && !(temparea->Flags & AREA_IGNOREDUPES))
+   if(config.cfg_DupeMode!=DUPE_IGNORE && (mm->Flags & MMFLAG_TOSSED) && !(temparea->Flags & AREA_IGNOREDUPES))
    {
       if(CheckDupe(mm))
       {
@@ -666,27 +678,35 @@ bool HandleEchomail(struct MemMessage *mm)
          toss_dupes++;
          temparea->NewDupes++;
 
-         if(istossing && tempcnode)
+         if(tempcnode)
             tempcnode->Dupes++;
 
          if(config.cfg_DupeMode == DUPE_BAD)
          {
             if(!WriteBad(mm,"Duplicate message"))
                return(FALSE);
-         }               
+         }
 
          return(TRUE);
       }
    }
 
-   temparea->NewTexts++;
-
    if(!mmSortNodes2D(&mm->SeenBy))
       return(FALSE);
 
+	/* Filter */
+
+	if(!Filter(mm))
+      return(FALSE);
+
+	if(mm->Flags & MMFLAG_KILL)
+		return(TRUE);
+
+   temparea->NewTexts++;
+
    /* Write to all nodes */
 
-   if(!mm->Rescanned)
+   if(!(mm->Flags & MMFLAG_RESCANNED))
    {
       /* not rescanned */
       for(temptnode=(struct TossNode *)temparea->TossNodes.First;temptnode;temptnode=temptnode->Next)
@@ -704,7 +724,10 @@ bool HandleEchomail(struct MemMessage *mm)
                   }
    }
 
-   if(istossing && temparea->Messagebase)
+	if(mm->Flags & MMFLAG_TWIT)
+		return(TRUE);
+
+   if(!(mm->Flags & MMFLAG_EXPORTED) && temparea->Messagebase)
    {
       toss_import++;
 
@@ -817,20 +840,30 @@ bool IsLoopMail(struct MemMessage *mm)
 
 /* Bouncing and receipts */
 
-bool Bounce(struct MemMessage *mm,uchar *str)
+bool Bounce(struct MemMessage *mm,uchar *reason,bool headeronly)
 {
-   uchar buf[100];
+   uchar buf[400],*tmpbuf;
    ulong c;
    struct Route *tmproute;
    struct MemMessage *tmpmm;
    struct TextChunk *chunk;
+   struct Node4D n4d;
+
+   if(mm->Flags & MMFLAG_AUTOGEN)
+   {
+      LogWrite(1,TOSSINGERR,"No bounce messages sent for messages created by CrashMail");
+      return(TRUE);
+   }
+
+   if(mm->Area[0] == 0) Copy4D(&n4d,&mm->OrigNode);
+   else                 Copy4D(&n4d,&mm->Origin4D);
 
    for(tmproute=(struct Route *)config.RouteList.First;tmproute;tmproute=tmproute->Next)
-      if(Compare4DPat(&tmproute->Pattern,&mm->OrigNode)==0) break;
+      if(Compare4DPat(&tmproute->Pattern,&n4d)==0) break;
 
    if(!tmproute)
    {
-      Print4D(&mm->OrigNode,buf);
+      Print4D(&n4d,buf);
       LogWrite(1,TOSSINGERR,"Can't bounce message, no routing for %s",buf);
       return(TRUE);
    }
@@ -838,7 +871,7 @@ bool Bounce(struct MemMessage *mm,uchar *str)
    if(!(tmpmm=mmAlloc()))
       return(FALSE);
 
-   Copy4D(&tmpmm->DestNode,&mm->OrigNode);
+   Copy4D(&tmpmm->DestNode,&n4d);
    Copy4D(&tmpmm->OrigNode,&tmproute->Aka->Node);
 
    strcpy(tmpmm->To,mm->From);
@@ -849,36 +882,56 @@ bool Bounce(struct MemMessage *mm,uchar *str)
 
    MakeFidoDate(time(NULL),tmpmm->DateTime);
 
-   tmpmm->isbounce=TRUE;
+   tmpmm->Flags |= MMFLAG_AUTOGEN;
 
    MakeNetmailKludges(tmpmm);
 
    if(config.cfg_Flags & CFG_ADDTID)
       AddTID(tmpmm);
 
-   mmAddLine(tmpmm,str);
+   strncpy(buf,reason,390);
+   strcat(buf,"\x0d\x0d");
 
-   if(config.cfg_Flags & CFG_BOUNCEHEADERONLY)
-      mmAddLine(tmpmm,"This is the header of the message that was bounced:\x0d\x0d");
+   mmAddLine(tmpmm,buf);
 
+   if(headeronly) mmAddLine(tmpmm,"This is the header of the message that was bounced:\x0d\x0d");
+   else           mmAddLine(tmpmm,"This is the message that was bounced:\x0d\x0d");
+
+   if(mm->Area[0])
+   {
+      sprintf(buf,"Area: %.80s\x0d",mm->Area);
+      mmAddLine(tmpmm,buf);
+
+      sprintf(buf,"From: %.40s (%u:%u/%u.%u)\x0d",mm->From,
+         n4d.Zone,
+         n4d.Net,
+         n4d.Node,
+         n4d.Point);
+
+      mmAddLine(tmpmm,buf);
+
+      sprintf(buf,"  To: %.40s\x0d",mm->To);
+
+      mmAddLine(tmpmm,buf);
+   }
    else
-      mmAddLine(tmpmm,"This is the message that was bounced:\x0d\x0d");
+   {
+      sprintf(buf,"From: %.40s (%u:%u/%u.%u)\x0d",mm->From,
+         n4d.Zone,
+         n4d.Net,
+         n4d.Node,
+         n4d.Point);
 
-   sprintf(buf,"From: %-40.40s (%u:%u/%u.%u)\x0d",mm->From,
-      mm->OrigNode.Zone,
-      mm->OrigNode.Net,
-      mm->OrigNode.Node,
-      mm->OrigNode.Point);
+      mmAddLine(tmpmm,buf);
 
-   mmAddLine(tmpmm,buf);
+      sprintf(buf,"  To: %.40s (%u:%u/%u.%u)\x0d",
+         mm->To,mm->DestNode.Zone,
+         mm->DestNode.Net,
+         mm->DestNode.Node,
+         mm->DestNode.Point);
 
-   sprintf(buf,"  To: %-40.40s (%u:%u/%u.%u)\x0d",
-      mm->To,mm->DestNode.Zone,
-      mm->DestNode.Net,
-      mm->DestNode.Node,
-      mm->DestNode.Point);
-
-   mmAddLine(tmpmm,buf);
+      mmAddLine(tmpmm,buf);
+   }
 
    sprintf(buf,"Subj: %s\x0d",mm->Subject);
 
@@ -888,18 +941,37 @@ bool Bounce(struct MemMessage *mm,uchar *str)
 
    mmAddLine(tmpmm,buf);
 
-   if(!(config.cfg_Flags & CFG_BOUNCEHEADERONLY))
+   if(!headeronly)
    {
       for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
       {
-         for(c=0;c<chunk->Length;c++)
-            if(chunk->Data[c]==1) chunk->Data[c]='@';
+         if(chunk->Length)
+         {
+         	if(!(tmpbuf=(uchar *)osAlloc(chunk->Length)))
+         	{
+         	   nomem=TRUE;
+               mmFree(tmpmm);
+         	   return(FALSE);
+      	   }
 
-         mmAddBuf(&tmpmm->TextChunks,chunk->Data,chunk->Length);
+            for(c=0;c<chunk->Length;c++)
+            {
+               if(chunk->Data[c]==1) tmpbuf[c]='@';
+               else                  tmpbuf[c]=chunk->Data[c];
+            }
+
+            mmAddBuf(&tmpmm->TextChunks,tmpbuf,chunk->Length);
+
+            osFree(tmpbuf);
+         }
       }
    }
 
-   HandleNetmail(tmpmm);
+   if(!HandleMessage(tmpmm))
+   {
+      mmFree(tmpmm);
+      return(FALSE);
+   }
 
    mmFree(tmpmm);
 
@@ -938,7 +1010,7 @@ bool AnswerReceipt(struct MemMessage *mm)
 
    MakeFidoDate(time(NULL),tmpmm->DateTime);
 
-   tmpmm->isbounce=TRUE;
+   mm->Flags |= MMFLAG_AUTOGEN;
 
    MakeNetmailKludges(tmpmm);
 
@@ -951,7 +1023,13 @@ bool AnswerReceipt(struct MemMessage *mm)
                mm->To,mm->DateTime,mm->Subject);
 
    mmAddLine(tmpmm,buf);
-   HandleNetmail(tmpmm);
+
+   if(!HandleMessage(tmpmm))
+   {
+      mmFree(tmpmm);
+      return(FALSE);
+   }
+
    mmFree(tmpmm);
    return(TRUE);
 }
@@ -989,7 +1067,7 @@ bool AnswerAudit(struct MemMessage *mm)
 
    MakeFidoDate(time(NULL),tmpmm->DateTime);
 
-   tmpmm->isbounce=TRUE;
+   tmpmm->Flags |= MMFLAG_AUTOGEN;
 
    MakeNetmailKludges(tmpmm);
 
@@ -1021,398 +1099,17 @@ bool AnswerAudit(struct MemMessage *mm)
 
    mmAddLine(tmpmm,auditbuf);
    
-   HandleNetmail(tmpmm);
+   if(!HandleMessage(tmpmm))
+   {
+      mmFree(tmpmm);
+      return(FALSE);
+   }
 
    mmFree(tmpmm);
-   
+
    return(TRUE);
 }
 
-/* Changes FMPT, TOPT and INTL to new addresses and adds a ^aRemapped line */
-
-bool Remap(struct MemMessage *mm,struct Node4D *newdest,uchar *newto)
-{
-   struct Route *tmproute;
-   struct jbList oldlist;
-   struct TextChunk *tmp;
-   uchar buf[100];
-   ulong c,d;
-	bool skip;
-	
-	oldlist.First=mm->TextChunks.First;
-	oldlist.Last=mm->TextChunks.Last;
-	
-	jbNewList(&mm->TextChunks);
-
-	Copy4D(&mm->DestNode,newdest);
-
-   if(strcmp(newto,"*")!=0)
-      strcpy(mm->To,newto);
-
-   MakeNetmailKludges(mm);
-
-   for(tmp=(struct TextChunk *)oldlist.First;tmp;tmp=tmp->Next)
-   {
-      c=0;
-
-      while(c<tmp->Length)
-      {
-         for(d=c;d<tmp->Length && tmp->Data[d]!=13;d++);
-         if(tmp->Data[d]==13) d++;
-
-			skip=FALSE;
-			
-			if(d-c > 5)
-			{
-         	if(strncmp(&tmp->Data[c],"\x01""INTL",5)==0) skip=TRUE;
-         	if(strncmp(&tmp->Data[c],"\x01""FMPT",5)==0) skip=TRUE;
-         	if(strncmp(&tmp->Data[c],"\x01""TOPT",5)==0) skip=TRUE;
-         }
-			
-         if(d-c!=0 && !skip) 
-				mmAddBuf(&mm->TextChunks,&tmp->Data[c],d-c);
-
-         c=d;
-      }
-   }
-
-   for(tmproute=(struct Route *)config.RouteList.First;tmproute;tmproute=tmproute->Next)
-      if(Compare4DPat(&tmproute->Pattern,&mm->DestNode)==0) break;
-
-   if(tmproute)
-   {
-      sprintf(buf,"\x01Remapped to %u:%u/%u.%u at %u:%u/%u.%u\x0d",newdest->Zone,
-                                                                   newdest->Net,
-                                                                   newdest->Node,
-                                                                   newdest->Point,
-                                                                   tmproute->Aka->Node.Zone,
-                                                                   tmproute->Aka->Node.Net,
-                                                                   tmproute->Aka->Node.Node,
-                                                                   tmproute->Aka->Node.Point);
-
-		mmAddLine(mm,buf);
-   }
-
-   jbFreeList(&oldlist);
-
-	if(nomem)
-		return(FALSE);
-
-	return(TRUE);
-}
-
-/* WriteRFC and WriteMSG */
-
-void MakeRFCAddr(uchar *dest,uchar *nam,struct Node4D *node,uchar *dom)
-{
-	uchar domain[50],name[50];
-	int j;
-	
-	/* Prepare domain */
-
-	strcpy(domain,dom);
-	
-	for(j=0;domain[j];j++)
-		domain[j]=tolower(domain[j]);
-		
- 	if(stricmp(domain,"fidonet")==0)
-		strcpy(domain,"fidonet.org");	
-		
-	/* Prepare name */
-
-	strcpy(name,nam);
-	
-	for(j=0;name[j];j++)
-		if(name[j] == ' ') name[j]='_';
-
-	/* Make addr */
-	
-	if(node->Point != 0) 
-		sprintf(dest,"%s@p%u.f%u.n%u.z%u.%s",
-			name,
-			node->Point,
-			node->Node,
-			node->Net,
-			node->Zone,
-			domain);
-
-	else
-		sprintf(dest,"%s@f%u.n%u.z%u.%s",
-			name,
-			node->Node,
-			node->Net,
-			node->Zone,
-			domain);
-}
-
-bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
-{
-   osFile fh;
-   uchar *domain;
-   struct Aka *aka;
-   struct TextChunk *tmp;
-   ulong c,d,lastspace;
-   uchar buffer[100],fromaddr[100],toaddr[100];
-
-   for(aka=(struct Aka *)config.AkaList.First;aka;aka=aka->Next)
-      if(Compare4D(&mm->DestNode,&aka->Node)==0) break;
-
-   domain="FidoNet"; 
- 
-   if(aka && aka->Domain[0]!=0)
-      domain=aka->Domain;
-
-	if(rfcaddr)
-	{
-		MakeRFCAddr(fromaddr,mm->From,&mm->OrigNode,domain);
-		MakeRFCAddr(toaddr,mm->To,&mm->DestNode,domain);
-	}
-	else
-	{
-   	sprintf(fromaddr,"%u:%u/%u.%u@%s",mm->OrigNode.Zone,
-                                            mm->OrigNode.Net,
-                                            mm->OrigNode.Node,
-                                            mm->OrigNode.Point,
-                                            domain);
-
-   	sprintf(toaddr,"%u:%u/%u.%u@%s",mm->DestNode.Zone,
-                                          mm->DestNode.Net,
-                                          mm->DestNode.Node,
-                                          mm->DestNode.Point,
-                                          domain);
-	}
-
-   if(!(fh=osOpen(name,MODE_NEWFILE)))
-   {
-		ulong err=osError();
-      LogWrite(1,SYSTEMERR,"Unable to write RFC-message to %s",name);
-		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
-			
-      return(FALSE);
-   }
-
-   /* Write header */
-
-   if(!osFPrintf(fh,"From: %s (%s)\n",fromaddr,mm->From))
-		{ ioerror=TRUE; ioerrornum=osError(); }
-
-   if(!osFPrintf(fh,"To: %s (%s)\n",toaddr,mm->To))
-		{ ioerror=TRUE; ioerrornum=osError(); }
-
-   if(!osFPrintf(fh,"Subject: %s\n",mm->Subject))
-		{ ioerror=TRUE; ioerrornum=osError(); }
-
-   if(!osFPrintf(fh,"Date: %s\n",mm->DateTime))
-		{ ioerror=TRUE; ioerrornum=osError(); }
-
-   if(mm->MSGID[0]!=0)
-	{	
-      if(!osFPrintf(fh,"Message-ID: <%s>\n",mm->MSGID))
-			{ ioerror=TRUE; ioerrornum=osError(); }
-	}
-	
-   if(mm->REPLY[0]!=0)
-	{
-      if(!osFPrintf(fh,"References: <%s>\n",mm->REPLY))
-			{ ioerror=TRUE; ioerrornum=osError(); }
-	}
-	
-   /* Write kludges */
-
-   for(tmp=(struct TextChunk *)mm->TextChunks.First;tmp;tmp=tmp->Next)
-   {
-      c=0;
-
-      while(c<tmp->Length)
-      {
-         for(d=c;d<tmp->Length && tmp->Data[d]!=13 && tmp->Data[d]!=10;d++);
-         if(tmp->Data[d]==13 || tmp->Data[d]==10) d++;
-
-         if(tmp->Data[c]==1 && d-c-2!=0)
-         {
-				if(!osPuts(fh,"X-Fido-"))
-					{ ioerror=TRUE; ioerrornum=osError(); }
-
-				if(!osWrite(fh,&tmp->Data[c+1],d-c-2))
-					{ ioerror=TRUE; ioerrornum=osError(); }
-
-            if(!osPuts(fh,"\n"))
-					{ ioerror=TRUE; ioerrornum=osError(); }
-         }
-         c=d;
-      }
-   }
-
-   /* Write end-of-header */
-
-   if(!osPuts(fh,"\n"))
-		{ ioerror=TRUE; ioerrornum=osError(); }
-
-   /* Write message text */
-
-   for(tmp=(struct TextChunk *)mm->TextChunks.First;tmp;tmp=tmp->Next)
-   {
-      d=0;
-
-      while(d<tmp->Length)
-      {
-         lastspace=0;
-         c=0;
-
-         while(tmp->Data[d+c]==10) d++;
-
-         while(c<78 && d+c<tmp->Length && tmp->Data[d+c]!=13)
-         {
-            if(tmp->Data[d+c]==32) lastspace=c;
-            c++;
-         }
-
-         if(c==78 && lastspace)
-         {
-            strncpy(buffer,&tmp->Data[d],lastspace);
-            buffer[lastspace]=0;
-            d+=lastspace+1;
-         }
-         else
-         {
-            strncpy(buffer,&tmp->Data[d],c);
-            buffer[c]=0;
-            if(tmp->Data[d+c]==13) c++;
-            d+=c;
-         }
-
-         if(buffer[0]!=1)
-         {
-            if(!osPuts(fh,buffer))
-					{ ioerror=TRUE; ioerrornum=osError(); }
-
-            if(!osPutChar(fh,'\n'))
-					{ ioerror=TRUE; ioerrornum=osError(); }
-         }
-      }
-   }
-
-   osClose(fh);
-
-   if(ioerror)
-      return(FALSE);
-
-	return(TRUE);
-}
-
-bool WriteMSG(struct MemMessage *mm,uchar *file)
-{
-   struct StoredMsg Msg;
-   struct TextChunk *chunk;
-   struct Path *path;
-   osFile fh;
-   int c;
-   
-   strcpy(Msg.From,mm->From);
-   strcpy(Msg.To,mm->To);
-   strcpy(Msg.Subject,mm->Subject);
-   strcpy(Msg.DateTime,mm->DateTime);
-
-   Msg.TimesRead=0;
-   Msg.ReplyTo=0;
-   Msg.NextReply=0;
-   Msg.Cost= mm->Cost;
-   Msg.Attr= mm->Attr | FLAG_SENT;
-
-   if(mm->Area[0]==0)
-   {
-      Msg.DestZone   =  mm->DestNode.Zone;
-      Msg.DestNet    =  mm->DestNode.Net;
-      Msg.DestNode   =  mm->DestNode.Node;
-      Msg.DestPoint  =  mm->DestNode.Point;
-
-      Msg.OrigZone   =  mm->OrigNode.Zone;
-      Msg.OrigNet    =  mm->OrigNode.Net;
-      Msg.OrigNode   =  mm->OrigNode.Node;
-      Msg.OrigPoint  =  mm->OrigNode.Point;
-   }
-   else
-   {
-      Msg.DestZone   =  0;
-      Msg.DestNet    =  0;
-      Msg.DestNode   =  0;
-      Msg.DestPoint  =  0;
-
-      Msg.OrigZone   =  0;
-      Msg.OrigNet    =  0;
-      Msg.OrigNode   =  0;
-      Msg.OrigPoint  =  0;
-   }
-
-   if(!(fh=osOpen(file,MODE_NEWFILE)))
-   {
-		ulong err=osError();
-      LogWrite(1,SYSTEMERR,"Unable to write message to %s",file);
-		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
-
-      return(FALSE);
-   }
-
-   /* Write header */
-
-	if(!osWrite(fh,&Msg,sizeof(struct StoredMsg)))
-		{ ioerror=TRUE; ioerrornum=osError(); }
-
-   /* Write text */
-
-   for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
-	{
-      if(!osWrite(fh,chunk->Data,chunk->Length))
-			{ ioerror=TRUE; ioerrornum=osError(); }
-	}	
-
-   /* Write seen-by */
-
-   if((config.cfg_Flags & CFG_IMPORTSEENBY) && mm->Area[0]!=0)
-   {
-      uchar *sbbuf;
-
-      if(!(sbbuf=mmMakeSeenByBuf(&mm->SeenBy)))
-      {
-         osClose(fh);
-         return(FALSE);
-      }
-
-      if(sbbuf[0])
-		{
-         if(!osWrite(fh,sbbuf,(ulong)strlen(sbbuf)))
-				{ ioerror=TRUE; ioerrornum=osError(); }
-		}	
-
-      osFree(sbbuf);
-   }
-
-   /* Write path */
-
-   for(path=(struct Path *)mm->Path.First;path;path=path->Next)
-      for(c=0;c<path->Paths;c++)
-         if(path->Path[c][0]!=0)
-         {
-				if(!osWrite(fh,"\x01PATH: ",7))
-					{ ioerror=TRUE; ioerrornum=osError(); }
-				
-            if(!osWrite(fh,path->Path[c],(ulong)strlen(path->Path[c])))
-					{ ioerror=TRUE; ioerrornum=osError(); }
-
-            if(!osWrite(fh,"\x0d",1))
-					{ ioerror=TRUE; ioerrornum=osError(); }
-         }
-
-   if(!osPutChar(fh,0))
-		{ ioerror=TRUE; ioerrornum=osError(); }
-
-   osClose(fh);
-
-   if(ioerror)
-      return(FALSE);
-
-   return(TRUE);
-}
 
 /* Main netmail handling */
 
@@ -1423,21 +1120,19 @@ bool HandleNetmail(struct MemMessage *mm)
    struct ConfigNode *cnode,*pktcnode;
    struct ImportNode *inode;
    struct Route      *tmproute;
-   struct Remap      *remap;
-   struct RemapNode  *remapnode;
 	struct Node4D     n4d,Dest4D;
    struct PatternNode *patternnode;
    struct AreaFixName *areafixname;
-   struct Robot *robot;
    struct TextChunk *tmpchunk,*chunk;
    bool istext;
    uchar buf[400],buf2[200],buf3[200],subjtemp[80];
-   ulong c,d,arcres,jbcpos;
+   ulong c,d,jbcpos;
    time_t t;
    struct tm *tp;
    ulong size;
 	uchar oldtype;
-	
+   bool headeronly;
+
    /* Find orignode */
 
    for(pktcnode=(struct ConfigNode *)config.CNodeList.First;pktcnode;pktcnode=pktcnode->Next)
@@ -1452,7 +1147,7 @@ bool HandleNetmail(struct MemMessage *mm)
 
    /* Statistics */
 
-   if(istossing && !isrescanning && pktcnode)
+   if((mm->Flags & MMFLAG_TOSSED) && pktcnode)
    {
       pktcnode->GotNetmails++;
       pktcnode->GotNetmailBytes+=size;
@@ -1476,31 +1171,13 @@ bool HandleNetmail(struct MemMessage *mm)
          mmAddBuf(&mm->TextChunks,"\x0d",1);
    }
 
-   /* Remap node */
+	/* Filter */
 
-   for(remapnode=(struct RemapNode *)config.RemapNodeList.First;remapnode;remapnode=remapnode->Next)
-      if(Compare4DPat(&remapnode->NodePat,&mm->DestNode)==0) break;
+   if(!Filter(mm))
+      return(FALSE);
 
-   if(remapnode)
-   {
-      struct Node4D remap4d,t4d;
-
-      Copy4D(&t4d,&mm->DestNode);
-      ExpandNodePat(&remapnode->DestPat,&mm->DestNode,&remap4d);
-
-      if(!Remap(mm,&remap4d,mm->To))
-         return(FALSE);
-
-      LogWrite(4,TOSSINGINFO,"Remapped message to %lu:%lu/%lu.%lu to %lu:%lu/%lu.%lu",
-         t4d.Zone,
-         t4d.Net,
-         t4d.Node,
-         t4d.Point,
-         remap4d.Zone,
-         remap4d.Net,
-         remap4d.Node,
-         remap4d.Point);
-   }
+   if(mm->Flags & MMFLAG_KILL)
+		return(TRUE);
 
    /* Check if it is to me */
 
@@ -1509,75 +1186,9 @@ bool HandleNetmail(struct MemMessage *mm)
 
    if(aka)
    {
-      /* Robotnames */
-
-      for(robot=(struct Robot *)config.RobotList.First;robot;robot=robot->Next)
-         if(osMatchPattern(robot->Pattern,mm->To)) break;
-
-      if(robot)
-      {
-         bool msg,rfc1,rfc2;
-         uchar msgbuf[L_tmpnam],rfcbuf1[L_tmpnam],rfcbuf2[L_tmpnam];
-         uchar origbuf[30],destbuf[30];
-
-         msg=FALSE;
-         rfc1=FALSE;
-			rfc2=FALSE;
-
-         msgbuf[0]=0;
-         rfcbuf1[0]=0;
-         rfcbuf2[0]=0;
-
-         if(strstr(robot->Command,"%m")) msg=TRUE;
-         if(strstr(robot->Command,"%r")) rfc1=TRUE;
-         if(strstr(robot->Command,"%R")) rfc2=TRUE;
-
-         if(rfc1) tmpnam(rfcbuf1);
-         if(rfc2) tmpnam(rfcbuf2);
-         if(msg) tmpnam(msgbuf);
-
-         Print4D(&mm->OrigNode,origbuf);
-         Print4D(&mm->DestNode,destbuf);
-
-         ExpandRobot(robot->Command,buf,400,
-            rfcbuf1,
-            rfcbuf2,
-            msgbuf,
-            mm->Subject,
-            mm->DateTime,
-            mm->From,
-            mm->To,
-            origbuf,
-            destbuf);
-
-         if(rfc1) WriteRFC(mm,rfcbuf1,FALSE);
-         if(rfc2) WriteRFC(mm,rfcbuf2,TRUE);
-         if(msg) WriteMSG(mm,msgbuf); 
-
-         LogWrite(4,SYSTEMINFO,"Executing external command \"%s\"",buf);
-
-         arcres=osExecute(buf);
-
-         if(rfc1) osDelete(rfcbuf1);
-         if(rfc2) osDelete(rfcbuf2);
-         if(msg) osDelete(msgbuf);
-
-         if(arcres == 0)
-         {
-            /* Command ok*/
-            return(TRUE);
-         }
-         
-         if(arcres >= 20)
-         {
-            LogWrite(1,SYSTEMERR,"External command \"%s\" failed with error %lu, exiting...",buf,arcres);
-            return(FALSE);
-         }
-      }
-
       /* AreaFix */
 
-      if(!mm->isbounce)
+      if(!(mm->Flags & MMFLAG_AUTOGEN))
       {
          for(areafixname=(struct AreaFixName *)config.AreaFixList.First;areafixname;areafixname=areafixname->Next)
             if(stricmp(areafixname->Name,mm->To)==0) break;
@@ -1590,28 +1201,6 @@ bool HandleNetmail(struct MemMessage *mm)
             if(!(config.cfg_Flags & CFG_IMPORTAREAFIX))
                return(TRUE);
          }
-      }
-
-      /* Remap name */
-
-      for(remap=(struct Remap *)config.RemapList.First;remap;remap=remap->Next)
-         if(osMatchPattern(remap->Pattern,mm->To)) break;
-
-      if(remap)
-      {
-			strcpy(buf,mm->To);
-         ExpandNodePat(&remap->DestPat,&mm->DestNode,&n4d);
-
-         if(!Remap(mm,&n4d,remap->NewTo))
-            return(FALSE);
-
-         LogWrite(4,TOSSINGINFO,"Remapped message to %s to %s at %lu:%lu/%lu.%lu",
-																						buf,
-                                                                  mm->To,
-                                                                  n4d.Zone,
-                                                                  n4d.Net,
-                                                                  n4d.Node,
-                                                                  n4d.Point);
       }
    }
 
@@ -1639,7 +1228,7 @@ bool HandleNetmail(struct MemMessage *mm)
       for(aka=(struct Aka *)config.AkaList.First;aka;aka=aka->Next)
          if(Compare4D(&mm->DestNode,&aka->Node)==0) break;
 
-      if(aka || (istossing && (config.cfg_Flags & CFG_NOROUTE)))
+      if(aka || (config.cfg_Flags & CFG_NOROUTE))
       {
          for(tmparea=(struct Area *)config.AreaList.First;tmparea;tmparea=tmparea->Next)
             if(tmparea->AreaType == AREATYPE_NETMAIL) break;
@@ -1649,6 +1238,9 @@ bool HandleNetmail(struct MemMessage *mm)
    if(tmparea)
    {
       /* Import netmail */
+
+		if(mm->Flags & MMFLAG_TWIT)
+			return(TRUE);
 
       if(config.cfg_Flags & CFG_STRIPRE)
          strcpy(mm->Subject,StripRe(mm->Subject));
@@ -1674,7 +1266,7 @@ bool HandleNetmail(struct MemMessage *mm)
 
       if(istext)
       {
-         if(isscanning)
+         if(!(mm->Flags & MMFLAG_TOSSED))
             LogWrite(3,TOSSINGINFO,"Importing message");
 
          tmparea->NewTexts++;
@@ -1713,16 +1305,16 @@ bool HandleNetmail(struct MemMessage *mm)
 
       mm->Attr&=(FLAG_PVT|FLAG_CRASH|FLAG_FILEATTACH|FLAG_HOLD|FLAG_RREQ|FLAG_IRRR|FLAG_AUDIT);
 
-      if(istossing) 
+      if(mm->Flags & MMFLAG_TOSSED)
 			mm->Attr&=~(FLAG_CRASH|FLAG_HOLD);
 
       mm->Type = PKTS_NORMAL;
 
       if(mm->Attr & FLAG_CRASH) mm->Type=PKTS_CRASH;
       if(mm->Attr & FLAG_HOLD)  mm->Type=PKTS_HOLD;
-		
+
 		/* File-attach? */
-		
+
       if((mm->Attr & FLAG_FILEATTACH) && !(config.cfg_Flags & CFG_NODIRECTATTACH))
 		{
 			if(mm->Type == PKTS_NORMAL)
@@ -1793,7 +1385,7 @@ bool HandleNetmail(struct MemMessage *mm)
 
       /* Check for loopmail */
 
-      if(config.cfg_LoopMode != LOOP_IGNORE && !isscanning)
+      if(config.cfg_LoopMode != LOOP_IGNORE && !(mm->Flags & MMFLAG_EXPORTED))
       {
          if(IsLoopMail(mm))
          {
@@ -1811,7 +1403,7 @@ bool HandleNetmail(struct MemMessage *mm)
             {
                struct MemMessage *tmpmm;
                struct TextChunk *tmp;
-               
+
                /* Make a copy of the message with only kludge lines */
 
                if(!(tmpmm=mmAlloc()))
@@ -1836,9 +1428,7 @@ bool HandleNetmail(struct MemMessage *mm)
                tmpmm->Cost=mm->Cost;
 
                tmpmm->Type=mm->Type;
-               tmpmm->Rescanned=mm->Rescanned;
-               tmpmm->no_security=mm->no_security;
-               tmpmm->isbounce=mm->isbounce;
+               tmpmm->Flags=mm->Flags;
 
                for(tmp=(struct TextChunk *)mm->TextChunks.First;tmp;tmp=tmp->Next)
                {
@@ -1871,7 +1461,7 @@ bool HandleNetmail(struct MemMessage *mm)
 
       /* Bounce if not in nodelist */
 
-      if(config.cfg_NodelistType && !mm->isbounce)
+      if(config.cfg_NodelistType)
       {
          for(patternnode=(struct PatternNode *)config.BounceList.First;patternnode;patternnode=patternnode->Next)
             if(Compare4DPat(&patternnode->Pattern,&mm->DestNode)==0) break;
@@ -1879,7 +1469,7 @@ bool HandleNetmail(struct MemMessage *mm)
          if(patternnode)
          {
 				struct Node4D node;
-				
+
 				Copy4D(&node,&mm->DestNode);
 				node.Point=0;
 
@@ -1896,14 +1486,15 @@ bool HandleNetmail(struct MemMessage *mm)
                   mm->DestNode.Point);
 
                sprintf(buf,
-                  "Warning! Your message has been bounced because the node "
-                  "%u:%u/%u doesn't exist in the nodelist.\x0d"
-                  "\x0d",
+                  "Warning! Your message has been bounced because the node %u:%u/%u doesn't exist in the nodelist.",
                      mm->DestNode.Zone,
                      mm->DestNode.Net,
                      mm->DestNode.Node);
 
-               if(!Bounce(mm,buf))
+               headeronly=FALSE;
+               if(config.cfg_Flags & CFG_BOUNCEHEADERONLY) headeronly=TRUE;
+
+               if(!Bounce(mm,buf,headeronly))
                   return(FALSE);
 
                return(TRUE);
@@ -1913,7 +1504,7 @@ bool HandleNetmail(struct MemMessage *mm)
 
       /* Bounce if unconfigured point */
 
-      if((config.cfg_Flags & CFG_BOUNCEPOINTS) && !mm->isbounce)
+      if(config.cfg_Flags & CFG_BOUNCEPOINTS)
       {
          Copy4D(&n4d,&mm->DestNode);
          n4d.Point=0;
@@ -1937,15 +1528,16 @@ bool HandleNetmail(struct MemMessage *mm)
                      mm->DestNode.Node,
                      mm->DestNode.Point);
 
-                  sprintf(buf,"Warning! Your message has been bounced because the point "
-                              "%u:%u/%u.%u doesn't exist.\x0d"
-                              "\x0d",
+                  sprintf(buf,"Warning! Your message has been bounced because the point %u:%u/%u.%u doesn't exist.",
                                  mm->DestNode.Zone,
                                  mm->DestNode.Net,
                                  mm->DestNode.Node,
                                  mm->DestNode.Point);
 
-                  if(!Bounce(mm,buf))
+                  headeronly=FALSE;
+                  if(config.cfg_Flags & CFG_BOUNCEHEADERONLY) headeronly=TRUE;
+
+                  if(!Bounce(mm,buf,headeronly))
                      return(FALSE);
 
                   return(TRUE);
@@ -1960,7 +1552,7 @@ bool HandleNetmail(struct MemMessage *mm)
       {
          LogWrite(6,DEBUG,"Netmail is fileattach");
 
-         if(!isscanning)
+         if(!(mm->Flags & MMFLAG_EXPORTED))
          {
             for(patternnode=(struct PatternNode *)config.FileAttachList.First;patternnode;patternnode=patternnode->Next)
                if(Compare4DPat(&patternnode->Pattern,&mm->DestNode)==0) break;
@@ -1971,13 +1563,15 @@ bool HandleNetmail(struct MemMessage *mm)
                                                                                          mm->DestNode.Zone,mm->DestNode.Net,mm->DestNode.Node,mm->DestNode.Point);
 
 
-               sprintf(buf,"Warning! Your message has been bounced because because routing "
-                           "of file-attaches to %u:%u/%u.%u is not allowed.\x0d"
-                           "\x0d",mm->DestNode.Zone,mm->DestNode.Net,mm->DestNode.Node,mm->DestNode.Point);
+               sprintf(buf,"Warning! Your message has been bounced because because routing of file-attaches to %u:%u/%u.%u is not allowed.",
+                           mm->DestNode.Zone,mm->DestNode.Net,mm->DestNode.Node,mm->DestNode.Point);
 
-               if(!Bounce(mm,buf))
+               headeronly=FALSE;
+               if(config.cfg_Flags & CFG_BOUNCEHEADERONLY) headeronly=TRUE;
+
+               if(!Bounce(mm,buf,headeronly))
 						return(FALSE);
-						
+
 					return(TRUE);
             }
          }
@@ -1992,7 +1586,7 @@ bool HandleNetmail(struct MemMessage *mm)
          }
 
 			jbcpos=0;
-			
+
 			while(jbstrcpy(buf,subjtemp,80,&jbcpos))
 			{
 				if(mm->Subject[0] != 0) strcat(mm->Subject," ");
@@ -2000,8 +1594,8 @@ bool HandleNetmail(struct MemMessage *mm)
 
             LogWrite(4,TOSSINGINFO,"Routing file %s to %lu:%lu/%lu.%lu",GetFilePart(buf),Dest4D.Zone,Dest4D.Net,Dest4D.Node,Dest4D.Point);
 
-            if(isscanning)
-            {				
+            if((mm->Flags & MMFLAG_EXPORTED))
+            {
 					if(osExists(buf))
                {
 						MakeFullPath(config.cfg_PacketDir,GetFilePart(buf),buf2,200);
@@ -2009,7 +1603,7 @@ bool HandleNetmail(struct MemMessage *mm)
 
 						if(nomem || ioerror)
 							return(FALSE);
-								
+
                   AddFlow(buf2,&Dest4D,mm->Type,FLOW_DELETE);
                }
                else
@@ -2074,11 +1668,11 @@ bool HandleNetmail(struct MemMessage *mm)
       if(!WriteNetMail(mm,&Dest4D,tmproute->Aka))
          return(FALSE);
 
-      if((mm->Attr & FLAG_AUDIT) && (config.cfg_Flags & CFG_ANSWERAUDIT) && istossing)
+      if((mm->Attr & FLAG_AUDIT) && (config.cfg_Flags & CFG_ANSWERAUDIT) && (mm->Flags & MMFLAG_TOSSED))
       {
          if(!AnswerAudit(mm))
             return(FALSE);
-      }            
+      }
 
       toss_route++;
    }
@@ -2112,7 +1706,7 @@ bool HandleRescan(struct MemMessage *mm)
    }
 
    /* Add destination node to seen-by to be on the safe side */
-   
+
    if(RescanNode->Node.Point == 0)
    {
       if(!mmAddNodes2DList(&mm->SeenBy,RescanNode->Node.Net,RescanNode->Node.Node))

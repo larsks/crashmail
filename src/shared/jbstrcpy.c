@@ -47,3 +47,31 @@ bool jbstrcpy(uchar *dest,uchar *src,ulong maxlen,ulong *jbc)
    return(FALSE);
 }
 
+
+bool jbstrcpyrest(uchar *dest,uchar *src,ulong maxlen,ulong *jbc)
+{
+   ulong d=0;
+   ulong jbcpos;
+   jbcpos=*jbc;
+
+   while(src[jbcpos]==32 || src[jbcpos]==9)
+      jbcpos++;
+
+   while(src[jbcpos]!=10 && src[jbcpos]!=0)
+   {
+		if(d<maxlen-1)
+         dest[d++]=src[jbcpos];
+
+		jbcpos++;
+   }
+
+   dest[d]=0;
+
+   *jbc=jbcpos;
+
+   if(d!=0)
+		return(TRUE);
+
+   return(FALSE);
+}
+

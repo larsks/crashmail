@@ -87,6 +87,19 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
    struct MemMessage *mm;
    struct TextChunk *chunk;
    bool pkt_pw,pkt_4d,pkt_5d;
+   int res;
+
+   if(config.cfg_BeforeToss[0])
+   {
+      ExpandPacker(config.cfg_BeforeToss,buf,200,"",pkt);
+      res=osExecute(buf);
+
+      if(res != 0)
+      {
+            LogWrite(1,SYSTEMERR,"BEFORETOSS command failed for %s: %lu",pkt,res);
+         return(FALSE);
+      }
+   }
 
    shortread=FALSE;
    longread=FALSE;
@@ -321,7 +334,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
 
    msgnum=0;
 
-   while(getuword(PktMsgHeader,PKTMSGHEADER_PKTTYPE) == 2)
+   while(getuword(PktMsgHeader,PKTMSGHEADER_PKTTYPE) == 2 && !ctrlc)
    {
       msgnum++;
 
@@ -348,7 +361,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
       Copy4D(&mm->PktDest,&PktDest);
 
       if(no_security)
-         mm->no_security=TRUE;
+         mm->Flags |= MMFLAG_NOSECURITY;
 
       /* Get header strings */
 
@@ -389,7 +402,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
 
       if(strncmp(buf,"AREA:",5)==0)
       {
-         mystrncpy(mm->Area,&buf[5],40);
+         mystrncpy(mm->Area,&buf[5],80);
          stripleadtrail(mm->Area); /* Strip spaces from area name */
       }
       else
@@ -455,12 +468,9 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
          }
       }
       
-      if(ctrlc)
-      {
-         osClose(fh);
-         mmFree(mm);
-         return(FALSE);
-      }
+      toss_read++;
+      
+      mm->Flags |= MMFLAG_TOSSED;
 
       if(!(*handlefunc)(mm))
       {
@@ -544,7 +554,7 @@ struct Pkt *FindPkt(struct Node4D *node,struct Node4D *mynode,ushort type)
 time_t lastt;
 ulong serial;
 
-struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Aka *aka,ushort type)
+struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Node4D *orig,ushort type)
 {
    uchar buf[100],buf2[100];
    struct Pkt *pkt;
@@ -552,7 +562,7 @@ struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Aka *ak
    time_t t;
    struct tm *tp;
    uchar PktHeader[SIZE_PKTHEADER];
-      
+
    do
    {
       t=time(NULL);
@@ -584,9 +594,9 @@ struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Aka *ak
    pkt->hexnum=num;
    pkt->Type=type;
    Copy4D(&pkt->Dest,dest);
-   Copy4D(&pkt->Orig,&aka->Node);
+   Copy4D(&pkt->Orig,orig);
 
-   putuword(PktHeader,PKTHEADER_ORIGNODE,aka->Node.Node);
+   putuword(PktHeader,PKTHEADER_ORIGNODE,orig->Node);
    putuword(PktHeader,PKTHEADER_DESTNODE,dest->Node);
 
    time(&t);
@@ -601,20 +611,20 @@ struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Aka *ak
 
    putuword(PktHeader,PKTHEADER_BAUD,0);
    putuword(PktHeader,PKTHEADER_PKTTYPE,2);
-   putuword(PktHeader,PKTHEADER_ORIGNET,aka->Node.Net);
+   putuword(PktHeader,PKTHEADER_ORIGNET,orig->Net);
    putuword(PktHeader,PKTHEADER_DESTNET,dest->Net);
    PktHeader[PKTHEADER_PRODCODELOW]=0xfe;
    PktHeader[PKTHEADER_REVMAJOR]=VERSION_MAJOR;
-   putuword(PktHeader,PKTHEADER_QORIGZONE,aka->Node.Zone);
+   putuword(PktHeader,PKTHEADER_QORIGZONE,orig->Zone);
    putuword(PktHeader,PKTHEADER_QDESTZONE,dest->Zone);
    putuword(PktHeader,PKTHEADER_AUXNET,0);
    putuword(PktHeader,PKTHEADER_CWVALIDCOPY,0x0100);
    PktHeader[PKTHEADER_PRODCODEHIGH]=0;
    PktHeader[PKTHEADER_REVMINOR]=VERSION_MINOR;
    putuword(PktHeader,PKTHEADER_CAPABILWORD,0x0001);
-   putuword(PktHeader,PKTHEADER_ORIGZONE,aka->Node.Zone);
+   putuword(PktHeader,PKTHEADER_ORIGZONE,orig->Zone);
    putuword(PktHeader,PKTHEADER_DESTZONE,dest->Zone);
-   putuword(PktHeader,PKTHEADER_ORIGPOINT,aka->Node.Point);
+   putuword(PktHeader,PKTHEADER_ORIGPOINT,orig->Point);
    putuword(PktHeader,PKTHEADER_DESTPOINT,dest->Point);
    PktHeader[PKTHEADER_PRODDATA]=0;
    PktHeader[PKTHEADER_PRODDATA+1]=0;
@@ -765,9 +775,15 @@ bool WriteSeenBy(struct Pkt *pkt,struct jbList *list)
 bool WriteEchoMail(struct MemMessage *mm,struct ConfigNode *node, struct Aka *aka)
 {
    uchar buf[100];
+   struct Node4D *From4D;
    struct Pkt *pkt;
    struct TextChunk  *chunk;
    ulong size;
+
+   From4D=&aka->Node;
+
+	if(node->Flags & NODE_PKTFROM)
+		From4D=&node->PktFrom;
 
    toss_written++;
 
@@ -781,13 +797,13 @@ bool WriteEchoMail(struct MemMessage *mm,struct ConfigNode *node, struct Aka *ak
    node->SentEchomails++;
    node->SentEchomailBytes+=size;
 
-   pkt=FindPkt(&node->Node,&aka->Node,mm->Type);
+   pkt=FindPkt(&node->Node,From4D,mm->Type);
 
    if(!pkt || (pkt && config.cfg_MaxPktSize!=0 && pkt->Len > config.cfg_MaxPktSize))
    {
       if(pkt) FinishPacket(pkt);
 
-      if(!(pkt=CreatePkt(&node->Node,node,aka,mm->Type)))
+      if(!(pkt=CreatePkt(&node->Node,node,From4D,mm->Type)))
       {
          return(FALSE);
       }
@@ -796,7 +812,7 @@ bool WriteEchoMail(struct MemMessage *mm,struct ConfigNode *node, struct Aka *ak
    }
 
    Copy4D(&mm->DestNode,&node->Node);
-   Copy4D(&mm->OrigNode,&aka->Node);
+   Copy4D(&mm->OrigNode,From4D);
 
    if(!WriteMsgHeader(pkt,mm))
       return(FALSE);
@@ -883,9 +899,12 @@ bool WriteNetMail(struct MemMessage *mm,struct Node4D *dest,struct Aka *aka)
    struct Pkt *pkt;
    struct ConfigNode *cnode;
    struct TextChunk *chunk;
+  	struct Node4D *From4D;
    ulong size;
 
    toss_written++;
+
+ 	From4D=&aka->Node;
 
    for(cnode=(struct ConfigNode *)config.CNodeList.First;cnode;cnode=cnode->Next)
       if(Compare4D(&cnode->Node,dest)==0) break;
@@ -904,15 +923,18 @@ bool WriteNetMail(struct MemMessage *mm,struct Node4D *dest,struct Aka *aka)
 
       if(cnode->Flags & NODE_PACKNETMAIL)
          if(mm->Type == PKTS_NORMAL) mm->Type=PKTS_ECHOMAIL;
+
+   	if(cnode->Flags & NODE_PKTFROM)
+			From4D=&cnode->PktFrom;
    }
 
-   pkt=FindPkt(dest,&aka->Node,mm->Type);
+   pkt=FindPkt(dest,From4D,mm->Type);
 
    if(!pkt || (pkt && config.cfg_MaxPktSize!=0 && pkt->Len > config.cfg_MaxPktSize))
    {
       if(pkt) FinishPacket(pkt);
 
-      if(!(pkt=CreatePkt(dest,cnode,aka,mm->Type)))
+      if(!(pkt=CreatePkt(dest,cnode,From4D,mm->Type)))
       {
          return(FALSE);
       }

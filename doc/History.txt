@@ -1,40 +1,326 @@
-Changes in version 0.4
+This is probably the last major revision of CrashMail. I put this release
+together mainly since I had some good code that I had written a long time
+ago that had never made it into a released version of CrashMail. I felt that
+that code was too good to waste and so now it finally is incorporated into
+CrashMail along with some other improvements.
 
- - First public release
+If you are using CrashMail, please send me an e-mail (billing@df.lth.se).
+I am curious about how many CrashMail users there still are...
+
+
+Changes in version 0.7
+
+ - Implemented a message filter. Using this feature, you can filter out messages
+   that match specified criteria and perform a number of commands on them. This
+   filter will for example copy echomail messages addressed to me to a special
+   area (the area needs to be configured as a local area using LOCALAREA):
+
+    FILTER SOURCE=TOSSED and TYPE=ECHOMAIL and TONAME="Johan Billing"
+    COPY PERSONAL_MESSAGES
+
+   See doc/filter.txt for a complete description of the new message filter.
+
+ - The new message filter replaces the configuration keywords ROBOTNAME, REMAP
+   and REMAPNODE since the message filter can perform these tasks.
+
+   Replacement for ROBOTNAME <name> <command>:
+
+    FILTER TYPE=NETMAIL and TOLOCALAKA and TONAME=<name>
+    EXECUTE <command>
+
+   Replacement for REMAP <pattern> <new name> <destination pattern>
+
+    FILTER TYPE=NETMAIL and TOLOCALAKA and TONAME=<pattern>
+    REMAPMSG <new name> <destination pattern>
+
+   Replacement for REMAPNODE <node pattern> <destination pattern>
+
+    FILTER TYPE=NETMAIL and TOADDR=<node pattern>
+    REMAPMSG "*" <destination pattern>
+
+ - Rewrote the dupe-checking. CrashMail now no longer needs to load the entire
+   dupe buffer into memory. This means that you now can keep a much large dupe
+   buffer without using a lot of memory.
+
+   CrashMail will not read your old dupe file, you have to delete it.
+
+   Also note that the second argument for DUPEFILE has changed from the size
+   of the dupe buffer in KB to the maximum number of messages that should be
+   stored in the dupe buffer. If you don't update your configuration, you  will
+   only have a very small dupe buffer.
+
+ - CrashMail no longer keeps zero-length files in the packet directory for use
+   in naming new bundles. Instead it relies solely on the cmindex file.
+
+ - CrashMail now also supports nodelists in the Version 7+ format in addition
+   to its own format. (Note: It seems like the Linux version of FastLst does
+   not include hub/region in the compiled nodelist for some reason. This means
+   that node patterns with HUB/REGION won't work.)
+
+ - New tool in the CrashMail suite: crashlistout. This tool can list your
+   outbound directory in a pretty way.
+
+ - New configuration keywords: BEFORETOSS and BEFOREPACK. You can use these
+   to execute custom commands before tossing/packing a *.pkt file.
+
+ - New keyword PKTFROM in node configuration. You can use this if you want
+   to set the originating address of .pkt files to something other than the
+   default.
+
+ - New configuration switches: FLOWCRLF and NOEXPORTNETMAIL. FLOWCRLF makes
+   CrashMail use CRLF as end-of-line characters in flow files instead of
+   just LF. NOEXPORTNETMAIL makes CrashMail ignore netmail areas with
+   SCAN and SCANLIST. This together with NOROUTE makes it possible to use
+   an external program for handling netmail.
+
+ - New switch NEEDSPLUS for the REMOTEAF keyword.
+
+ - New commandline argument: SCANDOTJAM. This can be used for scanning areas
+   listed in echomail.jam/netmail.jam files.
+
+ - In addition to "programname ?", you can now also use -h, --help, help, /?
+   and /h with CrashMail and the related utilities to show the commandline help.
+
+ - Improved the time it takes for CrashMail to load the configuration file.
+   Only noticable if you have a huge number of pass-through areas.
+
+ - Fixed some bugs found in the ChangeLog from CrashEcho (thanks guys!)
+
+   - SCANLIST does not abort anymore if an area cannot be scanned
+
+   - RESCAN was broken and always returned an "unknown area" error
+
+   - Added sanity checks to JAM linking to prevent CrashMail from crashing
+     on messagebases with broken reply links
+
+   - Fixed some memory leaks in the JAM handling.
+
+ - Upgraded JAMLIB to version 1.3.1
+
+ - Some minor cosmetic changes.
+
+ - Cleaned up the source in various places.
  
-Changes in version 0.42
 
- - Fixed bug that occurred when sending mail to nodes with long addresses 
-   (e.g. 9999:8888/7777.6666)
-	
- - Fixed an error message in the outbound handling
+Changes in version 0.62:
+
+ CrashMail
+
+ - CrashMail would check packet passwords even if the command-line option
+   NOSECURITY was used. Fixed.
+
+ - The Local flag is now cleared and the Sent flag is set before messages
+   are imported to the messagebase. In previous versions of CrashMail,
+   imported messages with Local flag and no Sent flag were re-exported the
+   next time CrashMail SCAN was run. Fixed.
+
+ - CrashMail no longer leaves empty lines in the config file when areas are
+   removed by the AreaFix.
+
+ CrashMaint
+
+ - CrashMaint used local time instead of UTC when deleting old messages in
+   JAM areas. This could cause messages to be deleted ahead of time. Thanks
+   to Alexander S Aganichev for noticing this and sending me a patch.
+
+ JAMLIB
+
+ - There was a bug in JAMLIB that caused the Linux version of CrashMail to fail
+   when trying to import an empty message to the messagebase. The bug has been
+   fixed and CrashMail now uses the new version of JAMLIB.
+
+
+Changes in version 0.61:
+
+ CrashMail:
+
+ - CrashMail incorrectly bounced netmails to nodes listed as hold in the
+   nodelist are no longer bounced. Fixed. Netmails to nodes listed as down
+   are still bounced.
+
+ - The CrashMail REMOVE command didn't work. Fixed.
+
+ - The AreaFix would sometimes miss some areas when you unsubscribed to areas
+   using patterns.
+
+ - The AreaFix no longer crashes when it tries to remove areas after the
+   feed has unsubscribed to them.
+
+ - JAM_LINK and JAM_HIGHWATER would turn on both linking and the use of
+   highwater marks. Fixed.
+
+ - TINYSEENBY didn't work. Fixed.
+
+ - CrashMail had problems with backslashes in file-attaches. Fixed.
+
+ JAMLIB
+
+ - Changed to latest version of JAMLIB.
+
+ CrashWrite:
+
+ - PKTFROMADDR/PKTTOADDR didn't work. Fixed.
+
+ - CrashWrite had problems with paragraphs longer than 100 characters. Fixed.
+
+
+Changes in version 0.6
+
+ CrashMail:
+
+ - The AreaFix no longer truncates area names longer than 30 characters in
+   the response messages.
+
+ - The Linux version of CrashMail now shows the real return code (using
+   WEXITSTATUS()) when an external command returns an error.
+
+ - Two default areas may now have the same path
+
+ - Cleaned up the Makefiles
+
+ - CrashMail no longer sets the Sent flag on all imported message. CrashMail
+   now only exports messages with the Local flag set and the Sent flag cleared.
+
+ - CrashMail can now also export JAM messages with very long kludges without
+   problems. Previous versions had problems with kludges longer than 200 chars.
+
+ - LF characters are stripped when importing messsages to a JAM messagebase.
+
+ - Space characters are stripped in AreaFix commands. This means that AreaFix
+   commands will work even if they begin with one or several space characters.
+
+ - Node numbers can now be abbreviated on the EXPORT lines. See example.prefs
+   for an example on how this works. Thanks to Per Lundberg for idea and
+   original patch.
+
+ - You can now define local areas in crashmail.prefs using the keyword
+   LOCALAREA. Local areas are not used by CrashMail, but are included in config
+   files created by CrashExport and are maintained when running CrashMaint.
+
+ CrashWrite:
+
+ - There are two new options PKTFROMADDR and PKTTOADDR that can be used to
+   set the origin and destination address to something other than the origin
+   and destination address of the message inside the packet.
+
+ - A new option PASSWORD that can be used to set the password of the created
+   packet.
+
+ JAMLIB:
+
+ - JAMLIB could crash on corrupt messagebases. Fixed.
+
+ - JAMLIB lo longer reads or writes structures directly from/to disk. This
+   makes JAMLIB even more portable and ensures that the Intel byte-order will
+	be used on all platforms regardless of the processor used.
+
+ All programs:
+
+ - The Win32 version of CrashMail did not work if you were tossing mail to
+   many downlinks since you could only open a limited number of files with
+   fopen() (about 40). Because of this, the Win32 version has been rewritten
+   to use Windows' I/O functions rather than the standard C stdio. The problem
+   is solved and the Win32 version is now also slightly faster. Note that
+   JAMLIB still uses fopen() so do not use too high a value for JAM_MAXOPEN.
+
+ - Improved the error messages in all programs. Now CrashMail will also
+   tell you why an I/O error occurred using the response given by the
+   operating system. (To do this, the functions osError() and osErrorMsg()
+   were added to oslib.)
+
+ - Added function osVFPrintf() to oslib
+
+ - Changed error message "Too many arguments" in command line parsing to
+   to "Unknown keyword %s". This should make it easier to find the
+   problem.
+
+ - Several cosmetic changes to program output and source code
+
+
+Changes in version 0.52
+
+ CrashMail:
+
+ - Three new flags for the NODE keyword: CRASH, DIRECT and HOLD. With these
+   flags, you can set the priority for packed and unpacked netmail.
+
+ - When the packet directory was missing, the error message said that the
+   outbound directory was missing. This could be very confusing. Fixed.
+
+ - Fixed a Y2K-related bug in the JAM import function.
+
+ - Node patterns with REGION or HUB did not work for points. Fixed.
+
+ - Added the new %-code %R for the ROBOTNAME keyword. %R gives the message
+   in RFC-format with the addresses in RFC-format (name@pX.fX.nX.zX.domain).
+
+ - When importing messages, CrashMail now checks for robot and AreaFix names
+   before messages are remapped. If you want to remap messages to AreaFix, you
+   have to make sure that no AreaFix names are configured. REMAPNODE still
+   works as before.
+
+ - CrashMail now updates the DateProcessed field when exporting messages from
+   a JAM area.
+
+ - CrashMail no longer is so strict with names of packet files names. Packet
+   names are now considered valid even if they contain non-hexadecimal
+   characters.
+
+ - When glibc 2.1 was used, the Linux version of CrashMail exported messages
+   from JAM messagebases with an incorrect date. The time was one hour ahead.
+   This has now been fixed.
+
+ - Dates in Via lines were one month early. Fixed.
+
+ - If a netmail area had an IMPORT line, all netmails would be imported to
+   that area. This has been fixed and IMPORT now works as intended.
+
+ - CrashMail no longer aborts if a JAM area could not be opened when exporting
+   messages. CrashMail instead continues and exports mail from all other areas.
+
+ - CrashMail used to create an invalid configuration file when auto-adding
+   areas to a config file where the last line did not end with an end-of-line
+   character. This has now been fixed.
+
+ - You can now use the environment variable CMCONFIGFILE to set the default
+   configuration file for CrashMail.
+
+ - CrashMail would incorrectly import FMPT kludges to JAM areas. Fixed.
+
+ CrashExport:
  
- - Fixed a bug that occurred when auto-adding pass-through areas
+ - CrashExport did not write netmail areas correctly to a GoldED configuration
+   file. This has now been fixed.
 
- - Fixed a small memory leak
+ - CrashExport can now also create en area configuration file for timEd.
 
- - CrashMail got caught in an infinite loop when an unknown nodelist format
-   was specified in the config. This is now fixed.
-	
- - CrashMail no longer segfaults at startup when pass-through areas are used!
+ - CrashExport no longer exports areas with the UNCONFIRMED keyword.
  
- - CrashMail now adds packets to bundles in the correct order
+ CrashStats:
  
- - CrashMail would under some circumstances use the same bundle for more than
-   one node. This has been fixed and a mechanism that checks that the same
-   bundle is not used for more than one node has been added.
+ - The total number of messages per day were not calculated correctly in the
+   LAST7 mode, instead a random number would be shown. The average total number 
+   of messages per day was also incorrect.  These bugs have now been fixed.
 
- - Routing did not work properly when BOUNCEPOINTS was turned on. Fixed. 
+ CrashMaint:
 
- - Removed an unnecessary linebreak from the bounce messages.
+ - You can now use the environment variable CMCONFIGFILE to set the default
+   configuration file for CrashMail.
 
- - New configuration keyword: NOMAXOUTBOUNDZONE. See example.prefs for more
-   information.
+ All programs:
+ 
+ - The argument parsing has been improved. The main change for the user is that
+   "programname ?" now gives a more helpful output.
 
- - CrashList did not handle Pvt nodes correctly. Fixed.
+ - The functions remove(), rename() and system() has been moved to the oslib.
+   This change should not be noticable for the user.
 
- - There was a small mistake in the example configuration file. The keyword is
-   REMOTEAF, not REMOTEAREAFIX. 
+ - Peter Karlsson has prepared man-pages for CrashMail and all related tools.
+   Thanks, Peter! These are handy under Linux, but can also be used on other
+   platforms if you install a "man"-program.
+
+ - Peter Karlsson has ported CrashMail II to OS/2. Thanks, Peter!
+
 
 Changes in version 0.5
 
@@ -42,25 +328,25 @@ Changes in version 0.5
 
  - Because of a bug in the pattern matching, an empty string would match any
    pattern. Fixed.
-	
+
  - Areas belonging to the same group were not listed together in the area lists
    generated by the Areafix.
-	 	
+
  - CrashMail showed the same error message twice when the packer returned an
    error when unarchiving a bundle. Fixed.
-	 
+
  - If the highwater mark was lower than the lowest messagenumber in a JAM area,
    CrashMail would still try to export messages beginning from the highwater
    mark. Unfortunately this would cause a crash because of another bug
    that appeared when CrashMail tried to export an unreadable message.
    All this has now been fixed.
-	
+
  - CrashMail no longer stops exporting when it encounters an unreadable message
 
- - CrashMail no longer adds its own node number to the path if it already 
+ - CrashMail no longer adds its own node number to the path if it already
    exists as the last node in the path lines.
 
- - CrashMail could sometimes create circular reply links and get caught in 
+ - CrashMail could sometimes create circular reply links and get caught in
    infinite loops when dupes were imported to a JAM messagebase. Fixed.
 
  - New config option: ALLOWKILLSENT
@@ -96,224 +382,50 @@ Changes in version 0.5
    file and then creates a packet file that can be tossed by CrashMail.
 
  CrashExport:
- 
+
  - CrashAreasBBS and CrashForward have been replaced by the new program
    CrashExport. In addition to the old formats, CrashExport can also
-   create arealists in GoldED format. The old version of CrashAreasBBS had 
+   create arealists in GoldED format. The old version of CrashAreasBBS had
    some trouble with pass-through areas, this is gone in CrashExport.
 
-Changes in version 0.52
 
- CrashMail:
+Changes in version 0.42
 
- - Three new flags for the NODE keyword: CRASH, DIRECT and HOLD. With these
-   flags, you can set the priority for packed and unpacked netmail.
+ - Fixed bug that occurred when sending mail to nodes with long addresses
+   (e.g. 9999:8888/7777.6666)
 
- - When the packet directory was missing, the error message said that the
-   outbound directory was missing. This could be very confusing. Fixed.
+ - Fixed an error message in the outbound handling
 
- - Fixed a Y2K-related bug in the JAM import function. 
+ - Fixed a bug that occurred when auto-adding pass-through areas
 
- - Node patterns with REGION or HUB did not work for points. Fixed.
+ - Fixed a small memory leak
 
- - Added the new %-code %R for the ROBOTNAME keyword. %R gives the message
-   in RFC-format with the addresses in RFC-format (name@pX.fX.nX.zX.domain).
-
- - When importing messages, CrashMail now checks for robot and AreaFix names
-   before messages are remapped. If you want to remap messages to AreaFix, you 
-   have to make sure that no AreaFix names are configured. REMAPNODE still
-   works as before. 
+ - CrashMail got caught in an infinite loop when an unknown nodelist format
+   was specified in the config. This is now fixed.
 	
- - CrashMail now updates the DateProcessed field when exporting messages from
-   a JAM area.
+ - CrashMail no longer segfaults at startup when pass-through areas are used!
 
- - CrashMail no longer is so strict with names of packet files names. Packet
-   names are now considered valid even if they contain non-hexadecimal 
-   characters.
-
- - When glibc 2.1 was used, the Linux version of CrashMail exported messages
-   from JAM messagebases with an incorrect date. The time was one hour ahead.
-   This has now been fixed.
-	
- - Dates in Via lines were one month early. Fixed.
+ - CrashMail now adds packets to bundles in the correct order
  
- - If a netmail area had an IMPORT line, all netmails would be imported to 
-   that area. This has been fixed and IMPORT now works as intended.
-	
- - CrashMail no longer aborts if a JAM area could not be opened when exporting
-   messages. CrashMail instead continues and exports mail from all other areas.
+ - CrashMail would under some circumstances use the same bundle for more than
+   one node. This has been fixed and a mechanism that checks that the same
+   bundle is not used for more than one node has been added.
 
- - CrashMail used to create an invalid configuration file when auto-adding 
-   areas to a config file where the last line did not end with an end-of-line
-   character. This has now been fixed.
+ - Routing did not work properly when BOUNCEPOINTS was turned on. Fixed.
 
- - You can now use the environment variable CMCONFIGFILE to set the default
-   configuration file for CrashMail.
-	
- - CrashMail would incorrectly import FMPT kludges to JAM areas. Fixed.
+ - Removed an unnecessary linebreak from the bounce messages.
 
- CrashExport:
- 
- - CrashExport did not write netmail areas correctly to a GoldED configuration
-   file. This has now been fixed.
+ - New configuration keyword: NOMAXOUTBOUNDZONE. See example.prefs for more
+   information.
 
- - CrashExport can now also create en area configuration file for timEd.
- 
- - CrashExport no longer exports areas with the UNCONFIRMED keyword.
- 
- CrashStats:
- 
- - The total number of messages per day were not calculated correctly in the
-   LAST7 mode, instead a random number would be shown. The average total number 
-   of messages per day was also incorrect.  These bugs have now been fixed.
+ - CrashList did not handle Pvt nodes correctly. Fixed.
 
- CrashMaint:
+ - There was a small mistake in the example configuration file. The keyword is
+   REMOTEAF, not REMOTEAREAFIX.
 
- - You can now use the environment variable CMCONFIGFILE to set the default
-   configuration file for CrashMail.
 
- All programs:
- 
- - The argument parsing has been improved. The main change for the user is that
-   "programname ?" now gives a more helpful output. 
-	
- - The functions remove(), rename() and system() has been moved to the oslib. 
-   This change should not be noticable for the user.
+Changes in version 0.4
 
- - Peter Karlsson has prepared man-pages for CrashMail and all related tools. 
-   Thanks, Peter! These are handy under Linux, but can also be used on other 
-   platforms if you install a "man"-program.
+ - First public release
 
- - Peter Karlsson has ported CrashMail II to OS/2. Thanks, Peter!
-	
-Changes in version 0.6
 
- CrashMail: 
-
- - The AreaFix no longer truncates area names longer than 30 characters in
-   the response messages.
-
- - The Linux version of CrashMail now shows the real return code (using 
-   WEXITSTATUS()) when an external command returns an error.
-
- - Two default areas may now have the same path
-
- - Cleaned up the Makefiles
-
- - CrashMail no longer sets the Sent flag on all imported message. CrashMail
-   now only exports messages with the Local flag set and the Sent flag cleared.
-
- - CrashMail can now also export JAM messages with very long kludges without 
-   problems. Previous versions had problems with kludges longer than 200 chars.
-
- - LF characters are stripped when importing messsages to a JAM messagebase.
- 
- - Space characters are stripped in AreaFix commands. This means that AreaFix
-   commands will work even if they begin with one or several space characters.
-
- - Node numbers can now be abbreviated on the EXPORT lines. See example.prefs
-   for an example on how this works. Thanks to Per Lundberg for idea and 
-   original patch.
-
- - You can now define local areas in crashmail.prefs using the keyword 
-   LOCALAREA. Local areas are not used by CrashMail, but are included in config
-   files created by CrashExport and are maintained when running CrashMaint.
-
- CrashWrite:
- 
- - There are two new options PKTFROMADDR and PKTTOADDR that can be used to 
-   set the origin and destination address to something other than the origin
-   and destination address of the message inside the packet.
-
- - A new option PASSWORD that can be used to set the password of the created
-   packet.
-
- JAMLIB:
-
- - JAMLIB could crash on corrupt messagebases. Fixed.
-
- - JAMLIB lo longer reads or writes structures directly from/to disk. This 
-   makes JAMLIB even more portable and ensures that the Intel byte-order will
-	be used on all platforms regardless of the processor used.
-
- All programs:
- 
- - The Win32 version of CrashMail did not work if you were tossing mail to 
-   many downlinks since you could only open a limited number of files with 
-   fopen() (about 40). Because of this, the Win32 version has been rewritten
-   to use Windows' I/O functions rather than the standard C stdio. The problem
-   is solved and the Win32 version is now also slightly faster. Note that 
-   JAMLIB still uses fopen() so do not use too high a value for JAM_MAXOPEN.
-
- - Improved the error messages in all programs. Now CrashMail will also 
-   tell you why an I/O error occurred using the response given by the 
-   operating system. (To do this, the functions osError() and osErrorMsg() 
-   were added to oslib.)
-
- - Added function osVFPrintf() to oslib
-
- - Changed error message "Too many arguments" in command line parsing to  
-   to "Unknown keyword %s". This should make it easier to find the
-   problem.
-
- - Several cosmetic changes to program output and source code
-
-Changes in version 0.61:
-
- CrashMail:
-
- - CrashMail incorrectly bounced netmails to nodes listed as hold in the
-   nodelist are no longer bounced. Fixed. Netmails to nodes listed as down
-   are still bounced.
-
- - The CrashMail REMOVE command didn't work. Fixed.
-
- - The AreaFix would sometimes miss some areas when you unsubscribed to areas
-   using patterns.
-
- - The AreaFix no longer crashes when it tries to remove areas after the
-   feed has unsubscribed to them.
-
- - JAM_LINK and JAM_HIGHWATER would turn on both linking and the use of
-   highwater marks. Fixed.
-
- - TINYSEENBY didn't work. Fixed.
-
- - CrashMail had problems with backslashes in file-attaches. Fixed.
-
- JAMLIB
-
- - Changed to latest version of JAMLIB.
-
- CrashWrite:
-
- - PKTFROMADDR/PKTTOADDR didn't work. Fixed.
-
- - CrashWrite had problems with paragraphs longer than 100 characters. Fixed.
-
-Changes in version 0.62:
-
- CrashMail
-
- - CrashMail would check packet passwords even if the command-line option
-   NOSECURITY was used. Fixed.
-
- - The Local flag is now cleared and the Sent flag is set before messages
-   are imported to the messagebase. In previous versions of CrashMail, 
-   imported messages with Local flag and no Sent flag were re-exported the
-   next time CrashMail SCAN was run. Fixed.
-
- - CrashMail no longer leaves empty lines in the config file when areas are
-   removed by the AreaFix.
-
- CrashMaint
-
- - CrashMaint used local time instead of UTC when deleting old messages in
-   JAM areas. This could cause messages to be deleted ahead of time. Thanks
-   to Alexander S Aganichev for noticing this and sending me a patch.
-
- JAMLIB
-
- - There was a bug in JAMLIB that caused the Linux version of CrashMail to fail 
-   when trying to import an empty message to the messagebase. The bug has been
-   fixed and CrashMail now uses the new version of JAMLIB.

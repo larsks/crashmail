@@ -31,10 +31,11 @@ void ExpandPacker(uchar *cmd,uchar *dest,ulong destsize,uchar *arc,uchar *file)
    dest[d]=0;
 }
 
-void ExpandRobot(uchar *cmd,uchar *dest,ulong destsize,
+void ExpandFilter(uchar *cmd,uchar *dest,ulong destsize,
    uchar *rfc1,
 	uchar *rfc2,
    uchar *msg,
+   uchar *area,
    uchar *subj,
    uchar *date,
    uchar *from,
@@ -47,7 +48,14 @@ void ExpandRobot(uchar *cmd,uchar *dest,ulong destsize,
    d=0;
    for(c=0;c<strlen(cmd);c++)
    {
-      if(cmd[c]=='%' && (cmd[c+1])=='r')
+      if(cmd[c]=='%' && (cmd[c+1])=='a')
+      {
+         strncpy(&dest[d],area,(size_t)(destsize-1-d));
+         dest[destsize-1]=0;
+         d=strlen(dest);
+         c++;
+      }
+      else if(cmd[c]=='%' && (cmd[c+1])=='r')
       {
          strncpy(&dest[d],rfc1,(size_t)(destsize-1-d));
          dest[destsize-1]=0;
@@ -122,10 +130,10 @@ void ExpandRobot(uchar *cmd,uchar *dest,ulong destsize,
 
 int DateCompareFE(const void *f1, const void *f2)
 {
-   if((*(struct osFileEntry **)f1)->Date > (*(struct osFileEntry  **)f2)->Date) 
+   if((*(struct osFileEntry **)f1)->Date > (*(struct osFileEntry  **)f2)->Date)
       return(1);
 
-   if((*(struct osFileEntry **)f1)->Date < (*(struct osFileEntry  **)f2)->Date) 
+   if((*(struct osFileEntry **)f1)->Date < (*(struct osFileEntry  **)f2)->Date)
       return(-1);
 
    return stricmp((*(struct osFileEntry **)f1)->Name,(*(struct osFileEntry **)f2)->Name);
@@ -358,7 +366,7 @@ bool copyfile(uchar *file,uchar *newfile)
 		nomem=TRUE;
       return(FALSE);
 	}
-	
+
    if(!(ifh=osOpen(file,MODE_OLDFILE)))
    {
       free(copybuf); 
@@ -372,11 +380,11 @@ bool copyfile(uchar *file,uchar *newfile)
       return(FALSE);
    }
 
-   while((len=osRead(ifh,copybuf,COPYBUFSIZE)))
+   while((len=osRead(ifh,copybuf,COPYBUFSIZE)) && !ioerror)
 	{
       if(!osWrite(ofh,copybuf,len))
 			{ ioerror=TRUE; ioerrornum=osError(); }
-	}	
+	}
 
    free(copybuf);
 
@@ -564,10 +572,11 @@ bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain)
    return Parse4D(buf2,n4d);
 }
 
-bool ExtractAddress(uchar *origin, struct Node4D *n4d,uchar *domain)
+bool ExtractAddress(uchar *origin, struct Node4D *n4d)
 {
    ulong pos,e;
    uchar addr[50];
+	uchar domain[20];
 
    pos=strlen(origin);
 
@@ -592,7 +601,6 @@ bool ExtractAddress(uchar *origin, struct Node4D *n4d,uchar *domain)
    return Parse5D(addr,n4d,domain);
 }
 
-
 unsigned long hextodec(char *hex)
 {
    char *hextab="0123456789abcdef";
@@ -614,3 +622,315 @@ unsigned long hextodec(char *hex)
    }
 }
 
+/* WriteRFC and WriteMSG */
+
+void MakeRFCAddr(uchar *dest,uchar *nam,struct Node4D *node,uchar *dom)
+{
+	uchar domain[50],name[50];
+	int j;
+	
+	/* Prepare domain */
+
+	strcpy(domain,dom);
+	
+	for(j=0;domain[j];j++)
+		domain[j]=tolower(domain[j]);
+		
+ 	if(stricmp(domain,"fidonet")==0)
+		strcpy(domain,"fidonet.org");	
+		
+	/* Prepare name */
+
+	strcpy(name,nam);
+	
+	for(j=0;name[j];j++)
+		if(name[j] == ' ') name[j]='_';
+
+	/* Make addr */
+	
+	if(node->Point != 0) 
+		sprintf(dest,"%s@p%u.f%u.n%u.z%u.%s",
+			name,
+			node->Point,
+			node->Node,
+			node->Net,
+			node->Zone,
+			domain);
+
+	else
+		sprintf(dest,"%s@f%u.n%u.z%u.%s",
+			name,
+			node->Node,
+			node->Net,
+			node->Zone,
+			domain);
+}
+
+bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
+{
+   osFile fh;
+   uchar *domain;
+   struct Aka *aka;
+   struct TextChunk *tmp;
+   ulong c,d,lastspace;
+   uchar buffer[100],fromaddr[100],toaddr[100];
+
+   for(aka=(struct Aka *)config.AkaList.First;aka;aka=aka->Next)
+      if(Compare4D(&mm->DestNode,&aka->Node)==0) break;
+
+   domain="FidoNet"; 
+ 
+   if(aka && aka->Domain[0]!=0)
+      domain=aka->Domain;
+
+	if(rfcaddr)
+	{
+		MakeRFCAddr(fromaddr,mm->From,&mm->OrigNode,domain);
+		MakeRFCAddr(toaddr,mm->To,&mm->DestNode,domain);
+	}
+	else
+	{
+   	sprintf(fromaddr,"%u:%u/%u.%u@%s",mm->OrigNode.Zone,
+                                            mm->OrigNode.Net,
+                                            mm->OrigNode.Node,
+                                            mm->OrigNode.Point,
+                                            domain);
+
+   	sprintf(toaddr,"%u:%u/%u.%u@%s",mm->DestNode.Zone,
+                                          mm->DestNode.Net,
+                                          mm->DestNode.Node,
+                                          mm->DestNode.Point,
+                                          domain);
+	}
+
+   if(!(fh=osOpen(name,MODE_NEWFILE)))
+   {
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"Unable to write RFC-message to %s",name);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+			
+      return(FALSE);
+   }
+
+   /* Write header */
+
+   if(!osFPrintf(fh,"From: %s (%s)\n",fromaddr,mm->From))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
+   if(!osFPrintf(fh,"To: %s (%s)\n",toaddr,mm->To))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
+   if(!osFPrintf(fh,"Subject: %s\n",mm->Subject))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
+   if(!osFPrintf(fh,"Date: %s\n",mm->DateTime))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
+   if(mm->MSGID[0]!=0)
+	{	
+      if(!osFPrintf(fh,"Message-ID: <%s>\n",mm->MSGID))
+			{ ioerror=TRUE; ioerrornum=osError(); }
+	}
+	
+   if(mm->REPLY[0]!=0)
+	{
+      if(!osFPrintf(fh,"References: <%s>\n",mm->REPLY))
+			{ ioerror=TRUE; ioerrornum=osError(); }
+	}
+	
+   /* Write kludges */
+
+   for(tmp=(struct TextChunk *)mm->TextChunks.First;tmp;tmp=tmp->Next)
+   {
+      c=0;
+
+      while(c<tmp->Length)
+      {
+         for(d=c;d<tmp->Length && tmp->Data[d]!=13 && tmp->Data[d]!=10;d++);
+         if(tmp->Data[d]==13 || tmp->Data[d]==10) d++;
+
+         if(tmp->Data[c]==1 && d-c-2!=0)
+         {
+				if(!osPuts(fh,"X-Fido-"))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+
+				if(!osWrite(fh,&tmp->Data[c+1],d-c-2))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+
+            if(!osPuts(fh,"\n"))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+         }
+         c=d;
+      }
+   }
+
+   /* Write end-of-header */
+
+   if(!osPuts(fh,"\n"))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
+   /* Write message text */
+
+   for(tmp=(struct TextChunk *)mm->TextChunks.First;tmp;tmp=tmp->Next)
+   {
+      d=0;
+
+      while(d<tmp->Length)
+      {
+         lastspace=0;
+         c=0;
+
+         while(tmp->Data[d+c]==10) d++;
+
+         while(c<78 && d+c<tmp->Length && tmp->Data[d+c]!=13)
+         {
+            if(tmp->Data[d+c]==32) lastspace=c;
+            c++;
+         }
+
+         if(c==78 && lastspace)
+         {
+            strncpy(buffer,&tmp->Data[d],lastspace);
+            buffer[lastspace]=0;
+            d+=lastspace+1;
+         }
+         else
+         {
+            strncpy(buffer,&tmp->Data[d],c);
+            buffer[c]=0;
+            if(tmp->Data[d+c]==13) c++;
+            d+=c;
+         }
+
+         if(buffer[0]!=1)
+         {
+            if(!osPuts(fh,buffer))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+
+            if(!osPutChar(fh,'\n'))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+         }
+      }
+   }
+
+   osClose(fh);
+
+   if(ioerror)
+      return(FALSE);
+
+	return(TRUE);
+}
+
+bool WriteMSG(struct MemMessage *mm,uchar *file)
+{
+   struct StoredMsg Msg;
+   struct TextChunk *chunk;
+   struct Path *path;
+   osFile fh;
+   int c;
+   
+   strcpy(Msg.From,mm->From);
+   strcpy(Msg.To,mm->To);
+   strcpy(Msg.Subject,mm->Subject);
+   strcpy(Msg.DateTime,mm->DateTime);
+
+   Msg.TimesRead=0;
+   Msg.ReplyTo=0;
+   Msg.NextReply=0;
+   Msg.Cost= mm->Cost;
+   Msg.Attr= mm->Attr | FLAG_SENT;
+
+   if(mm->Area[0]==0)
+   {
+      Msg.DestZone   =  mm->DestNode.Zone;
+      Msg.DestNet    =  mm->DestNode.Net;
+      Msg.DestNode   =  mm->DestNode.Node;
+      Msg.DestPoint  =  mm->DestNode.Point;
+
+      Msg.OrigZone   =  mm->OrigNode.Zone;
+      Msg.OrigNet    =  mm->OrigNode.Net;
+      Msg.OrigNode   =  mm->OrigNode.Node;
+      Msg.OrigPoint  =  mm->OrigNode.Point;
+   }
+   else
+   {
+      Msg.DestZone   =  0;
+      Msg.DestNet    =  0;
+      Msg.DestNode   =  0;
+      Msg.DestPoint  =  0;
+
+      Msg.OrigZone   =  0;
+      Msg.OrigNet    =  0;
+      Msg.OrigNode   =  0;
+      Msg.OrigPoint  =  0;
+   }
+
+   if(!(fh=osOpen(file,MODE_NEWFILE)))
+   {
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"Unable to write message to %s",file);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+
+      return(FALSE);
+   }
+
+   /* Write header */
+
+	if(!osWrite(fh,&Msg,sizeof(struct StoredMsg)))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
+   /* Write text */
+
+   for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
+	{
+      if(!osWrite(fh,chunk->Data,chunk->Length))
+			{ ioerror=TRUE; ioerrornum=osError(); }
+	}	
+
+   /* Write seen-by */
+
+   if((config.cfg_Flags & CFG_IMPORTSEENBY) && mm->Area[0]!=0)
+   {
+      uchar *sbbuf;
+
+      if(!(sbbuf=mmMakeSeenByBuf(&mm->SeenBy)))
+      {
+         osClose(fh);
+         return(FALSE);
+      }
+
+      if(sbbuf[0])
+		{
+         if(!osWrite(fh,sbbuf,(ulong)strlen(sbbuf)))
+				{ ioerror=TRUE; ioerrornum=osError(); }
+		}	
+
+      osFree(sbbuf);
+   }
+
+   /* Write path */
+
+   for(path=(struct Path *)mm->Path.First;path;path=path->Next)
+      for(c=0;c<path->Paths;c++)
+         if(path->Path[c][0]!=0)
+         {
+				if(!osWrite(fh,"\x01PATH: ",7))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+				
+            if(!osWrite(fh,path->Path[c],(ulong)strlen(path->Path[c])))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+
+            if(!osWrite(fh,"\x0d",1))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+         }
+
+   if(!osPutChar(fh,0))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+
+   osClose(fh);
+
+   if(ioerror)
+      return(FALSE);
+
+   return(TRUE);
+}

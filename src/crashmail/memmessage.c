@@ -109,31 +109,59 @@ bool mmAddPath(uchar *str,struct jbList *list)
 
 bool mmAddBuf(struct jbList *chunklist,uchar *buf,ulong len)
 {
-   struct TextChunk *chunk;
-	ulong copylen;
-	
-	while(len)
+   struct TextChunk *chunk,*oldchunk;
+	ulong copylen,d;
+
+   if(len == 0)
+      return(TRUE);
+
+   /* Find last chunk */
+
+   chunk=(struct TextChunk *)chunklist->Last;
+
+   /* Will it fit in this chunk?. If yes, copy and exit. */
+
+   if(chunk && chunk->Length+len <= PKT_CHUNKLEN)
+   {
+      memcpy(&chunk->Data[chunk->Length],buf,(size_t)len);
+      chunk->Length+=len;
+
+      return(TRUE);
+   }
+
+   /* We will need a new chunk */
+
+   while(len)
 	{
-   	chunk=(struct TextChunk *)chunklist->Last;
+      oldchunk=chunk;
 
-   	if(chunk && chunk->Length+len > PKT_CHUNKLEN)
-      	chunk=NULL;
+      if(!(chunk=(struct TextChunk *)osAlloc(sizeof(struct TextChunk))))
+      {
+        	nomem=TRUE;
+         return(FALSE);
+      }
 
-	   if(!chunk)
-   	{
-      	if(!(chunk=(struct TextChunk *)osAlloc(sizeof(struct TextChunk))))
-      	{
-         	nomem=TRUE;
-         	return(FALSE);
-      	}
+      chunk->Length=0;
+    	jbAddNode(chunklist,(struct jbNode *)chunk);
 
-      	chunk->Length=0;
-      	jbAddNode(chunklist,(struct jbNode *)chunk);
-	   }
+      /* Copy over last line from old chunk if not complete */
+
+      if(oldchunk && oldchunk->Length > 0 && oldchunk->Data[oldchunk->Length-1] != 13)
+      {
+         for(d=oldchunk->Length-1;d>0;d--)
+            if(oldchunk->Data[d] == 13) break;
+
+         if(d != 0)
+         {
+            memcpy(chunk->Data,&oldchunk->Data[d+1],oldchunk->Length-d-1);
+            chunk->Length=oldchunk->Length-d-1;
+            oldchunk->Length=d+1;
+         }
+      }
 
 		copylen=len;
-		if(copylen > PKT_CHUNKLEN) copylen=PKT_CHUNKLEN;
-		
+		if(copylen > PKT_CHUNKLEN-chunk->Length) copylen=PKT_CHUNKLEN-chunk->Length;
+
    	memcpy(&chunk->Data[chunk->Length],buf,(size_t)copylen);
 	   chunk->Length+=copylen;
 
@@ -173,6 +201,8 @@ void mmClear(struct MemMessage *mm)
    Copy4D(&mm->PktOrig,&null4d);
    Copy4D(&mm->PktDest,&null4d);
 
+   Copy4D(&mm->Origin4D,&null4d);
+
    mm->Area[0]=0;
 
    mm->To[0]=0;
@@ -187,9 +217,7 @@ void mmClear(struct MemMessage *mm)
    mm->Cost=0;
 
    mm->Type=0;
-   mm->Rescanned=FALSE;
-   mm->no_security=FALSE;
-   mm->isbounce=FALSE;
+   mm->Flags=0;
 
    jbFreeList(&mm->TextChunks);
    jbFreeList(&mm->SeenBy);
@@ -218,13 +246,13 @@ int CompareSort(const void *t1,const void *t2)
 
    if(((struct TempSort *)t1)->Net  < ((struct TempSort *)t2)->Net)
       return(-1);
-  
+
    if(((struct TempSort *)t1)->Node > ((struct TempSort *)t2)->Node)
       return(1);
 
    if(((struct TempSort *)t1)->Node < ((struct TempSort *)t2)->Node)
       return(-1);
- 
+
   return(0);
 }
 
@@ -339,7 +367,7 @@ void ProcessKludge(struct MemMessage *mm,uchar *kludge)
 
    if(strncmp(kludge,"\x01RESCANNED",10)==0)
    {
-      mm->Rescanned=TRUE;
+      mm->Flags |= MMFLAG_RESCANNED;
    }
 
    if(strncmp(kludge,"\x01MSGID:",7)==0)
@@ -411,6 +439,17 @@ bool mmAddLine(struct MemMessage *mm,uchar *buf)
 
    else if(mm->Area[0] && strncmp(buf,"\x01PATH:",6)==0)
       return mmAddPath(&buf[7],&mm->Path);
+
+ 	else if(mm->Area[0] && strncmp(buf," * Origin: ",11)==0)
+	{
+		struct Node4D n4d;
+
+   	if(ExtractAddress(buf,&n4d))
+		{
+      	if(n4d.Zone == 0) n4d.Zone=mm->PktOrig.Zone;
+			Copy4D(&mm->Origin4D,&n4d);
+      }
+	}
 
    else if(buf[0] == 1)
       ProcessKludge(mm,buf);

@@ -124,7 +124,7 @@ bool FindList(uchar *dir,uchar *file,uchar *dest)
    {
 		ulong err=osError();
       printf("Failed to scan directory %s\n",dir);
-		printf("Error: %s",osErrorMsg(err));		
+		printf("Error: %s\n",osErrorMsg(err));		
       return(FALSE);
    }
 
@@ -152,7 +152,7 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,ushort defzone)
 	{
 		ulong err=osError();
 		printf("Failed to read %s\n",buf);
-		printf("Error: %s",osErrorMsg(err));		
+		printf("Error: %s\n",osErrorMsg(err));		
 		return;
 	}
 
@@ -260,7 +260,13 @@ int main(int argc, char **argv)
    if(!osInit())
       exit(OS_EXIT_ERROR);
 
-   if(argc == 2 && strcmp(argv[1],"?")==0)
+   if(argc > 1 &&
+	  (strcmp(argv[1],"?")==0      ||
+		strcmp(argv[1],"-h")==0     ||
+		strcmp(argv[1],"--help")==0 ||
+		strcmp(argv[1],"help")==0 ||
+		strcmp(argv[1],"/h")==0     ||
+		strcmp(argv[1],"/?")==0 ))
    {
       printargs(args);
       osEnd();
@@ -284,7 +290,7 @@ int main(int argc, char **argv)
    {
 		ulong err=osError();
       printf("Failed to open %s for reading\n",buf);
-		printf("Error: %s",osErrorMsg(err));		
+		printf("Error: %s\n",osErrorMsg(err));		
       osEnd();
       exit(OS_EXIT_ERROR);
    }
@@ -295,7 +301,7 @@ int main(int argc, char **argv)
    {
 		ulong err=osError();
       printf("Failed to open %s for writing (nodelist in use?)\n",buf);
-		printf("Error: %s",osErrorMsg(err));		
+		printf("Error: %s\n",osErrorMsg(err));		
 		osClose(lfh);
       osEnd();
       exit(OS_EXIT_ERROR);

@@ -19,7 +19,7 @@ void LogScanResults(void)
 bool ScanHandle(struct MemMessage *mm)
 {
    uchar buf[50];
-   
+
    if(mm->Area[0]==0)
    {
       Print4D(&mm->DestNode,buf);
@@ -42,69 +42,43 @@ bool ScanHandle(struct MemMessage *mm)
    return HandleMessage(mm);
 }
 
-bool DoScanArea(uchar *tagname)
-{
-   struct Area *area;
-
-   for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
-      if(stricmp(area->Tagname,tagname)==0) break;
-
-   if(area)
-   {
-		if(area->AreaType != AREATYPE_ECHOMAIL && area->AreaType != AREATYPE_NETMAIL)
-		{
-         LogWrite(1,USERERR,"You cannot scan area %s, not an echomail or netmail area",tagname);
-		}
-		else if(!area->Messagebase)
-		{
-         LogWrite(1,USERERR,"You cannot scan area %s, area is pass-through",tagname);
-		}
-		else if(!area->Messagebase->exportfunc)
-		{
-         LogWrite(1,USERERR,"You cannot scan area %s, scanning is not supported for this type of messagebase",tagname);
-		}
-		else
-		{
-         printf("Scanning area %s\n",area->Tagname);
-         return (*area->Messagebase->exportfunc)(area,ScanHandle);
-      }
-   }
-   else
-   {
-      LogWrite(1,USERERR,"Unknown area %s",tagname);
-   }
-
-   return(FALSE);
-}
-
 bool Scan(void)
 {
    struct Area *area;
 
-   LogWrite(2,ACTIONINFO,"Scanning areas for messages to export");
-
-   istossing=FALSE;
-   isscanning=TRUE;
-   isrescanning=FALSE;
+   LogWrite(2,ACTIONINFO,"Scanning all areas for messages to export");
 
    if(!BeforeScanToss())
       return(FALSE);
 
-   for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
+   for(area=(struct Area *)config.AreaList.First;area && !ctrlc;area=area->Next)
       if(area->Messagebase && (area->AreaType == AREATYPE_ECHOMAIL || area->AreaType == AREATYPE_NETMAIL))
 		{
-			if(area->Messagebase->exportfunc)
+         if(area->Messagebase->exportfunc)
 			{
-	         printf("Scanning area %s\n",area->Tagname);
+            if(area->AreaType == AREATYPE_NETMAIL && (config.cfg_Flags & CFG_NOEXPORTNETMAIL))
+            {
+               printf("Skipping area %s (NOEXPORTNETMAIL is set)\n", area->Tagname);
+            }
+            else
+            {
+               printf("Scanning area %s\n",area->Tagname);
 
-	         if(!(*area->Messagebase->exportfunc)(area,ScanHandle))
-   	      {
-      	      AfterScanToss(FALSE);
-         	   return(FALSE);
-	         }
-			}
+	            if(!(*area->Messagebase->exportfunc)(area,ScanHandle))
+   	         {
+          	      AfterScanToss(FALSE);
+            	   return(FALSE);
+	            }
+            }
+         }
       }
-   
+
+   if(ctrlc)
+   {
+      AfterScanToss(FALSE);
+      return(FALSE);
+   }
+
    LogScanResults();
    AfterScanToss(TRUE);
 
@@ -115,6 +89,10 @@ bool ScanList(uchar *file)
 {
    osFile fh;
    uchar buf[100];
+   struct Area *area;
+   int res;
+
+   LogWrite(2,ACTIONINFO,"Scanning areas in %s for messages to export",file);
 
    if(!(fh=osOpen(file,MODE_OLDFILE)))
    {
@@ -122,47 +100,64 @@ bool ScanList(uchar *file)
       return(FALSE);
    }
 
-   istossing=FALSE;
-   isscanning=TRUE;
-   isrescanning=FALSE;
-
    if(!BeforeScanToss())
       return(FALSE);
 
-   while(osFGets(fh,buf,100))
+   while(osFGets(fh,buf,100) && !ctrlc)
    {
-      if(strlen(buf)>2)
-      {
-         if(buf[strlen(buf)-1]<32)
-            buf[strlen(buf)-1]=0;
+      striptrail(buf);
 
-         if(!DoScanArea(buf))
+      if(buf[0] != 0)
+      {
+         striptrail(buf);
+
+         for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
+            if(stricmp(area->Tagname,buf)==0) break;
+
+         if(!area)
          {
-            AfterScanToss(FALSE);
-            osClose(fh);
-            return(FALSE);
+            LogWrite(1,USERERR,"Skipping area %s, area is unknown",buf);
+         }
+         else if(!area->scanned)
+         {
+            area->scanned=TRUE;
+
+            if(area->AreaType != AREATYPE_ECHOMAIL && area->AreaType != AREATYPE_NETMAIL)
+		      {
+               LogWrite(1,USERERR,"Skipping area %s, not an echomail or netmail area",area->Tagname);
+		      }
+            else if(area->AreaType == AREATYPE_NETMAIL && (config.cfg_Flags & CFG_NOEXPORTNETMAIL))
+            {
+               LogWrite(1,USERERR,"Skipping area %s (NOEXPORTNETMAIL is set)", area->Tagname);
+            }
+            else if(!area->Messagebase)
+		      {
+               LogWrite(1,USERERR,"Skipping area %s, area is pass-through",area->Tagname);
+		      }
+		      else if(!area->Messagebase->exportfunc)
+		      {
+               LogWrite(1,USERERR,"Skipping area %s, scanning is not supported for this type of messagebase",area->Tagname);
+		      }
+		      else
+		      {
+               printf("Scanning area %s\n",area->Tagname);
+
+               res=(*area->Messagebase->exportfunc)(area,ScanHandle);
+
+               if(!res)
+               {
+                  AfterScanToss(FALSE);
+                  osClose(fh);
+                  return(FALSE);
+               }
+            }
          }
       }
    }
 
    osClose(fh);
 
-   LogScanResults();
-   AfterScanToss(TRUE);
-      
-   return(TRUE);
-}
-
-bool ScanArea(uchar *tagname)
-{
-   istossing=FALSE;
-   isscanning=TRUE;
-   isrescanning=FALSE;
-
-   if(!BeforeScanToss())
-      return(FALSE);
-
-   if(!DoScanArea(tagname))
+   if(ctrlc)
    {
       AfterScanToss(FALSE);
       return(FALSE);
@@ -170,7 +165,142 @@ bool ScanArea(uchar *tagname)
 
    LogScanResults();
    AfterScanToss(TRUE);
- 
+
+   return(TRUE);
+}
+
+bool ScanDotJam(uchar *file)
+{
+   osFile fh;
+   uchar buf[100];
+   struct Area *area;
+   int res;
+
+   LogWrite(2,ACTIONINFO,"Scanning areas in %s for messages to export",file);
+
+   if(!(fh=osOpen(file,MODE_OLDFILE)))
+   {
+      LogWrite(1,USERERR,"Unable to open %s",file);
+      return(FALSE);
+   }
+
+   if(!BeforeScanToss())
+      return(FALSE);
+
+   while(osFGets(fh,buf,100) && !ctrlc)
+   {
+      striptrail(buf);
+
+      if(buf[0] != 0)
+      {
+         striptrail(buf);
+
+         if(strchr(buf,' '))
+            *strchr(buf,' ')=0;
+
+         for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
+            if(stricmp(area->Path,buf)==0) break;
+
+         if(!area)
+         {
+            LogWrite(1,USERERR,"No area with path %s",buf);
+         }
+         else if(!area->scanned)
+         {
+            area->scanned=TRUE;
+
+            if(area->AreaType != AREATYPE_ECHOMAIL && area->AreaType != AREATYPE_NETMAIL)
+		      {
+               LogWrite(1,USERERR,"Skipping area %s, not an echomail or netmail area",area->Tagname);
+		      }
+            else if(area->AreaType == AREATYPE_NETMAIL && (config.cfg_Flags & CFG_NOEXPORTNETMAIL))
+            {
+               LogWrite(1,USERERR,"Skipping area %s (NOEXPORTNETMAIL is set)", area->Tagname);
+            }
+            else if(!area->Messagebase)
+		      {
+               LogWrite(1,USERERR,"Skipping area %s, area is pass-through",area->Tagname);
+		      }
+		      else if(!area->Messagebase->exportfunc)
+		      {
+               LogWrite(1,USERERR,"Skipping area %s, scanning is not supported for this type of messagebase",area->Tagname);
+		      }
+		      else
+		      {
+               printf("Scanning area %s\n",area->Tagname);
+
+               res=(*area->Messagebase->exportfunc)(area,ScanHandle);
+
+               if(!res)
+               {
+                  AfterScanToss(FALSE);
+                  osClose(fh);
+                  return(FALSE);
+               }
+            }
+         }
+      }
+   }
+
+   osClose(fh);
+
+   if(ctrlc)
+   {
+      AfterScanToss(FALSE);
+      return(FALSE);
+   }
+   
+   LogScanResults();
+   AfterScanToss(TRUE);
+
+   return(TRUE);
+}
+
+bool ScanArea(uchar *tagname)
+{
+   struct Area *area;
+   int res;
+
+   for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
+      if(stricmp(area->Tagname,tagname)==0) break;
+
+   if(!area)
+   {
+      LogWrite(1,USERERR,"Unknown area %s",tagname);
+      return(FALSE);
+   }
+
+   if(area->AreaType != AREATYPE_ECHOMAIL && area->AreaType != AREATYPE_NETMAIL)
+	{
+      LogWrite(1,USERERR,"You cannot scan area %s, not an echomail or netmail area",area->Tagname);
+      return(FALSE);
+   }
+	else if(!area->Messagebase)
+	{
+      LogWrite(1,USERERR,"You cannot scan area %s, area is pass-through",area->Tagname);
+      return(FALSE);
+	}
+	else if(!area->Messagebase->exportfunc)
+	{
+      LogWrite(1,USERERR,"You cannot scan area %s, scanning is not supported for this type of messagebase",area->Tagname);
+      return(FALSE);
+	}
+
+   if(!BeforeScanToss())
+      return(FALSE);
+
+   printf("Scanning area %s\n",area->Tagname);
+   res=(*area->Messagebase->exportfunc)(area,ScanHandle);
+
+   if(!res)
+   {
+      AfterScanToss(FALSE);
+      return(FALSE);
+   }
+
+   LogScanResults();
+   AfterScanToss(TRUE);
+
    return(TRUE);
 }
 

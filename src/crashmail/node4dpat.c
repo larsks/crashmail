@@ -200,7 +200,7 @@ int Compare4DPat(struct Node4DPat *nodepat,struct Node4D *node)
          return(0);
 
       case PAT_REGION:
-         if(!config.cfg_NodelistType)
+         if(!nodelistopen)
             return(1);
 
 			Copy4D(&n4d,node);
@@ -224,7 +224,7 @@ int Compare4DPat(struct Node4DPat *nodepat,struct Node4D *node)
          return(0);
 
       case PAT_HUB:
-         if(!config.cfg_NodelistType)
+         if(!nodelistopen)
             return(1);
 
 			Copy4D(&n4d,node);
@@ -374,20 +374,20 @@ void ExpandNodePat(struct Node4DPat *temproute,struct Node4D *dest,struct Node4D
    region=0;
    hub=0; 
    
-   if(config.cfg_NodelistType)
+   if(nodelistopen)
    {
 		Copy4D(&n4d,dest);
 		n4d.Point=0;
 
       if(temproute->Type == PAT_REGION) region=(*config.cfg_NodelistType->nlGetRegion)(&n4d);
       if(temproute->Type == PAT_HUB) hub=(*config.cfg_NodelistType->nlGetHub)(&n4d);
-     
+
       if(region == -1) region=0;
       if(hub == -1) hub=0;
    }
-   
+
    if(region == 0) region=dest->Net;
-   
+
    switch(temproute->Type)
    {
       case PAT_PATTERN:

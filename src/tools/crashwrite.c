@@ -127,7 +127,13 @@ int main(int argc, char **argv)
    if(!osInit())
       exit(OS_EXIT_ERROR);
 
-   if(argc == 2 && strcmp(argv[1],"?")==0)
+   if(argc > 1 &&
+	  (strcmp(argv[1],"?")==0      ||
+		strcmp(argv[1],"-h")==0     ||
+		strcmp(argv[1],"--help")==0 ||
+		strcmp(argv[1],"help")==0 ||
+		strcmp(argv[1],"/h")==0     ||
+		strcmp(argv[1],"/?")==0 ))
    {
       printargs(args);
       osEnd();
@@ -154,7 +160,7 @@ int main(int argc, char **argv)
    {
       if(!(Parse4D((uchar *)args[ARG_TOADDR].data,&to4d)))
       {
-         printf("Invalid address \"%s\"\n",(uchar *)args[ARG_FROMADDR].data);
+         printf("Invalid address \"%s\"\n",(uchar *)args[ARG_TOADDR].data);
 			osEnd();
 			exit(OS_EXIT_ERROR);
       }
@@ -177,7 +183,7 @@ int main(int argc, char **argv)
    {
       if(!(Parse4D((uchar *)args[ARG_PKTTOADDR].data,&pktto4d)))
       {
-         printf("Invalid address \"%s\"\n",(uchar *)args[ARG_PKTFROMADDR].data);
+         printf("Invalid address \"%s\"\n",(uchar *)args[ARG_PKTTOADDR].data);
 			osEnd();
 			exit(OS_EXIT_ERROR);
       }

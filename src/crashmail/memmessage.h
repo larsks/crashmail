@@ -27,6 +27,14 @@ struct Path
    uchar Path[PKT_NUMPATH][100];
 };
 
+#define MMFLAG_RESCANNED   1
+#define MMFLAG_EXPORTED    2
+#define MMFLAG_TOSSED      4
+#define MMFLAG_NOSECURITY  8
+#define MMFLAG_AUTOGEN	  16
+#define MMFLAG_TWIT		  32
+#define MMFLAG_KILL		  64
+
 struct MemMessage
 {
    ulong msgnum;
@@ -36,7 +44,9 @@ struct MemMessage
    struct Node4D PktOrig;
    struct Node4D PktDest;
 
-   uchar Area[40];
+   struct Node4D Origin4D;
+
+   uchar Area[80];
 
    uchar To[36];
    uchar From[36];
@@ -50,9 +60,7 @@ struct MemMessage
    ushort Cost;
 
    uchar Type;
-   bool Rescanned;
-   bool no_security;
-   bool isbounce;
+   ushort Flags;
    
    struct jbList TextChunks;
    struct jbList SeenBy;

@@ -4,9 +4,6 @@
 const uchar ver[]="\0$VER: CrashMail II/" OS_PLATFORM_NAME " " VERSION " " __AMIGADATE__;
 #endif
 
-/* Version string to use when writing config */
-uchar *config_version="CrashMail II " VERSION;
-
 /*********************************** Global *******************************/
 
 struct jbList PktList;
@@ -14,11 +11,10 @@ struct jbList DeleteList;
 
 bool nomem;
 bool ioerror;
-bool exitprg;
 
 ulong ioerrornum;
 
-ulong toss_total;
+ulong toss_read;
 ulong toss_bad;
 ulong toss_route;
 ulong toss_import;
@@ -28,11 +24,9 @@ ulong toss_dupes;
 ulong scan_total;
 ulong rescan_total;
 
-bool istossing;
-bool isscanning;
-bool isrescanning;
-
 bool no_security;
+
+int handle_nesting;
 
 struct ConfigNode *RescanNode;
 
@@ -41,6 +35,7 @@ ulong DayStatsWritten; /* The area statistics are updated until this day */
 struct Config config;
 
 bool ctrlc;
+bool nodelistopen;
 
 uchar *prinames[]={"Normal","Hold","Normal","Direct","Crash"};
 
@@ -52,20 +47,21 @@ uchar *prinames[]={"Normal","Hold","Normal","Direct","Crash"};
 #define ARG_TOSSDIR         3
 #define ARG_SCANAREA        4
 #define ARG_SCANLIST        5
-#define ARG_RESCAN          6
-#define ARG_RESCANNODE      7
-#define ARG_RESCANMAX       8
-#define ARG_SENDQUERY       9
-#define ARG_SENDLIST       10
-#define ARG_SENDUNLINKED   11
-#define ARG_SENDHELP       12
-#define ARG_SENDINFO       13
-#define ARG_REMOVE         14
-#define ARG_SETTINGS       15
-#define ARG_VERSION        16
-#define ARG_LOCK				17
-#define ARG_UNLOCK			18
-#define ARG_NOSECURITY     19
+#define ARG_SCANDOTJAM      6
+#define ARG_RESCAN          7
+#define ARG_RESCANNODE      8
+#define ARG_RESCANMAX       9
+#define ARG_SENDQUERY      10
+#define ARG_SENDLIST       11
+#define ARG_SENDUNLINKED   12
+#define ARG_SENDHELP       13
+#define ARG_SENDINFO       14
+#define ARG_REMOVE         15
+#define ARG_SETTINGS       16
+#define ARG_VERSION        17
+#define ARG_LOCK				18
+#define ARG_UNLOCK			19
+#define ARG_NOSECURITY     20
 
 struct argument args[] =
    { { ARGTYPE_BOOL,   "SCAN",         0, 0    },
@@ -74,6 +70,7 @@ struct argument args[] =
      { ARGTYPE_STRING, "TOSSDIR",      0, NULL },
      { ARGTYPE_STRING, "SCANAREA",     0, NULL },
      { ARGTYPE_STRING, "SCANLIST",     0, NULL },
+     { ARGTYPE_STRING, "SCANDOTJAM",   0, NULL },
      { ARGTYPE_STRING, "RESCAN",       0, NULL },
      { ARGTYPE_STRING, "RESCANNODE",   0, NULL },
      { ARGTYPE_STRING, "RESCANMAX",    0, NULL },
@@ -91,14 +88,14 @@ struct argument args[] =
      { ARGTYPE_END,     NULL,          0, 0    } };
 
 bool init_openlog;
-bool init_dupebuf;
+bool init_dupedb;
 
 void Free(void)
 {
-   if(init_dupebuf)
+   if(init_dupedb)
    {
-      FreeDupebuf();
-      init_dupebuf=0;
+      CloseDupeDB();
+      init_dupedb=0;
    }
 
    if(init_openlog)
@@ -125,20 +122,13 @@ bool Init(void)
 
    if(config.cfg_DupeMode!=DUPE_IGNORE)
    {
-      if(!AllocDupebuf())
-      {
-         printf("No memory for dupe-check buffer\n");
-         Free();
-         return(FALSE);
-      }
-
-      init_dupebuf=TRUE;
-
-      if(!ReadDupes(config.cfg_DupeFile))
+      if(!OpenDupeDB())
       {
          Free();
          return(FALSE);
       }
+
+      init_dupedb=TRUE;
    }
 
    if(!ReadStats(config.cfg_StatsFile))
@@ -146,7 +136,6 @@ bool Init(void)
 
    nomem=FALSE;
    ioerror=FALSE;
-   exitprg=FALSE;
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
       if(area->Messagebase) area->Messagebase->active=TRUE;
@@ -220,9 +209,6 @@ void AfterScanToss(bool success)
 
       WriteStats(config.cfg_StatsFile);
 
-      if(config.cfg_DupeMode!=DUPE_IGNORE)
-         WriteDupes(config.cfg_DupeFile);
-
       if(config.changed)
       {
          LogWrite(2,SYSTEMINFO,"Updating configuration file \"%s\"",config.filename);
@@ -234,6 +220,8 @@ void AfterScanToss(bool success)
 
    if(config.cfg_NodelistType)
       (*config.cfg_NodelistType->nlEnd)();
+
+   nodelistopen=FALSE;
 
    jbFreeList(&PktList);
    jbFreeList(&DeleteList);
@@ -256,9 +244,11 @@ bool BeforeScanToss(void)
          LogWrite(1,SYSTEMERR,"%s",buf);
          return(FALSE);
       }
+
+      nodelistopen=TRUE;
    }
 
-   toss_total=0;
+   toss_read=0;
    toss_bad=0;
    toss_route=0;
    toss_import=0;
@@ -267,10 +257,14 @@ bool BeforeScanToss(void)
 
    scan_total=0;
 
+   handle_nesting=0;
+
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
    {
       area->NewDupes=0;
       area->NewTexts=0;
+
+      area->scanned=FALSE;
    }
 
    jbNewList(&PktList);    /* Created packets */
@@ -287,6 +281,7 @@ bool BeforeScanToss(void)
       if(config.cfg_NodelistType)
          (*config.cfg_NodelistType->nlEnd)();
 
+      nodelistopen=FALSE;
       return(FALSE);
    }
 
@@ -308,6 +303,7 @@ bool BeforeScanToss(void)
                if(config.cfg_NodelistType)
                   (*config.cfg_NodelistType->nlEnd)();
 
+               nodelistopen=FALSE;
                return(FALSE);
             }
       }
@@ -347,7 +343,7 @@ bool Rescan(uchar *areaname,uchar *node,ulong max)
    if(!Parse4D(node,&n4d))
    {
       LogWrite(1,USERERR,"Invalid node number %s",node);
-      return(TRUE);
+      return(FALSE);
    }
 
    for(cnode=(struct ConfigNode *)config.CNodeList.First;cnode;cnode=cnode->Next)
@@ -356,32 +352,35 @@ bool Rescan(uchar *areaname,uchar *node,ulong max)
    if(!cnode)
    {
       LogWrite(1,USERERR,"Unknown node %lu:%lu/%lu.%lu",n4d.Zone,n4d.Net,n4d.Node,n4d.Point);
-      return(TRUE);
+      return(FALSE);
    }
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
-      if(area->AreaType == AREATYPE_NETMAIL)
-         if(stricmp(areaname,area->Tagname)==0) break;
+      if(stricmp(areaname,area->Tagname)==0) break;
 
    if(!area)
    {
       LogWrite(1,USERERR,"Unknown area %s",areaname);
-      return(TRUE);
+      return(FALSE);
+   }
+
+   if(area->AreaType != AREATYPE_ECHOMAIL)
+   {
+      LogWrite(1,USERERR,"Area %s is not an echomail area",area->Tagname);
+      return(FALSE);
    }
 
    if(!area->Messagebase)
    {
       LogWrite(1,USERERR,"Can't rescan %s, area is pass-through",areaname);
-      return(TRUE);
+      return(FALSE);
    }
 
    if(!area->Messagebase->rescanfunc)
    {
       LogWrite(1,USERERR,"Can't rescan %s, messagebase does not support rescan",areaname);
-      return(TRUE);
+      return(FALSE);
    }
-
-   isrescanning=TRUE;
 
    if(!BeforeScanToss())
       return(FALSE);
@@ -436,7 +435,7 @@ bool SendAFList(uchar *node,short type)
 
    AfterScanToss(TRUE);
 
-   if(nomem || exitprg)
+   if(nomem || ioerror)
       return(FALSE);
 
    return(TRUE);
@@ -554,7 +553,13 @@ int main(int argc, char **argv)
 
    done_osinit=TRUE;
 
-   if(argc == 2 && strcmp(argv[1],"?")==0)
+   if(argc > 1 &&
+	  (strcmp(argv[1],"?")==0      ||
+		strcmp(argv[1],"-h")==0     ||
+		strcmp(argv[1],"--help")==0 ||
+		strcmp(argv[1],"help")==0 ||
+		strcmp(argv[1],"/h")==0     ||
+		strcmp(argv[1],"/?")==0 ))
    {
       printargs(args);
       CleanUp(OS_EXIT_OK);
@@ -659,6 +664,9 @@ int main(int argc, char **argv)
 
    else if(args[ARG_SCANLIST].data)
       ScanList((uchar *)args[ARG_SCANLIST].data);
+
+   else if(args[ARG_SCANDOTJAM].data)
+      ScanDotJam((uchar *)args[ARG_SCANDOTJAM].data);
 
    else if(args[ARG_RESCAN].data)
    {
