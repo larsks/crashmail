@@ -1,8 +1,8 @@
 Source: crashmail
 Section: mail
-Priority: optional
+Priority: extra
 Maintainer: peter karlsson <peterk@debian.org>
-Standards-Version: 3.2.1
+Standards-Version: 3.5.5
 Build-Depends: debhelper
 
 Package: crashmail

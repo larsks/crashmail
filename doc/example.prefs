@@ -527,7 +527,7 @@ REMAP "Johannes Nilsson" "*" "2:200/207.5"
 ;
 ; The file that is sent when a downlink issues a %HELP command.
 
-AREAFIXHELP "/usr/share/doc/crashmail/AreafixHelp.txt"
+AREAFIXHELP "/usr/share/crashmail/AreafixHelp.txt"
 
 ; AREAFIXMAXLINES <max>
 ;
@@ -696,14 +696,14 @@ NETMAIL "NETMAIL" 2:200/108.7 JAM "/var/spool/ftn/msg/NETMAIL"
 
 AREA "BAD" 2:200/108.7 JAM "/var/spool/ftn/msg/BAD"
 
-AREA "DEFAULT_A" 2:200/108.7 JAM "/var/spool/ftn/msg/%8"
+AREA "DEFAULT_A" 2:200/108.7 JAM "/var/spool/ftn/msg/%a"
 
-AREA "R20_INTRESSE" 2:200/108.7 JAM "/var/spool/ftn/msg/36124179"
+AREA "R20_INTRESSE" 2:200/108.7 JAM "/var/spool/ftn/msg/R20_INTRESSE"
 EXPORT %2:200/100.0
 DESCRIPTION "Intresseklubben"
 GROUP A
 
-AREA "R20_TRASHCAN" 2:200/108.7 JAM "/var/spool/ftn/msg/3612417a"
+AREA "R20_TRASHCAN" 2:200/108.7 JAM "/var/spool/ftn/msg/R20_TRASHCAN"
 EXPORT %2:200/100.0
 DESCRIPTION "Soptunnan"
 GROUP A

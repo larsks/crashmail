@@ -5,8 +5,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-# This is the debhelper compatability version to use.
-export DH_COMPAT=1
+# This is the debhelper compatibility version to use.
+export DH_COMPAT=2
 
 build: build-stamp
 build-stamp:
@@ -34,8 +34,8 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-	# Add here commands to install the package into debian/tmp.
-	$(MAKE) install DESTDIR=`pwd`/debian/tmp
+	# Add here commands to install the package into debian/crashmail.
+	$(MAKE) install DESTDIR=`pwd`/debian/crashmail
 
 
 # Build architecture-independent files here.
@@ -44,30 +44,16 @@ binary-indep: build install
 
 # Build architecture-dependent files here.
 binary-arch: build install
-#	dh_testversion
 	dh_testdir
 	dh_testroot
-#	dh_installdebconf	
 	dh_installdocs
-#	dh_installexamples
-#	dh_installmenu
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installinit
-#	dh_installcron
 	dh_installmanpages
-#	dh_installinfo
-#	dh_undocumented
 	dh_installchangelogs doc/History.txt
 	dh_link
 	dh_strip
-	dh_compress -XAreafixHelp.txt
+	dh_compress
 	dh_fixperms
-#	# You may want to make some executables suid here.
-#	dh_suidregister
-#	dh_makeshlibs
 	dh_installdeb
-#	dh_perl
 	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
