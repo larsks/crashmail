@@ -1,3 +1,31 @@
+/*
+    JAMLIB - A JAM subroutine library
+    Copyright (C) 1999 Björn Stenberg
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    Changes made by Johan Billing 2000-04-16:
+	 
+    - Changed source to use feof() instead of errno == EPASTEOF
+    - Changed source to use structrw to read and write structures
+    - Added JAM_AddEmptyMessage() 
+    - Added error messages JAM_NO_MESSAGE and JAM_CORRUPT_MSG for
+      JAM_ReadMsgHeader()
+    - #includes stdlib.h instead of malloc.h and memory.h
+*/	 
+
 /***********************************************************************
 **
 **  Message.C -- Message handling

@@ -1976,7 +1976,10 @@ bool HandleNetmail(struct MemMessage *mm)
 			mm->Subject[0]=0;
 
 			for(c=0;subjtemp[c];c++)
-				if(subjtemp[c]==',') subjtemp[c]=' ';
+         {
+            if(subjtemp[c]==',')  subjtemp[c]=' ';
+            if(subjtemp[c]=='\\') subjtemp[c]='/';
+         }
 
 			jbcpos=0;
 			

@@ -847,13 +847,13 @@ bool WriteEchoMail(struct MemMessage *mm,struct ConfigNode *node, struct Aka *ak
             return(FALSE);
          }
 
-      if(!mmSortNodes2D(&mm->SeenBy))
+      if(!mmSortNodes2D(&seenbylist))
       {
          jbFreeList(&seenbylist);
          return(FALSE);
       }
 
-      if(!WriteSeenBy(pkt,&mm->SeenBy))
+      if(!WriteSeenBy(pkt,&seenbylist))
       {
          jbFreeList(&seenbylist);
          return(FALSE);

@@ -30,7 +30,8 @@ For suggestions, bug reports and questions, don't hesitate to contact me:
 =========
 Copyright
 =========
-JAMLIB is copyright 1996 Björn Stenberg. See src/jamlib/jamlib.doc for more
+JAMLIB is copyright (c) 1999 Björn Stenberg. JAMLIB is released under the 
+GNU Lesser General Public License, See src/jamlib/jamlib.doc for more 
 information.
 
 Except where explicitly stated otherwise, all other parts of CrashMail are 
@@ -481,4 +482,5 @@ Patterns
   *:*/*.*, mail for 2:203/699.0
 
    This would be routed to 2:203/699.0
+
 

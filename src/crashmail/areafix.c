@@ -23,7 +23,9 @@ void AddCommandReply(struct afReply *af,uchar *cmd,uchar *reply);
 void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode);
 void rawSendHelp(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode);
 void rawSendInfo(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode);
-void rawRemoveArea(struct Area *area);
+
+void SendRemoveMessages(struct Area *area);
+void RemoveDeletedAreas(void);
 
 #define COMMAND_UPDATE     1
 #define COMMAND_ADD        2
@@ -290,7 +292,7 @@ bool AreaFix(struct MemMessage *mm)
          {
             ulong rescannum;
             bool patterndone,dorescan,areaexists,success;
-            struct Area *rescanarea,*temparea;
+            struct Area *rescanarea;
 
             done=TRUE;
             rescannum=0;
@@ -482,16 +484,16 @@ bool AreaFix(struct MemMessage *mm)
                                     wasfeed=FALSE;
 
                                     if(temptnode->Flags & TOSSNODE_FEED)
-                                       wasfeed=TRUE;
-
-												jbFreeNode(&area->TossNodes,(struct jbNode *)temptnode);
+                                       wasfeed=TRUE;												jbFreeNode(&area->TossNodes,(struct jbNode *)temptnode);
 												area->changed=TRUE;
                                     config.changed=TRUE;
 
                                     if(wasfeed && (config.cfg_Flags & CFG_REMOVEWHENFEED))
                                     {
                                        LogWrite(2,AREAFIX,"AreaFix: Feed disconnected, removing area %s",area->Tagname);
-                                       rawRemoveArea(area);
+                                       SendRemoveMessages(area);
+
+                                       area->AreaType=AREATYPE_DELETED;
                                     }
                                     else if(config.cfg_Flags & CFG_AREAFIXREMOVE)
                                     {
@@ -512,12 +514,7 @@ bool AreaFix(struct MemMessage *mm)
                                                 LogWrite(3,AREAFIX,"AreaFix: Area %s removed",area->Tagname);
                                              }
 
-															jbFreeList(&area->TossNodes);
-															
-													   	temparea=area->Next;
-															jbFreeNode(&config.AreaList,(struct jbNode *)area);
-                                             area=temparea;
-															if(!area) area=(struct Area *)config.AreaList.Last;
+                                             area->AreaType=AREATYPE_DELETED;
                                           }
                                        }
                                     }
@@ -690,7 +687,9 @@ bool AreaFix(struct MemMessage *mm)
                if(iswild)
                   afAddLine(afr,"");
             }
-         }
+			}
+
+			RemoveDeletedAreas();
       }
    }
 
@@ -728,7 +727,7 @@ bool AreaFix(struct MemMessage *mm)
 	return(TRUE);
 }
 
-void rawRemoveArea(struct Area *area)
+void SendRemoveMessages(struct Area *area)
 {
    struct TossNode *tn;
    uchar buf[100];
@@ -822,14 +821,27 @@ void rawRemoveArea(struct Area *area)
          mmFree(mm);
       }
    }
+}
 
-   /* Remove from config */
+void RemoveDeletedAreas(void)
+{
+	struct Area *area,*temparea;
 
-   jbFreeNode(&config.AreaList,(struct jbNode *)area);
+   area=(struct Area *)config.AreaList.First;
 
-   /* Save config */
+   while(area)
+   {
+      temparea=area->Next;
 
-   config.changed=TRUE;
+	   if(area->AreaType == AREATYPE_DELETED)
+		{
+         jbFreeList(&area->TossNodes);
+			jbFreeNode(&config.AreaList,(struct jbNode *)area);
+			config.changed=TRUE;
+      }
+
+      area=temparea;
+   }
 }
 
 struct StatsNode
@@ -1657,6 +1669,4 @@ void DoSendAFList(short type,struct ConfigNode *cnode)
          break;
    }
 }
-
-
 

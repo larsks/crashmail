@@ -258,3 +258,38 @@ Changes in version 0.6
 
  - Several cosmetic changes to program output and source code
 
+Changes in version 0.61:
+
+ CrashMail:
+
+ - CrashMail incorrectly bounced netmails to nodes listed as hold in the
+   nodelist are no longer bounced. Fixed. Netmails to nodes listed as down
+   are still bounced.
+
+ - The CrashMail REMOVE command didn't work. Fixed.
+
+ - The AreaFix would sometimes miss some areas when you unsubscribed to areas
+   using patterns.
+
+ - The AreaFix no longer crashes when it tries to remove areas after the
+   feed has unsubscribed to them.
+
+ - JAM_LINK and JAM_HIGHWATER would turn on both linking and the use of
+   highwater marks. Fixed.
+
+ - TINYSEENBY didn't work. Fixed.
+
+ - CrashMail had problems with backslashes in file-attaches. Fixed.
+
+ JAMLIB
+
+ - Changed to latest version of JAMLIB.
+
+ CrashWrite:
+
+ - PKTFROMADDR/PKTTOADDR didn't work. Fixed.
+
+ - CrashWrite had problems with paragraphs longer than 100 characters. Fixed.
+
+
+

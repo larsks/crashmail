@@ -450,7 +450,7 @@ bool RemoveArea(uchar *areaname)
       return(FALSE);
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
-      if(area->AreaType == AREATYPE_NETMAIL)
+      if(area->AreaType == AREATYPE_ECHOMAIL)
          if(stricmp(areaname,area->Tagname)==0) break;
 
    if(!area)
@@ -460,7 +460,10 @@ bool RemoveArea(uchar *areaname)
    }
 
    LogWrite(1,AREAFIX,"AreaFix: Removing area %s",area->Tagname);
-   rawRemoveArea(area);
+
+   SendRemoveMessages(area);
+	area->AreaType=AREATYPE_DELETED;
+	RemoveDeletedAreas();
 
    AfterScanToss(TRUE);
 

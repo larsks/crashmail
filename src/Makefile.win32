@@ -192,5 +192,5 @@ $(OBJDIR)/nl_cmnl.o : crashmail/nl_cmnl.c
 # Clean
 
 clean : 
-	$(RM) obj\*.o
+	$(RM) $(OBJDIR)/*.o
 	

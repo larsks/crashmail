@@ -218,12 +218,12 @@ bool jam_afterfunc(bool success)
    int c;
    struct jam_Area *ja;
 
-   if(success && config.cfg_jam_Flags & CFG_JAM_HIGHWATER)
+   if(success && (config.cfg_jam_Flags & CFG_JAM_HIGHWATER))
       for(ja=(struct jam_Area *)jam_AreaList.First;ja;ja=ja->Next)
          if(ja->HighWater != ja->OldHighWater)
             jam_writehighwater(ja);
 
-   if(success && config.cfg_jam_Flags & CFG_JAM_LINK)
+   if(success && (config.cfg_jam_Flags & CFG_JAM_LINK))
       for(ja=(struct jam_Area *)jam_AreaList.First;ja;ja=ja->Next)
          if(ja->newmsg)
             jam_linkmb(ja->area,ja->OldNum);

@@ -7,6 +7,8 @@
 
 void DoSendAFList(short type,struct ConfigNode *cnode);
 bool AreaFix(struct MemMessage *mm);
-void rawRemoveArea(struct Area *area);
+
+void SendRemoveMessages(struct Area *area);
+void RemoveDeletedAreas(void);
 
 

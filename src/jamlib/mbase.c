@@ -1,3 +1,32 @@
+/*
+    JAMLIB - A JAM subroutine library
+    Copyright (C) 1999 Björn Stenberg
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    Changes made by Johan Billing 2000-04-16:
+	 
+    - Added support for Win32 and Linux
+    - Changed JAM_OpenMB to open files in binary mode
+    - Changed source to use feof() instead of errno == EPASTEOF
+    - Changed source to use structrw to read and write structures
+    - Fixed broken JAM_FindUser()
+    - #includes string.h and stdlib.h instead of memory.h
+ 
+*/	 
+
 /***********************************************************************
 **
 **  MBASE.C -- Message base handling
@@ -347,19 +376,21 @@ int JAM_FindUser( s_JamBase*	Base_PS,
     }
 
     /* scan file */
-    for ( MsgNo_I = 0; ; MsgNo_I++ ) {
+    for ( MsgNo_I = StartMsg_I; ; MsgNo_I++ ) {
+
 	s_JamIndex Index_S;
-   if ( 1 > freadjamindex(Base_PS->IdxFile_PS,&Index_S) ) {
+
+        if ( 1 > freadjamindex(Base_PS->IdxFile_PS,&Index_S) ) {
+
             if ( feof(Base_PS->IdxFile_PS) )
 		return JAM_NO_USER;
+
 	    Base_PS->Errno_I = errno;
 	    return JAM_IO_ERROR;
 	}
 
 	if ( Index_S.UserCRC == UserCrc_I )
             break;
-        {
-        }
     }
 
     *MsgNo_PI = MsgNo_I;

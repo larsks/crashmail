@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
 #include "node4d.h"
 
 bool Parse4DTemplate(uchar *buf, struct Node4D *node,struct Node4D *tpl)
@@ -113,4 +115,5 @@ void Print4D(struct Node4D *n4d,uchar *dest)
                                  n4d->Net,
                                  n4d->Node);
 }
+
 

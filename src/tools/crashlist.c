@@ -217,6 +217,13 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,ushort defzone)
 			WriteIdx(ifh,&idx);
 		}
 
+		if(strnicmp(buf,"Hold,",5)==0)
+		{
+			idx.node=atoi(&buf[5]);
+			idx.point=0;
+			WriteIdx(ifh,&idx);
+		}
+
 		if(strnicmp(buf,",",1)==0)
 		{
 			idx.node=atoi(&buf[1]);
