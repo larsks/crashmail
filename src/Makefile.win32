@@ -63,11 +63,11 @@ CMOBJS = $(OBJDIR)/crashmail.o \
 
 files : $(BINDIR)/crashmail$(EXESUFFIX) \
         $(BINDIR)/crashstats$(EXESUFFIX) \
-	$(BINDIR)/crashareasbbs$(EXESUFFIX) \
-   	$(BINDIR)/crashforward$(EXESUFFIX) \
 	$(BINDIR)/crashlist$(EXESUFFIX) \
 	$(BINDIR)/crashgetnode$(EXESUFFIX) \
-        $(BINDIR)/crashmaint$(EXESUFFIX)
+        $(BINDIR)/crashmaint$(EXESUFFIX) \
+	$(BINDIR)/crashwrite$(EXESUFFIX) \
+	$(BINDIR)/crashexport$(EXESUFFIX)        
 
 $(BINDIR)/crashmail$(EXESUFFIX) : $(CMOBJS) $(SHOBJS) $(NLOBJS) $(MBOBJS) $(OSLIB)
 	$(CC) -o $(BINDIR)/crashmail$(EXESUFFIX) $(CMOBJS) $(SHOBJS) $(NLOBJS) $(MBOBJS) $(OSLIB)
@@ -76,14 +76,6 @@ $(BINDIR)/crashmail$(EXESUFFIX) : $(CMOBJS) $(SHOBJS) $(NLOBJS) $(MBOBJS) $(OSLI
 $(BINDIR)/crashstats$(EXESUFFIX) : tools/crashstats.c $(SHOBJS) $(OSLIB)
 	$(CC) -o $(BINDIR)/crashstats$(EXESUFFIX) tools/crashstats.c $(SHOBJS) $(OSLIB)
 	$(STRIP) $(BINDIR)/crashstats$(EXESUFFIX)
-	
-$(BINDIR)/crashareasbbs$(EXESUFFIX) : tools/crashareasbbs.c $(SHOBJS) $(OSLIB) 
-	$(CC) -o $(BINDIR)/crashareasbbs$(EXESUFFIX) tools/crashareasbbs.c $(SHOBJS) $(OSLIB) 
-	$(STRIP) $(BINDIR)/crashareasbbs$(EXESUFFIX)
-	
-$(BINDIR)/crashforward$(EXESUFFIX) : tools/crashforward.c $(SHOBJS) $(OSLIB)
-	$(CC) -o $(BINDIR)/crashforward$(EXESUFFIX) tools/crashforward.c $(SHOBJS) $(OSLIB)
-	$(STRIP) $(BINDIR)/crashforward$(EXESUFFIX)
 	
 $(BINDIR)/crashlist$(EXESUFFIX) : tools/crashlist.c $(SHOBJS) $(OSLIB) 
 	$(CC) -o $(BINDIR)/crashlist$(EXESUFFIX) tools/crashlist.c $(SHOBJS) $(OSLIB) 
@@ -96,6 +88,14 @@ $(BINDIR)/crashgetnode$(EXESUFFIX) : tools/crashgetnode.c $(SHOBJS) $(CMNLLIB) $
 $(BINDIR)/crashmaint$(EXESUFFIX) : tools/crashmaint.c $(SHOBJS) $(OSLIB) $(JAMLIB)
 	$(CC) -o $(BINDIR)/crashmaint$(EXESUFFIX) tools/crashmaint.c $(SHOBJS) $(OSLIB) $(JAMLIB)
 	$(STRIP) $(BINDIR)/crashmaint$(EXESUFFIX)
+
+$(BINDIR)/crashwrite$(EXESUFFIX) : tools/crashwrite.c $(SHOBJS) $(OSLIB)
+	$(CC) -o $(BINDIR)/crashwrite$(EXESUFFIX) tools/crashwrite.c $(SHOBJS) $(OSLIB)
+	$(STRIP) $(BINDIR)/crashwrite$(EXESUFFIX)                          
+
+$(BINDIR)/crashexport$(EXESUFFIX) : tools/crashexport.c $(SHOBJS) $(OSLIB)
+	$(CC) -o $(BINDIR)/crashexport$(EXESUFFIX) tools/crashexport.c $(SHOBJS) $(OSLIB)
+	$(STRIP) $(BINDIR)/crashexport$(EXESUFFIX)                          
 
 # crashmail
 

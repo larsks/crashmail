@@ -117,7 +117,6 @@ bool TossBundle(uchar *file,struct osFileEntry *fe)
    if(arcres!=0)
    {
       LogWrite(1,SYSTEMERR,"Unarchiving failed: %lu",arcres);
-      LogWrite(3,TOSSINGERR,"Renaming %s to .bad",file);
       sprintf(buf2,"Unarchiving with %s failed: %u",tmppacker->Name,arcres);
       BadFile(file,buf2);
    }
@@ -161,14 +160,14 @@ bool TossBundle(uchar *file,struct osFileEntry *fe)
    return(TRUE);
 }
 
-bool Toss(void)
+bool TossDir(uchar *dir)
 {
    struct osFileEntry *fe;
    struct jbList PktFEList;
    struct jbList ArcFEList;
    uchar buf[200];
 
-   LogWrite(3,ACTIONINFO,"Tossing...");
+   LogWrite(3,ACTIONINFO,"Tossing files in %s...",dir);
 
    istossing=TRUE;
    isscanning=FALSE;
@@ -179,9 +178,9 @@ bool Toss(void)
 
    /* Notify about old bad files */
 
-   if(!osReadDir(config.cfg_Inbound,&PktFEList,IsBad))
+   if(!osReadDir(dir,&PktFEList,IsBad))
    {
-      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_Inbound);
+      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",dir);
       AfterScanToss(FALSE);
       return(FALSE);
    }
@@ -193,18 +192,18 @@ bool Toss(void)
 
    /* Search for pkt files */
 
-   if(!osReadDir(config.cfg_Inbound,&PktFEList,IsPkt))
+   if(!osReadDir(dir,&PktFEList,IsPkt))
    {
-      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_Inbound);
+      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",dir);
       AfterScanToss(FALSE);
       return(FALSE);
    }
 
    /* Search for bundles */
 
-   if(!osReadDir(config.cfg_Inbound,&ArcFEList,IsArc))
+   if(!osReadDir(dir,&ArcFEList,IsArc))
    {
-      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_Inbound);
+      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",dir);
       jbFreeList(&PktFEList);
       AfterScanToss(FALSE);
       return(FALSE);
@@ -225,7 +224,7 @@ bool Toss(void)
 
    for(fe=(struct osFileEntry *)PktFEList.First;fe;fe=fe->Next)
    {
-      MakeFullPath(config.cfg_Inbound,fe->Name,buf,200);
+      MakeFullPath(dir,fe->Name,buf,200);
 
       if(!ReadPkt(buf,fe,FALSE,HandleMessage))
       {
@@ -240,7 +239,7 @@ bool Toss(void)
 
    for(fe=(struct osFileEntry *)ArcFEList.First;fe;fe=fe->Next)
    {
-      MakeFullPath(config.cfg_Inbound,fe->Name,buf,200);
+      MakeFullPath(dir,fe->Name,buf,200);
 
       if(!TossBundle(buf,fe))
       {
@@ -265,6 +264,8 @@ bool Toss(void)
 bool TossFile(uchar *file)
 {
    struct osFileEntry *fe;
+
+   LogWrite(3,ACTIONINFO,"Tossing file %s...",file);
 
    istossing=TRUE;
    isscanning=FALSE;

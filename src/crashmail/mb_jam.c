@@ -631,7 +631,8 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    struct Node4D n4d;
    bool hasaddr;
    uchar flagsbuf[200],filesubject[200];
-
+	ushort oldattr;
+	
    /* Open the area */
 
    if(!(ja=jam_getarea(area)))
@@ -657,8 +658,8 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
       else
       {
          JAM_DelSubPacket(SubPacket_PS);
-         LogWrite(1,TOSSINGERR,"Failed to read message #%s in JAM messagebase \"%s\"\n",num,area->Path);
-         return(FALSE);
+         LogWrite(1,TOSSINGERR,"Failed to read message #%lu in JAM messagebase \"%s\"",num,area->Path);
+         return(TRUE);
       }
    }
 
@@ -697,7 +698,7 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
 
       if(res)
       {
-         LogWrite(1,TOSSINGERR,"Failed to read message #%s in JAM messagebase \"%s\"\n",num,area->Path);
+         LogWrite(1,TOSSINGERR,"Failed to read message #%lu in JAM messagebase \"%s\"",num,area->Path);
          JAM_DelSubPacket(SubPacket_PS);
          return(FALSE);
       }
@@ -864,6 +865,8 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
       mmAddLine(mm,buf);
    }
 
+   oldattr = mm->Attr;
+
    mm->Attr = mm->Attr & (FLAG_PVT|FLAG_CRASH|FLAG_FILEATTACH|FLAG_FILEREQ|FLAG_RREQ|FLAG_IRRR|FLAG_AUDIT|FLAG_HOLD);
 
    /* Add own kludges */
@@ -930,17 +933,28 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    {
       scan_total++;
 
-      /* Update message header */
+	   /* Update message header */
 
-      Header_S.Attribute |= MSG_SENT;
+		if(config.cfg_Flags & CFG_ALLOWKILLSENT)
+		{
+			if((oldattr & FLAG_KILLSENT) && (area->Flags & AREA_NETMAIL))
+			{
+				/* Delete message with KILLSENT flag */
+			
+				LogWrite(2,TOSSINGINFO,"Deleting message with KILLSENT flag");
+		   	Header_S.Attribute |= MSG_DELETED;
+			}
+		}
 
-      if(JAM_LockMB(ja->Base_PS,10))
-      {
-         LogWrite(1,SYSTEMERR,"Timeout when trying to lock JAM messagebase \"%s\"",area->Path);
+	   Header_S.Attribute |= MSG_SENT;
+
+	   if(JAM_LockMB(ja->Base_PS,10))
+   	{
+      	LogWrite(1,SYSTEMERR,"Timeout when trying to lock JAM messagebase \"%s\"",area->Path);
          return(FALSE);
-      }
+	   }
 
-      JAM_ChangeMsgHeader(ja->Base_PS,num-ja->BaseNum,&Header_S);
+   	JAM_ChangeMsgHeader(ja->Base_PS,num-ja->BaseNum,&Header_S);
 
       JAM_UnlockMB(ja->Base_PS);
    }
@@ -964,6 +978,9 @@ bool jam_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
 
    if(ja->HighWater) start=ja->HighWater+1;
    else              start=ja->BaseNum;
+
+	if(start < ja->BaseNum)
+		start=ja->BaseNum;
 
    end   = ja->BaseNum + ja->OldNum;
 
@@ -1091,7 +1108,10 @@ int jam_CompareMsgIdReply(s_JamBase *Base_PS,struct Msg *msgs,ulong msgidmsg,ulo
 /*  dest is a reply to num */
 void jam_setreply(struct Msg *msgs,ulong base,ulong num,ulong dest)
 {
-   int n;
+   int n,times;
+
+   if(msgs[dest].ReplyTo)
+      return; /* Already linked */
 
    msgs[dest].ReplyTo=num+base;
 
@@ -1104,8 +1124,18 @@ void jam_setreply(struct Msg *msgs,ulong base,ulong num,ulong dest)
       n=msgs[num].Reply1st-base;
       if(n == dest) return;
 
+		times=0;
+
       while(msgs[n].ReplyNext)
       {
+			times++;
+			
+			if(times > 1000) /* Something appears to have gone wrong */
+			{			
+		      printf("Warning: >1000 replies to message %ld or circular reply links\n",num+base);
+				return;
+			}
+			
          n=msgs[n].ReplyNext-base;
          if(n == dest) return;
       }
@@ -1182,10 +1212,10 @@ int jam_linkmb(struct Area *area,ulong oldnum)
                jam_setreply(msgs,ja->BaseNum,d,c);
       }
 
-      /* See if there are any replies to this message */ 
-
       if(msgs[c].MsgIdCRC != -1)
       {
+	      /* See if there are any replies to this message */ 
+
          for(d=0;d<nummsgs;d++)
             if(jam_CompareMsgIdReply(ja->Base_PS,msgs,c,d)) 
                jam_setreply(msgs,ja->BaseNum,c,d);

@@ -1479,6 +1479,10 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
       {
          cfg->cfg_Flags|=CFG_NOMAXOUTBOUNDZONE;
       }
+      else if(stricmp(cfgword,"ALLOWKILLSENT")==0)
+      {
+         cfg->cfg_Flags|=CFG_ALLOWKILLSENT;
+      }
       else if(stricmp(cfgword,"NOROUTE")==0)
       {
          cfg->cfg_Flags|=CFG_NOROUTE;

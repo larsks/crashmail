@@ -295,6 +295,13 @@ INCLUDEFORWARD
 
 ;NOMAXOUTBOUNDZONE 
 
+; ALLOWKILLSENT
+;
+; If this option is used, CrashMail will delete all netmail messages with
+; the killsent flag after they have been expored
+
+;ALLOWKILLSENT
+
 ; Groupnames
 ; ==========
 ;

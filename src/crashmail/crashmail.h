@@ -42,11 +42,11 @@
 #include "areafix.h"
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 42
+#define VERSION_MINOR 5
 
-#define VERSION "0.42"
+#define VERSION "0.5"
 
-#define TID_VERSION "0.42"
+#define TID_VERSION "0.5"
 
 extern struct jbList PktList;
 extern struct jbList DeleteList;
@@ -68,6 +68,8 @@ extern ulong rescan_total;
 extern bool istossing;
 extern bool isscanning;
 extern bool isrescanning;
+
+extern bool no_security;
 
 extern struct ConfigNode *RescanNode;
 

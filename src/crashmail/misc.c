@@ -297,7 +297,7 @@ bool AddTID(struct MemMessage *mm)
 {
    uchar buf[100];
 
-   strcpy(buf,"\x01" "TID: CrashMailII/" OS_PLATFORM_NAME " " TID_VERSION "\x0d");
+   strcpy(buf,"\x01" "TID: CrashMail II/" OS_PLATFORM_NAME " " TID_VERSION "\x0d");
 
    return mmAddLine(mm,buf);
 }

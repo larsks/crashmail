@@ -27,6 +27,7 @@
 #define CFG_REMOVEWHENFEED         (1L<<22)
 #define CFG_INCLUDEFORWARD         (1L<<23)
 #define CFG_NOMAXOUTBOUNDZONE      (1L<<24)
+#define CFG_ALLOWKILLSENT          (1L<<25)
 
 #ifdef MSGBASE_MSG
 #define CFG_MSG_HIGHWATER         (1L<<1)

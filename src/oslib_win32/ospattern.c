@@ -13,14 +13,20 @@ bool osMatchPattern(uchar *pattern,uchar *str)
 {
    int c;
 
-   for(c=0;str[c];c++)
+   for(c=0;pattern[c];c++)
    {
       if(pattern[c]=='*')
          return(TRUE);
 
+      if(str[c] == 0)
+         return(FALSE);
+
       if(pattern[c]!='?' && tolower(pattern[c])!=tolower(str[c]))
          return(FALSE);
-   }
+   } 
+
+   if(str[c]!=0)
+      return(FALSE);
 
    return(TRUE);
 }

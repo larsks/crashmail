@@ -1,3 +1,3 @@
 bool TossFile(uchar *file);
-bool Toss(void);
+bool TossDir(uchar *dir);
 

@@ -884,12 +884,15 @@ void FreeSortList(void)
 	jbFreeList(&SortList);
 }
 
-int CompareAlpha(const void *a1,const void *a2)
+int CompareAreas(const void *a1,const void *a2)
 {
    struct StatsNode **s1,**s2;
 
    s1=(struct StatsNode **)a1;
    s2=(struct StatsNode **)a2;
+
+	if((*s1)->Group < (*s2)->Group) return(-1);
+	if((*s1)->Group > (*s2)->Group) return(1);
 
    return(stricmp((*s1)->Tagname,(*s2)->Tagname));
 }                                                           
@@ -918,7 +921,7 @@ void SortSortList(void)
    for(ss=(struct StatsNode *)SortList.First;ss;ss=ss->Next)
       *work++=ss;
 
-   qsort(buf,nc,4,CompareAlpha);
+   qsort(buf,nc,4,CompareAreas);
 
    jbNewList(&SortList);
 

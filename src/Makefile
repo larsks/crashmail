@@ -2,12 +2,10 @@
 
 help:
 	@echo You can use this Makefile in the following ways:
-	@echo 
-	@echo make linux              Make Linux binaries
-	@echo make win32              Make Win32 binaries
-	@echo make cleanlinux         Remove object files under Linux
-	@echo make cleanwin32         Remove object files under Win32
-	@echo 
+	@echo make linux ............ Make Linux binaries
+	@echo make win32 ............ Make Win32 binaries
+	@echo make cleanlinux ....... Remove object files under Linux
+	@echo make cleanwin32 ....... Remove object files under Win32
 		
 linux :
 	make -C cmnllib -f Makefile.linux

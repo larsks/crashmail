@@ -83,7 +83,6 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
    uchar PktHeader[SIZE_PKTHEADER];
    uchar PktMsgHeader[SIZE_PKTMSGHEADER];
    struct Node4D PktOrig,PktDest;
-   bool no_security;
    uchar *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
    struct MemMessage *mm;
    struct TextChunk *chunk;
@@ -106,12 +105,6 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
    PktDest.Node=0;
    PktDest.Point=0;
 
-   no_security=FALSE;
-
-/*
-   if(!bundled && stricmp(fe->Comment,"No security")==0)
-      no_security=TRUE;
-*/
    if(!(mm=mmAlloc()))
       return(FALSE);
 
@@ -296,9 +289,6 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
          getuword(PktHeader,PKTHEADER_SECOND),
          buf);
    }
-
-   if(no_security)
-      LogWrite(1,TOSSINGINFO,"No security packet, overriding all security checks...");
 
    if(tmpcnode)
    {

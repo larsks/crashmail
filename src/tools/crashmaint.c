@@ -20,7 +20,7 @@
 
 #include <jamlib/jam.h>
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 #ifdef PLATFORM_AMIGA
 uchar *ver="$VER: CrashMaint "VERSION" ("__COMMODORE_DATE__")";
@@ -404,7 +404,7 @@ bool ProcessAreaJAM(struct Area *area)
    s_JamBaseHeader BaseHeader_S;
    s_JamMsgHeader	Header_S;
    s_JamSubPacket*	SubPacket_PS;
-	int res;
+	int res,res1,res2;
 	uchar buf[200],oldname[200],tmpname[200];
 	bool firstwritten;
 	uchar *msgtext;
@@ -551,14 +551,6 @@ bool ProcessAreaJAM(struct Area *area)
 
    if(args[ARG_PACK].data)
    {
-		if(active == total)
-		{
-			printf(" Messagebase does not need to be packed\n");
-			JAM_UnlockMB(Base_PS);
-			JAM_CloseMB(Base_PS);
-			return(TRUE);
-		}
-
 		strcpy(buf,area->Path);
 		strcat(buf,".cmtemp");
 
@@ -585,6 +577,8 @@ bool ProcessAreaJAM(struct Area *area)
       del=0;
       num=0;
 		firstwritten=FALSE;
+
+		BaseHeader_S.ActiveMsgs=0;
 				
 		while(num < total && !ctrlc)
 		{
@@ -594,8 +588,15 @@ bool ProcessAreaJAM(struct Area *area)
 			{
 				if(res == JAM_NO_MESSAGE)
 				{
-					if(firstwritten) JAM_AddEmptyMessage(NewBase_PS);
-					else del++;
+					if(firstwritten) 
+					{
+						JAM_AddEmptyMessage(NewBase_PS);
+					}
+					else 
+					{
+						BaseHeader_S.BaseMsgNum++;
+						del++;
+					}
 				}
 				else
 				{
@@ -612,8 +613,15 @@ bool ProcessAreaJAM(struct Area *area)
 			{
 				if(Header_S.Attribute & MSG_DELETED)
 				{
-					if(firstwritten) JAM_AddEmptyMessage(NewBase_PS);
-					else del++;
+					if(firstwritten) 
+					{
+						JAM_AddEmptyMessage(NewBase_PS);
+					}
+					else
+					{
+						BaseHeader_S.BaseMsgNum++;					
+						del++;
+					}
 				}
 				else
 				{
@@ -621,7 +629,6 @@ bool ProcessAreaJAM(struct Area *area)
                {
                   /* Set basenum */
 
-                  BaseHeader_S.BaseMsgNum+=del;
                   res=JAM_WriteMBHeader(NewBase_PS,&BaseHeader_S);
 
                   if(res)
@@ -638,7 +645,7 @@ bool ProcessAreaJAM(struct Area *area)
                   firstwritten=TRUE;
                }
 
-					/* Read header */
+					/* Read header with all subpackets*/
 
 					res=JAM_ReadMsgHeader(Base_PS,num,&Header_S,&SubPacket_PS);
 
@@ -693,6 +700,8 @@ bool ProcessAreaJAM(struct Area *area)
 					if(msgtext) osFree(msgtext);
 				   JAM_DelSubPacket(SubPacket_PS);
 
+					BaseHeader_S.ActiveMsgs++;
+
 					if(res)
 					{
 				      printf(" Failed to copy message %ld (disk full?), cannot pack messagebase\n",num+basenum);
@@ -709,14 +718,21 @@ bool ProcessAreaJAM(struct Area *area)
 			num++;
 		}
 
-      if(ctrlc)
-      {
-			JAM_UnlockMB(Base_PS);
-			JAM_CloseMB(Base_PS);
-			JAM_UnlockMB(NewBase_PS);
+		/* Write back header */
+
+		BaseHeader_S.ModCounter++;
+
+      res=JAM_WriteMBHeader(NewBase_PS,&BaseHeader_S);
+
+     	if(res)
+     	{
+        	printf(" Failed to write messagebase header, cannot pack messagebase\n");
+        	JAM_UnlockMB(Base_PS);
+        	JAM_CloseMB(Base_PS);
+        	JAM_UnlockMB(NewBase_PS);
 			JAM_CloseMB(NewBase_PS);
-			JAM_RemoveMB(NewBase_PS,buf);
-         return(TRUE);
+        	JAM_RemoveMB(NewBase_PS,buf);
+        	return(TRUE);
       }
 
 		JAM_UnlockMB(Base_PS);
@@ -725,27 +741,48 @@ bool ProcessAreaJAM(struct Area *area)
 		JAM_UnlockMB(NewBase_PS);
 		JAM_CloseMB(NewBase_PS);
 
+		if(ctrlc)
+		{
+			JAM_RemoveMB(NewBase_PS,buf);
+         return(TRUE);
+      }
+		
 		/* This could not be done with JAMLIB... */
 
 	   sprintf(oldname,"%s%s",area->Path,EXT_HDRFILE);
   	   sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_HDRFILE);
-		remove(oldname);
-		rename(tmpname,oldname);
+		res1=remove(oldname);
+		res2=rename(tmpname,oldname);
 
-	   sprintf(oldname,"%s%s",area->Path,EXT_TXTFILE);
-  	   sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_TXTFILE);
-		remove(oldname);
-		rename(tmpname,oldname);
-
-	   sprintf(oldname,"%s%s",area->Path,EXT_IDXFILE);
-  	   sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_IDXFILE);
-		remove(oldname);
-		rename(tmpname,oldname);
-
-	   sprintf(oldname,"%s%s",area->Path,EXT_LRDFILE);
-  	   sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_LRDFILE);
-		/* Keep lastread file */
-		remove(tmpname);
+		if(!res1 && !res2)
+		{
+		   sprintf(oldname,"%s%s",area->Path,EXT_TXTFILE);
+  		   sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_TXTFILE);
+			res1=remove(oldname);
+			res2=rename(tmpname,oldname);
+		}
+		
+		if(!res1 && !res2)
+		{
+	   	sprintf(oldname,"%s%s",area->Path,EXT_IDXFILE);
+  	   	sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_IDXFILE);
+			res1=remove(oldname);
+			res2=rename(tmpname,oldname);
+		}
+		
+		if(!res1 && !res2)
+		{
+	   	sprintf(oldname,"%s%s",area->Path,EXT_LRDFILE);
+  	   	sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_LRDFILE);
+			/* Keep lastread file */
+			res2=remove(tmpname);
+		}
+		
+		if(res1 || res2)
+		{
+			printf(" Failed to update area. The area might be in use by another program.\n");
+			return(FALSE);
+		}
 
       printf(" %ld deleted messages removed from messagebase\n",del);
    }

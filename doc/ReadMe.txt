@@ -9,14 +9,14 @@
 ============
 Introduction
 ============
-Welcome to CrashMailII! CrashMailII is basically a more portable version of
-CrashMail, my tosser for Amiga computers. Users of the old Amiga version will
-probably find some things familiar while some features are gone such as the
-ARexx port (for obvious reasons!) and the GUI configuration editor. The only
-feature that CrashMailII has and the old CrashMail hasn't is support for JAM
-messagebases. (By the way, I have also written a tick file processor called
-CrashTick for the Amiga. If someone wants to port it, contect me and I'll
-give you the source.)
+Welcome to CrashMail II! CrashMail II is basically a more portable version
+of CrashMail, my tosser for Amiga computers. Users of the old Amiga
+version will probably find some things familiar while some features are
+gone such as the ARexx port (for obvious reasons!) and the GUI
+configuration editor. The only feature that CrashMail II has and the old
+CrashMail hasn't is support for JAM messagebases. (By the way, I have also
+written a tick file processor called CrashTick for the Amiga. If someone
+wants to port it, contect me and I'll give you the source.)
 
 For suggestions, bug reports and questions, don't hesitate to contact me:
 
@@ -30,7 +30,7 @@ For suggestions, bug reports and questions, don't hesitate to contact me:
 =========
 Copyright
 =========
-JAMLIB is copyright 1996 Bj”örn Stenberg. See src/jamlib/jamlib.doc for more
+JAMLIB is copyright 1996 Björn Stenberg. See src/jamlib/jamlib.doc for more
 information.
 
 All other parts of CrashMail are copyright 1999 Johan Billing. Permission to 
@@ -61,11 +61,11 @@ Items that need to be discussed
 
 Platforms
 ---------
-This is CrashMail for Win32 platforms. If you are interested in running
-CrashMail on another platform, please contact me if you are willing to
-do the work necessary to adapt CrashMail to your platform. The amount of
-work required mostly depends on whether your C-compiler supports some
-common POSIX-functions which CrashMail uses.
+This version of CrashMail can be compiled for Win32 and Linux platforms.
+If you are interested in running CrashMail on another platform, please
+contact me if you are willing to do the work necessary to adapt CrashMail
+to your platform. The amount of work required mostly depends on whether
+your C-compiler supports some common POSIX-functions which CrashMail uses.
 
 Some notes on different platforms:
 
@@ -75,7 +75,7 @@ Some notes on different platforms:
   you have to use %8 in the path of your DEFAULT area if you are using
   the auto-add feature. This creates an 8 digit serial number to use as
   the path for the area. Note that if CrashMail is run twice in a short
-  period of time (a few seconds), it might create duplicate path. Avoid
+  period of time (a few seconds), it might create duplicate paths. Avoid
   %8 if it is at all possible.
 
  Linux
@@ -109,6 +109,10 @@ TOSS
 TOSSFILE <string>
 
  Toss the specified file.
+
+TOSSDIR <string>
+
+ Toss all files in the specified directory.
 
 SCANAREA <string>
 
@@ -147,20 +151,37 @@ UNLOCK
  configuration file previously has been locked with LOCK, otherwise terrible 
  things might happen.
 
+NOSECURITY
+
+ Process all packets without security checks. This is intended to be used 
+ mainly with TOSSDIR/TOSSFILE and with packets created by CrashWrite.
+
 Support programs
 ----------------
 
-crashareasbbs <crashmail.prefs> <areas.bbs>
+crashexport <crashmail.prefs> <output file> <format> [GROUP <groups>]
 
- This command reads a the CrashMail configuration file and creates an
- areas.bbs file. If the GROUP keyword is used, only areas in the specified
- groups are included.
-
-crashforward <crashmail.prefs> <forward file>
-
- This command reads a the CrashMail configuration file and creates a file
- that can be used for forward-requests on other nodes. If the GROUP keyword
- is used, only areas in the specified groups are included.
+ This command reads a CrashMail configuration file and creates an arealist.
+ If the GROUP keyword is used, only areas in the specified groups are 
+ included. CrashExport can create lists in these formats:
+ 
+ AREASBBS
+ 
+   A standard areas.bbs file that can be read by many programs
+	
+ FORWARD
+ 
+   A list of areas that can be used for forward-requests on other nodes.
+   The file is a pure ASCII file where each line contains the name of the
+   area and its description.
+	
+ FORWARDNODESC
+ 
+   Same as FORWARD but without area descriptions.
+	
+ GOLDED
+ 
+   Creates an area configuration file in GoldED format. 
 
 crashstats <statsfile> [SORT <mode>] [LAST7] [NONODES] [NOAREAS]
  
@@ -230,6 +251,52 @@ crashmaint [MAINT] [PACK] [VERBOSE] [SETTINGS <filename>] [PATTERN <pattern>]
  gives you a lot of information which you don't really need-
 
  Example: crashmaint MAINT PACK PATTERN R20_AMIGA*
+ 
+crashwrite DIR <directory> ...
+
+ CrashWrite reads a text file and creates a .pkt file that can be processed
+ by CrashMail. This can be used to post announcements and other messages in
+ areas. The best way to use CrashWrite is to let it generate packets in a 
+ separate directory and then toss them with TOSSDIR NOSECURITY. 
+ 
+ There are many keywords for CrashWrite. All keywords are optional except for
+ DIRECTORY. If you do not enter a keyword, a default value will be used.
+ 
+ FROMNAME <string>
+ FROMADDR <node>
+ TONAME <string>
+ TOADDR <node>
+ SUBJECT <string>
+
+  Use these keywords to set the header of the message. You only need to enter
+  TONAME and TOADDR for netmails. 
+
+ AREA <area>
+ 
+  The area the message should be posted in. If you do not enter an area, the
+  message will be sent as a netmail.
+
+ ORIGIN <origin>
+ 
+  The origin line for the message. This keyword has no effect for netmail 
+  messages.
+
+ DIR <dir>
+ 
+  The directory where the packet should be placed.
+  
+ TEXT <filename>
+ 
+  The name of a text file that should be included as the message text.
+
+ NOMSGID
+ 
+  Prevents CrashWrite from adding a MSGID line. 
+
+ FILEATTACH                                 
+ 
+  Sets the file-attach flag for netmails. The filename should be put in the
+  subject line.
 
 Paths
 -----
@@ -246,7 +313,7 @@ Messagebase formats
 -------------------
 CrashMail currently can use *.msg messagebase and JAM messagebases.
 
-Some notes on different messagebase formats:
+Some notes on the different messagebase formats:
 
  *.msg
 
@@ -255,18 +322,19 @@ Some notes on different messagebase formats:
   variations. There are Zone and Point fields in the message header, but
   since some programs use them for other purposes, CrashMail doesn't read
   them. This means that CrashMail won't work if your reader doesn't create
-  INTL, TOPT and FMPT kludge lines. Mosts readers do so this probably won't
+  INTL, TOPT and FMPT kludge lines. Most readers do so this probably won't
   be a problem.
 
  JAM
 
-  JAM is a newer messageformat while not perfect at least is much better
-  than *.msg. It provides reply-linking, but unfortunately not between areas.
-  JAM has a few odd features which CrashMail does not support. CrashMail will
-  not create TRACE fields from Via kludges, it does not support messages with
-  multiple recipients (carbon copies) and it does not support file-attaches
-  with wildcards, indirect file-attaches or file-attaches with aliases.
-  CrashMail also handles only one attach file/file request per message.
+  JAM is a newer messageformat which while not perfect at least is much
+  better than *.msg. It provides reply-linking, but unfortunately not
+  between areas. JAM has a few odd features which CrashMail does not
+  support. CrashMail will not create TRACE fields from Via kludges, it
+  does not support messages with multiple recipients (carbon copies) and
+  it does not support file-attaches with wildcards, indirect file-attaches
+  or file-attaches with aliases.  CrashMail also handles only one attached
+  file/file request per message.
   
 Highwater marks
 ---------------
@@ -311,7 +379,7 @@ Patterns
 
   2:200/2*.*
 
-   This would match 2:200/213.99, 2:200/424.48, 2:200/207.0 etc.
+   This would match 2:200/213.99, 2:200/224.48, 2:200/207.0 etc.
    This would NOT match 2:200/103.42.
 
   2:200/2?.*

@@ -175,7 +175,8 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    osFile fh;
    struct StoredMsg Msg;
    struct MemMessage *mm;
-
+	ushort oldattr;
+	
    if(!(mm=mmAlloc()))
       return(FALSE);
 
@@ -218,6 +219,8 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    mystrncpy(mm->Subject,Msg.Subject,72);
 
    mystrncpy(mm->DateTime,Msg.DateTime,20);
+
+   oldattr = Msg.Attr;
 
    mm->Attr = Msg.Attr & (FLAG_PVT|FLAG_CRASH|FLAG_FILEATTACH|FLAG_FILEREQ|FLAG_RREQ|FLAG_IRRR|FLAG_AUDIT|FLAG_HOLD);
    mm->Cost = Msg.Cost;
@@ -290,28 +293,37 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    }
 
    if(!isrescanning)
+   {
       scan_total++;
 
-   Msg.Attr|=FLAG_SENT;
-
-   if(!isrescanning)
-   {
       sprintf(buf2,"%lu.msg",num);
       MakeFullPath(area->Path,buf2,buf,200);
 
-      if(config.cfg_msg_Flags & CFG_MSG_WRITEBACK)
-      {
-         mm->Attr=Msg.Attr;
-         msg_WriteMSG(mm,buf);
-      }
-      else
-      {
-         if((fh=osOpen(buf,MODE_READWRITE)))
-         {
-            osWrite(fh,&Msg,sizeof(struct StoredMsg));
-            osClose(fh);
-         }
-      }
+		if((config.cfg_Flags & CFG_ALLOWKILLSENT) && (oldattr & FLAG_KILLSENT) && (area->Flags & AREA_NETMAIL))
+		{
+			/* Delete message with KILLSENT flag */
+			
+			LogWrite(2,TOSSINGINFO,"Deleting message with KILLSENT flag");
+		   remove(buf);
+		}
+		else
+		{
+		   Msg.Attr|=FLAG_SENT;
+
+   	   if(config.cfg_msg_Flags & CFG_MSG_WRITEBACK)
+      	{
+         	mm->Attr=Msg.Attr;
+	         msg_WriteMSG(mm,buf);
+   	   }
+      	else
+	      {
+   	      if((fh=osOpen(buf,MODE_READWRITE)))
+      	   {
+         	   osWrite(fh,&Msg,sizeof(struct StoredMsg));
+            	osClose(fh);
+	         }
+   	   }
+		}
    }
 
    mmFree(mm);

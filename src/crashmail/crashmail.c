@@ -30,6 +30,8 @@ bool istossing;
 bool isscanning;
 bool isrescanning;
 
+bool no_security;
+
 struct ConfigNode *RescanNode;
 
 ulong DayStatsWritten; /* The area statistics are updated until this day */
@@ -45,26 +47,29 @@ uchar *prinames[]={"Normal","Hold","Normal","Direct","Crash"};
 #define ARG_SCAN            0
 #define ARG_TOSS            1
 #define ARG_TOSSFILE        2
-#define ARG_SCANAREA        3
-#define ARG_SCANLIST        4
-#define ARG_RESCAN          5
-#define ARG_RESCANNODE      6
-#define ARG_RESCANMAX       7
-#define ARG_SENDQUERY       8
-#define ARG_SENDLIST        9
-#define ARG_SENDUNLINKED   10
-#define ARG_SENDHELP       11
-#define ARG_SENDINFO       12
-#define ARG_REMOVE         13
-#define ARG_SETTINGS       14
-#define ARG_VERSION        15
-#define ARG_LOCK				16
-#define ARG_UNLOCK			17
+#define ARG_TOSSDIR         3
+#define ARG_SCANAREA        4
+#define ARG_SCANLIST        5
+#define ARG_RESCAN          6
+#define ARG_RESCANNODE      7
+#define ARG_RESCANMAX       8
+#define ARG_SENDQUERY       9
+#define ARG_SENDLIST       10
+#define ARG_SENDUNLINKED   11
+#define ARG_SENDHELP       12
+#define ARG_SENDINFO       13
+#define ARG_REMOVE         14
+#define ARG_SETTINGS       15
+#define ARG_VERSION        16
+#define ARG_LOCK				17
+#define ARG_UNLOCK			18
+#define ARG_NOSECURITY     19
 
 struct argument args[] =
    { { ARGTYPE_BOOL,   "SCAN",         0    },
      { ARGTYPE_BOOL,   "TOSS",         0    },
      { ARGTYPE_STRING, "TOSSFILE",     NULL },
+     { ARGTYPE_STRING, "TOSSDIR",      NULL },
      { ARGTYPE_STRING, "SCANAREA",     NULL },
      { ARGTYPE_STRING, "SCANLIST",     NULL },
      { ARGTYPE_STRING, "RESCAN",       NULL },
@@ -80,6 +85,7 @@ struct argument args[] =
      { ARGTYPE_BOOL,   "VERSION",      0    },
      { ARGTYPE_BOOL,   "LOCK",         0    },
      { ARGTYPE_BOOL,   "UNLOCK",       0    },
+     { ARGTYPE_BOOL,   "NOSECURITY",   0    },
      { ARGTYPE_END,     NULL,          0    } };
 
 bool init_openlog;
@@ -615,15 +621,26 @@ int main(int argc, char **argv)
 
    done_init=TRUE;
 
-   LogWrite(2,SYSTEMINFO,"CrashMailII %s started successfully!",VERSION);
+   LogWrite(2,SYSTEMINFO,"CrashMail II %s started successfully!",VERSION);
 
    done_welcomemsg=TRUE;
 
+	no_security=FALSE;
+
+	if(args[ARG_NOSECURITY].data)
+	{
+		LogWrite(2,TOSSINGINFO,"Packets will be tossed without security checks");
+		no_security=TRUE;
+	}
+
    if(args[ARG_TOSS].data)
-      Toss();
+      TossDir(config.cfg_Inbound);
 
    else if(args[ARG_TOSSFILE].data)
       TossFile((uchar *)args[ARG_TOSSFILE].data);
+
+   if(args[ARG_TOSSDIR].data)
+      TossDir((uchar *)args[ARG_TOSSDIR].data);
 
    else if(args[ARG_SCAN].data)
       Scan();

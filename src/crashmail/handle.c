@@ -399,6 +399,14 @@ bool AddNodePath(struct jbList *list,struct Node4D *node)
       }
    }
 
+	/* Are we already in the PATH line? */
+
+	if(lastok)
+	{
+		if(n4d.Net == node->Net && n4d.Node == node->Node && n4d.Point == node->Point)
+			return(TRUE);	
+	}
+
    /* Make address */
 
    if(lastok && n4d.Net == node->Net)
