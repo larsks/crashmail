@@ -291,5 +291,29 @@ Changes in version 0.61:
 
  - CrashWrite had problems with paragraphs longer than 100 characters. Fixed.
 
+Changes in version 0.62:
 
+ CrashMail
 
+ - CrashMail would check packet passwords even if the command-line option
+   NOSECURITY was used. Fixed.
+
+ - The Local flag is now cleared and the Sent flag is set before messages
+   are imported to the messagebase. In previous versions of CrashMail, 
+   imported messages with Local flag and no Sent flag were re-exported the
+   next time CrashMail SCAN was run. Fixed.
+
+ - CrashMail no longer leaves empty lines in the config file when areas are
+   removed by the AreaFix.
+
+ CrashMaint
+
+ - CrashMaint used local time instead of UTC when deleting old messages in
+   JAM areas. This could cause messages to be deleted ahead of time. Thanks
+   to Alexander S Aganichev for noticing this and sending me a patch.
+
+ JAMLIB
+
+ - There was a bug in JAMLIB that caused the Linux version of CrashMail to fail 
+   when trying to import an empty message to the messagebase. The bug has been
+   fixed and CrashMail now uses the new version of JAMLIB.

@@ -6,9 +6,9 @@
 
                      modifications by Johan Billing
 
-                             Version 1.2
+                             Version 1.3
 
-                              2000-09-17
+                              2001-05-22
 
 
 GENERAL
@@ -24,6 +24,11 @@ General Public License 1999-12-21 (see the accompanying file LICENSE).
 
   After that, some minor additions and bug fixes were made by Johan 
 Billing and JAMLIB 1.1 was released under the new license.
+
+Changes in 1.3:
+
+ * JAM_AddMessage() would fail when trying to add an empty message 
+   to the messagebase under Linux. Fixed.
 
 Changes in 1.2:
 

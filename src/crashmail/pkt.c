@@ -297,7 +297,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
       strncpy(buf,&PktHeader[PKTHEADER_PASSWORD],8);
       buf[8]=0;
 
-      if(tmpcnode->PacketPW[0]!=0 && stricmp(buf,tmpcnode->PacketPW)!=0)
+      if(tmpcnode->PacketPW[0]!=0 && stricmp(buf,tmpcnode->PacketPW)!=0 && !no_security)
       {
          LogWrite(1,TOSSINGERR,"Wrong password");
          osClose(fh);

@@ -24,6 +24,8 @@
     - Added error messages JAM_NO_MESSAGE and JAM_CORRUPT_MSG for
       JAM_ReadMsgHeader()
     - #includes stdlib.h instead of malloc.h and memory.h
+    - Fixed a bug that caused JAM_AddMessage() to fail when trying to
+      add an empty message to the messagebase under Linux.
 */	 
 
 /***********************************************************************
@@ -266,7 +268,7 @@ int JAM_AddMessage( s_JamBase* 		Base_PS,
    Header_PS->TxtOffset = 0;
    Header_PS->TxtLen    = 0;
 
-	if(Text_PC)
+	if(Text_PC && TextLen_I!=0)
 	{
 	   /* go to end of text file */
 		if ( fseek( Base_PS->TxtFile_PS, 0, SEEK_END ) ) {

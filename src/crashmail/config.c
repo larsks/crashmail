@@ -2067,7 +2067,7 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
    uchar cfgtemp[110],cfgbak[110];
    uchar cfgword[30],buf[100];
    osFile oldfh,newfh;
-   bool skiparea,skipnode,dontwrite;
+   bool skiparea,skipnode,dontwrite,copyres;
    struct ConfigNode    *cnode;
    struct Area          *area;
    struct Node4D n4d;
@@ -2100,7 +2100,8 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
    while(osFGets(oldfh,cfgbuf,4000))
    {
       jbcpos=0;
-      jbstrcpy(cfgword,cfgbuf,30,&jbcpos);
+
+      copyres=jbstrcpy(cfgword,cfgbuf,30,&jbcpos);
 
       if(stricmp(cfgword,"AREA")==0 || stricmp(cfgword,"NETMAIL")==0)
       {
@@ -2117,6 +2118,7 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
             {
                skiparea=TRUE;
                WriteArea(area,newfh);
+				   osFPrintf(newfh,"\n");
                area->changed=FALSE;
             }
 				
@@ -2144,6 +2146,7 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
                {
                   skipnode=TRUE;
                   WriteNode(cnode,newfh);
+					   osFPrintf(newfh,"\n");
                   cnode->changed=FALSE;
                }
             }
@@ -2156,12 +2159,18 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
       {
          for(c=0;areakeywords[c];c++)
             if(stricmp(cfgword,areakeywords[c])==0) dontwrite=TRUE;
+
+			if(!copyres)
+				dontwrite=TRUE; /* Skip empty lines */
       }
 
       if(skipnode)
       {
          for(c=0;nodekeywords[c];c++)
             if(stricmp(cfgword,nodekeywords[c])==0) dontwrite=TRUE;
+
+			if(!copyres)
+				dontwrite=TRUE; /* Skip empty lines */
       }
 
       if(!dontwrite)

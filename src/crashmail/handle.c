@@ -711,6 +711,11 @@ bool HandleEchomail(struct MemMessage *mm)
       if(config.cfg_Flags & CFG_STRIPRE)
          strcpy(mm->Subject,StripRe(mm->Subject));
 
+		/* Remove LOCAL flag if set and set SENT flag */
+
+		mm->Attr |= FLAG_SENT;
+		mm->Attr &= ~(FLAG_LOCAL);
+
       if(!(*temparea->Messagebase->importfunc)(mm,temparea))
 			return(FALSE);
    }
@@ -1680,6 +1685,11 @@ bool HandleNetmail(struct MemMessage *mm)
 
    		   if(config.cfg_Flags & CFG_STRIPRE)
 	      	   strcpy(mm->Subject,StripRe(mm->Subject));
+
+				/* Remove LOCAL flag if set and set SENT flag */
+
+				mm->Attr |= FLAG_SENT;
+				mm->Attr &= ~(FLAG_LOCAL);
 
             if(!(*tmparea->Messagebase->importfunc)(mm,tmparea))
 					return(FALSE);
