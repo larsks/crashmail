@@ -4,7 +4,7 @@ RM = del
 
 OBJS = crc32.o mbase.o message.o lastread.o subpack.o
 
-jamlib.a : $(OBJS) 
+jamlib.a: $(OBJS) 
 	$(AR) jamlib.a $(OBJS)
 
 crc32.o:    crc32.c jam.h
@@ -24,3 +24,4 @@ subpack.o:  subpack.c jam.h
 
 clean:
 	$(RM) *.o *.a
+

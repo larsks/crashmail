@@ -1,0 +1,59 @@
+.TH CRASHMAINT 1 1999-08-01 "Johan Billing" "CrashMail"
+.SH NAME
+crashmaint \- Do maintanence on CrashMail message bases
+.SH SYNOPSIS
+.B crashmaint
+[MAINT] [PACK] [VERBOSE] [SETTINGS filename] [PATTERN pattern]
+.SH DESCRIPTION
+Deletes old messages according to
+.B KEEPNUM
+and
+.B KEEPDAYS
+in
+.IR crashmail.prefs .
+The program can do two different operations on a messagebase,
+.I MAINT
+and
+.IR PACK .
+The meaning of these two modes are different for different messagebase
+formats.
+.TP
+.B *.msg
+.I MAINT
+deletes messages and
+.I PACK
+renumbers the area.
+.TP
+.B JAM
+.I MAINT
+sets the Deleted flag for the messages.
+.I PACK
+removes all messages with the Deleted flag from the messagebase.
+.PP
+Both
+.I MAINT
+and
+.I PACK
+can be specified at the same time.
+.SH OPTIONS
+.TP
+.I SETTINGS filename
+Specifies that another config file than the default should be used. You can use
+the environment variable CMCONFIGFILE to set the default configuration file.
+.TP
+.I PATTERN pattern
+Lets you perform the operations on only some of your areas.
+.TP
+.I VERBOSE
+Gives you a lot of information which you don't really need.
+.SH EXAMPLES
+crashmaint MAINT PACK PATTERN R20_AMIGA*
+.SH "SEE ALSO"
+.BR crashmail (1)
+.\"BR crashmail.prefs (5)
+.\"SH FILES
+.\"SH BUGS
+.SH AUTHOR
+CrashMail is written by Johan Billing <billing@df.lth.se>
+.PP
+This manual page was written by Peter Karlsson <peter@softwolves.pp.se>

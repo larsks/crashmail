@@ -87,7 +87,7 @@ bool TossBundle(uchar *file,struct osFileEntry *fe)
    if(fe->Size == 0)
    {
       LogWrite(1,TOSSINGINFO,"Deleting zero length bundle %s",file);
-      remove(file);
+      osDelete(file);
       return(TRUE);
    }
 
@@ -151,7 +151,7 @@ bool TossBundle(uchar *file,struct osFileEntry *fe)
             return(FALSE);
          }
 
-         remove(buf);
+         osDelete(buf);
       }
    }
 

@@ -1,0 +1,46 @@
+.TH CRASHEXPORT 1 1999-08-01 "Johan Billing" "CrashMail"
+.SH NAME
+crashexport \- Export CrashMail configuration
+.SH SYNOPSIS
+.B crashexport
+crashmail.prefs outputfile format [GROUP groups]
+.SH DESCRIPTION
+This command reads a CrashMail configuration file and creates an arealist.
+.SH OPTIONS
+.TP
+.I GROUP group
+Only areas in the specified groups are included.
+.SH FORMATS
+CrashExport can create lists in these formats:
+.TP
+.I AREASBBS
+A standard areas.bbs file that can be read by many programs
+.TP
+.I FORWARD
+A list of areas that can be used for forward-requests on other nodes.
+The file is a pure ASCII file where each line contains the name of the
+area and its description.
+.TP
+.I FORWARDNODESC
+Same as FORWARD but without area descriptions.
+.TP
+.I GOLDED
+Creates an area configuration file in GoldED format.
+.TP
+.I TIMED
+Creates an area configuration file in timEd format.
+.SH EXAMPLES
+.TP
+.I crashexport crashmail/crashmail.prefs golded.areas GOLDED
+Exports the configuration file
+.I crashmail/crashmail.prefs
+to a GoldEd area configuration in
+.IR golded.areas .
+.SH "SEE ALSO"
+.BR crashmail (1)
+.\"SH FILES
+.\"SH BUGS
+.SH AUTHOR
+CrashMail is written by Johan Billing <billing@df.lth.se>
+.PP
+This manual page was written by Peter Karlsson <peter@softwolves.pp.se>

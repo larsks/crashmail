@@ -23,7 +23,7 @@ uchar cfgbuf[4000];
 
 uchar tagname[100],desc[100],msgbase[10],path[100],export[1000],aka[50];
 uchar group;
-bool netmail;
+bool netmail,unconfirmed;
 
 #define ARG_PREFSFILE    0
 #define ARG_OUTFILE      1
@@ -31,16 +31,17 @@ bool netmail;
 #define ARG_GROUP  	    3
 
 struct argument args[] =
-   { { ARGTYPE_STRING, NULL,           NULL },
-     { ARGTYPE_STRING, NULL,           NULL },
-     { ARGTYPE_STRING, NULL,           NULL },
-     { ARGTYPE_STRING, "GROUP",        NULL },
-     { ARGTYPE_END,     NULL,          0    } };
+   { { ARGTYPE_STRING, "PREFSFILE", ARGFLAG_AUTO | ARGFLAG_MANDATORY, NULL },
+     { ARGTYPE_STRING, "OUTFILE",   ARGFLAG_AUTO | ARGFLAG_MANDATORY, NULL },
+     { ARGTYPE_STRING, "FORMAT",    ARGFLAG_AUTO | ARGFLAG_MANDATORY, NULL },
+     { ARGTYPE_STRING, "GROUP",     0,                                NULL },
+     { ARGTYPE_END,     NULL,       0,                                0    } };
 
 #define FORMAT_AREASBBS 			0
 #define FORMAT_FORWARD				1
 #define FORMAT_FORWARDNODESC		2
 #define FORMAT_GOLDED				3
+#define FORMAT_TIMED             4
 
 int format;
 
@@ -59,10 +60,19 @@ bool CheckFlags(uchar group,uchar *node)
 
 void writearea(osFile fh)
 {
-	uchar *gedmsgbase,*gedtype,*gedflags;
-	uchar gedgroupbuf[10],geddesc[100];
 	int c;
+   uchar escdesc[100];
+
+	uchar *gedmsgbase,*gedtype,*gedflags;
+   uchar gedgroupbuf[10];
+
+   uchar *timflags,*timkeyword;
+
+	/* Never write unconfirmed areas to output file */
 	
+	if(unconfirmed)
+		return;
+
 	/* Never write default areas to output file */
 
    if(stricmp(tagname,"DEFAULT")==0 || strnicmp(tagname,"DEFAULT_",8)==0)
@@ -72,6 +82,13 @@ void writearea(osFile fh)
 
    if(args[ARG_GROUP].data && !CheckFlags(group,args[ARG_GROUP].data))
 		return;
+
+   /* Escape description */
+
+   strcpy(escdesc,desc);
+         
+   for(c=0;escdesc[c];c++) /* Desc can't contain " */
+      if(escdesc[c] == '\"') escdesc[c]='\'';
 
 	switch(format)
 	{
@@ -107,7 +124,7 @@ void writearea(osFile fh)
 				else if(stricmp(msgbase,"JAM")==0) gedmsgbase="JAM";
 				else return;
 
-				if(netmail) gedtype="NETMAIL";
+				if(netmail) gedtype="NET";
 				else			gedtype="ECHO";
 	
 				if(netmail) gedflags="(Loc Pvt)";
@@ -116,13 +133,24 @@ void writearea(osFile fh)
 				if(group) sprintf(gedgroupbuf,"%c",group);
 				else		 strcpy(gedgroupbuf,"0");
 			
-				strcpy(geddesc,desc);
-				
-				for(c=0;geddesc[c];c++) /* Desc can't contain " */
-					if(geddesc[c] == '\"') geddesc[c]='\'';
+            osFPrintf(fh,"AREADEF %s \"%s\" %s %s %s %s %s %s\n",tagname,escdesc,gedgroupbuf,gedtype,gedmsgbase,path,aka,gedflags);
+         }
+         break;
 
-	         osFPrintf(fh,"AREADEF %s \"%s\" %s %s %s %s %s %s\n",tagname,geddesc,gedgroupbuf,gedtype,gedmsgbase,path,aka,gedflags);
+      case FORMAT_TIMED:
+			if(path[0]) /* Don't write pass-through areas */
+			{
+            if(stricmp(msgbase,"MSG")==0)      timflags="";
+            else if(stricmp(msgbase,"JAM")==0) timflags=" -J";
+				else return;
+
+            if(netmail) timkeyword="NetArea";
+            else        timkeyword="EchoArea";
+	
+            osFPrintf(fh,"%s \"%s\" %s %s -P%s%s\n",timkeyword,escdesc,tagname,path,aka,timflags);
 			}
+         break;
+
 	}
 }
 
@@ -148,28 +176,7 @@ int main(int argc, char **argv)
       osEnd();
       exit(OS_EXIT_ERROR);
    }
-   
-   if(!args[ARG_PREFSFILE].data)
-   {
-      printf("No crashmail.prefs file specified\n");
-      osEnd();
-      exit(OS_EXIT_ERROR);
-   }   
-
-   if(!args[ARG_OUTFILE].data)
-   {
-      printf("No output file specified\n");
-      osEnd();
-      exit(OS_EXIT_ERROR);
-   }   
-
-   if(!args[ARG_FORMAT].data)
-   {
-      printf("No format file specified\n");
-      osEnd();
-      exit(OS_EXIT_ERROR);
-   }   
-	
+   	
 	if(stricmp((uchar *)args[ARG_FORMAT].data,"areasbbs")==0)
 	{
 		format=FORMAT_AREASBBS;
@@ -185,6 +192,10 @@ int main(int argc, char **argv)
 	else if(stricmp((uchar *)args[ARG_FORMAT].data,"golded")==0)
 	{
 		format=FORMAT_GOLDED;
+	}
+   else if(stricmp((uchar *)args[ARG_FORMAT].data,"timed")==0)
+	{
+      format=FORMAT_TIMED;
 	}
 	else
    {
@@ -244,7 +255,8 @@ int main(int argc, char **argv)
 			group=0;
 			
 			netmail=FALSE;
-			
+			unconfirmed=FALSE;
+						
 			if(stricmp(cfgword,"NETMAIL")==0)
 				netmail=TRUE;
 				
@@ -267,6 +279,11 @@ int main(int argc, char **argv)
 				if(export[0]) strcat(export," ");
             strcat(export,buf);
          }
+      }   
+
+      if(stricmp(cfgword,"UNCONFIRMED")==0)
+      {
+			unconfirmed=TRUE;
       }   
 
       if(stricmp(cfgword,"DESCRIPTION")==0)

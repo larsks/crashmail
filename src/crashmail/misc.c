@@ -32,7 +32,8 @@ void ExpandPacker(uchar *cmd,uchar *dest,ulong destsize,uchar *arc,uchar *file)
 }
 
 void ExpandRobot(uchar *cmd,uchar *dest,ulong destsize,
-   uchar *rfc,
+   uchar *rfc1,
+	uchar *rfc2,
    uchar *msg,
    uchar *subj,
    uchar *date,
@@ -46,9 +47,16 @@ void ExpandRobot(uchar *cmd,uchar *dest,ulong destsize,
    d=0;
    for(c=0;c<strlen(cmd);c++)
    {
-      if(cmd[c]=='%' && (cmd[c+1]|32)=='r')
+      if(cmd[c]=='%' && (cmd[c+1])=='r')
       {
-         strncpy(&dest[d],rfc,(size_t)(destsize-1-d));
+         strncpy(&dest[d],rfc1,(size_t)(destsize-1-d));
+         dest[destsize-1]=0;
+         d=strlen(dest);
+         c++;
+      }
+      else if(cmd[c]=='%' && (cmd[c+1])=='R')
+      {
+         strncpy(&dest[d],rfc2,(size_t)(destsize-1-d));
          dest[destsize-1]=0;
          d=strlen(dest);
          c++;
@@ -187,14 +195,9 @@ bool IsArc(uchar *file)
 
 bool IsPkt(uchar *file)
 {
-   int c;
-
    if(strlen(file)!=12)             return(FALSE);
    if(file[8]!='.')                 return(FALSE);
    if(stricmp(&file[9],"pkt")!=0)   return(FALSE);
-
-   for(c=0;c<8;c++)
-      if((file[c]<'0' || file[c]>'9') && ((file[c]|32) < 'a' || (file[c]|32) > 'f')) return(FALSE);
 
    return(TRUE);
 }
@@ -354,7 +357,7 @@ bool CopyFile(uchar *file,uchar *newfile)
 
    if(diskfull)
    {
-      remove(newfile);
+      osDelete(newfile);
       return(FALSE);
    }
 
@@ -363,13 +366,13 @@ bool CopyFile(uchar *file,uchar *newfile)
 
 bool MoveFile(uchar *file,uchar *newfile)
 {
-   if(rename(file,newfile)==0)
+   if(osRename(file,newfile))
       return(TRUE); /* rename was enough */
 
    if(!CopyFile(file,newfile))
       return(FALSE);
  
-   remove(file);
+   osDelete(file);
    return(TRUE);    
 }
 
@@ -473,6 +476,9 @@ time_t FidoToTime(uchar *date)
       tm.tm_wday=0;
       tm.tm_yday=0;
       tm.tm_isdst=-1;
+		
+		if(tm.tm_year < 80) /* Y2K fix */
+			tm.tm_year+=100;			
    }
    else
    {
@@ -496,6 +502,9 @@ time_t FidoToTime(uchar *date)
       tm.tm_wday=0;
       tm.tm_yday=0;
       tm.tm_isdst=-1;
+
+		if(tm.tm_year < 80) /* Y2K fix */
+			tm.tm_year+=100;			
    }
 
    t=mktime(&tm);

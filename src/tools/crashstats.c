@@ -96,13 +96,13 @@ struct NodeStatsNode
 #define ARG_GROUP   5
 
 struct argument args[] =
-   { { ARGTYPE_STRING, NULL,           NULL },
-     { ARGTYPE_STRING, "SORT",         NULL },
-     { ARGTYPE_BOOL,   "LAST7",        NULL },
-     { ARGTYPE_BOOL,   "NOAREAS",      NULL },
-     { ARGTYPE_BOOL,   "NONODES",      NULL },
-     { ARGTYPE_STRING, "GROUP",        NULL },
-     { ARGTYPE_END,     NULL,          0    } };
+   { { ARGTYPE_STRING, "FILE",    ARGFLAG_AUTO | ARGFLAG_MANDATORY, NULL },
+     { ARGTYPE_STRING, "SORT",    0,                                NULL },
+     { ARGTYPE_BOOL,   "LAST7",   0,                                NULL },
+     { ARGTYPE_BOOL,   "NOAREAS", 0,                                NULL },
+     { ARGTYPE_BOOL,   "NONODES", 0,                                NULL },
+     { ARGTYPE_STRING, "GROUP",   0,                                NULL },
+     { ARGTYPE_END,     NULL,     0,                                0    } };
 
 bool diskfull;
 
@@ -393,13 +393,6 @@ int main(int argc, char **argv)
       osEnd();
       exit(OS_EXIT_ERROR);
    }
-   
-   if(!args[ARG_FILE].data)
-   {
-      printf("No statistics file specified\n");
-      osEnd();
-      exit(OS_EXIT_ERROR);
-   }   
 
    sortmode='a';
    
@@ -446,6 +439,9 @@ int main(int argc, char **argv)
    totaldupes=0;
    firsttime=0;
    areas=0;
+
+   for(c=0;c<8;c++)
+   	total8days[c]=0;
 
    jbNewList(&StatsList);
    jbNewList(&NodesList);

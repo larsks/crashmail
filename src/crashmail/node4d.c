@@ -279,7 +279,8 @@ int NodeCompare(uchar *pat,ushort num)
 int Compare4DPat(struct Node4DPat *nodepat,struct Node4D *node)
 {
    int num;
-
+	struct Node4D n4d;
+	
    switch(nodepat->Type)
    {
       case PAT_PATTERN:
@@ -299,7 +300,9 @@ int Compare4DPat(struct Node4DPat *nodepat,struct Node4D *node)
          if(!config.cfg_NodelistType)
             return(1);
 
-         num=(*config.cfg_NodelistType->nlGetRegion)(node);
+			Copy4D(&n4d,node);
+			n4d.Point=0;
+         num=(*config.cfg_NodelistType->nlGetRegion)(&n4d);
 
          if(num == -1)
             return(1);
@@ -321,7 +324,9 @@ int Compare4DPat(struct Node4DPat *nodepat,struct Node4D *node)
          if(!config.cfg_NodelistType)
             return(1);
 
-         num=(*config.cfg_NodelistType->nlGetHub)(node);
+			Copy4D(&n4d,node);
+			n4d.Point=0;
+         num=(*config.cfg_NodelistType->nlGetHub)(&n4d);
 
          if(num == -1)
             return(1);

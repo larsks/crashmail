@@ -1,0 +1,40 @@
+.TH CRASHLIST 1 1999-08-01 "Johan Billing" "CrashMail"
+.SH NAME
+crashlist \- Compile a CrashMail nodelist
+.SH SYNOPSIS
+.B crashlist
+dir
+.SH DESCRIPTION
+Builds an index for the nodelists in the specified directory (or in the
+current directory if no directory is specified). To find out what
+nodelists to read, CrashList uses a file called cmnodelist.prefs in the
+nodelist directory. The format of this file is as follows:
+.PP
+<nodelist name> [<default zone>]
+.PP
+As the name of the nodelist, you can either specify the full name of the
+nodelist or just the base name of the nodelist (without .xxx at the end).
+If you just specify the base name, CrashList will use the latest nodelist
+with that name (selected by date, not the extension). A default zone can
+be used for regional nodelists without a Zone line. All lines beginning
+with a semicolon are treated as comments. Pointlists should be in
+BinkleyTerm format and should be specified after the real nodelists.
+.PP
+.\"SH OPTIONS
+.\"SH EXAMPLES
+.SH "SEE ALSO"
+.BR crashmail (1),
+.BR crashgetnode (1)
+.SH FILES
+Example cmnodelist.prefs:
+.nf
+ ; Configuration for CrashList
+ ;
+ ; Format: <nodelist> [<default zone>]
+ NODELIST
+ BTPOINT
+.\"SH BUGS
+.SH AUTHOR
+CrashMail is written by Johan Billing <billing@df.lth.se>
+.PP
+This manual page was written by Peter Karlsson <peter@softwolves.pp.se>

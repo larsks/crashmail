@@ -14,6 +14,7 @@
 #include <oslib/osfile.h>
 #include <oslib/osdir.h>
 #include <oslib/ospattern.h>
+#include <oslib/osmisc.h>
 
 #include <shared/storedmsg.h>
 #include <shared/fidonet.h>
@@ -54,12 +55,12 @@ struct jbList MsgList;
 #define ARG_PATTERN    4
 
 struct argument args[] =
-   { { ARGTYPE_BOOL,   "MAINT",        NULL },
-     { ARGTYPE_BOOL,   "PACK",         NULL },
-     { ARGTYPE_BOOL,   "VERBOSE",      NULL },
-     { ARGTYPE_STRING, "SETTINGS",     NULL },
-     { ARGTYPE_STRING, "PATTERN",      NULL },
-     { ARGTYPE_END,     NULL,          0    } };
+   { { ARGTYPE_BOOL,   "MAINT",        0, NULL },
+     { ARGTYPE_BOOL,   "PACK",         0, NULL },
+     { ARGTYPE_BOOL,   "VERBOSE",      0, NULL },
+     { ARGTYPE_STRING, "SETTINGS",     0, NULL },
+     { ARGTYPE_STRING, "PATTERN",      0, NULL },
+     { ARGTYPE_END,     NULL,          0, 0    } };
 
 bool diskfull;
 bool ctrlc;
@@ -259,7 +260,7 @@ bool ProcessAreaMSG(struct Area *area)
          if(args[ARG_VERBOSE].data)
             printf(" Deleting message #%lu by number\n",msg->Num);
 
-         remove(buf);
+         osDelete(buf);
 
          msg->Num=0;
          num--;
@@ -295,7 +296,7 @@ bool ProcessAreaMSG(struct Area *area)
             if(args[ARG_VERBOSE].data)
                printf(" Deleting message #%lu by date\n",msg->Num);
 
-            remove(buf);
+            osDelete(buf);
             
       	    msg->Num=0;
             del++;
@@ -348,7 +349,7 @@ bool ProcessAreaMSG(struct Area *area)
             if(args[ARG_VERBOSE].data)
                printf(" Renaming message %lu to %lu\n",msg->Num,msg->NewNum);
 
-            rename(buf,newbuf);
+            osRename(buf,newbuf);
          }
 
       if(ctrlc)
@@ -364,7 +365,7 @@ bool ProcessAreaMSG(struct Area *area)
 
    if(highwater!=oldhighwater)
    {
-      strcpy(StoredMsg.From,"CrashMail");
+      strcpy(StoredMsg.From,"CrashMail II");
       strcpy(StoredMsg.To,"All");
       strcpy(StoredMsg.Subject,"HighWater mark");
       MakeFidoDate(time(NULL),StoredMsg.DateTime);
@@ -751,34 +752,34 @@ bool ProcessAreaJAM(struct Area *area)
 
 	   sprintf(oldname,"%s%s",area->Path,EXT_HDRFILE);
   	   sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_HDRFILE);
-		res1=remove(oldname);
-		res2=rename(tmpname,oldname);
+		res1=osDelete(oldname);
+		res2=osRename(tmpname,oldname);
 
-		if(!res1 && !res2)
+		if(res1 && res2)
 		{
 		   sprintf(oldname,"%s%s",area->Path,EXT_TXTFILE);
   		   sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_TXTFILE);
-			res1=remove(oldname);
-			res2=rename(tmpname,oldname);
+			res1=osDelete(oldname);
+			res2=osRename(tmpname,oldname);
 		}
 		
-		if(!res1 && !res2)
+		if(res1 && res2)
 		{
 	   	sprintf(oldname,"%s%s",area->Path,EXT_IDXFILE);
   	   	sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_IDXFILE);
-			res1=remove(oldname);
-			res2=rename(tmpname,oldname);
+			res1=osDelete(oldname);
+			res2=osRename(tmpname,oldname);
 		}
 		
-		if(!res1 && !res2)
+		if(res1 && res2)
 		{
 	   	sprintf(oldname,"%s%s",area->Path,EXT_LRDFILE);
   	   	sprintf(tmpname,"%s.cmtemp%s",area->Path,EXT_LRDFILE);
 			/* Keep lastread file */
-			res2=remove(tmpname);
+			res2=osDelete(tmpname);
 		}
 		
-		if(res1 || res2)
+		if(!res1 || !res2)
 		{
 			printf(" Failed to update area. The area might be in use by another program.\n");
 			return(FALSE);
@@ -914,14 +915,17 @@ int main(int argc, char **argv)
       }
    }
   
-   cfg=OS_CONFIG_NAME;
+	cfg=getenv(OS_CONFIG_VAR);
+
+   if(!cfg)
+		cfg=OS_CONFIG_NAME;
 
    if(args[ARG_SETTINGS].data)
       cfg=(uchar *)args[ARG_SETTINGS].data;
 
    if(!(ReadConfig(cfg)))
    {
-      printf("Couldn't read config \"%s\"",cfg);
+      printf("Couldn't read config \"%s\"\n",cfg);
       jbFreeList(&AreaList);
       osEnd();
       exit(OS_EXIT_ERROR);

@@ -14,7 +14,8 @@ void strip(uchar *str);
 bool MatchFlags(uchar group,uchar *node);
 
 void ExpandRobot(uchar *cmd,uchar *dest,ulong destsize,
-   uchar *rfc,
+   uchar *rfc1,
+   uchar *rfc2,
    uchar *msg,
    uchar *subj,
    uchar *time,

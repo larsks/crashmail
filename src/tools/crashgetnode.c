@@ -14,6 +14,14 @@
 uchar *ver="$VER: CrashCompileNL " VERSION " " __AMIGADATE__;
 #endif
 
+#define ARG_NODE      0
+#define ARG_DIRECTORY 1
+
+struct argument args[] =
+   { { ARGTYPE_STRING, "NODE",      ARGFLAG_AUTO | ARGFLAG_MANDATORY,  NULL },
+     { ARGTYPE_STRING, "DIRECTORY", ARGFLAG_AUTO,                      NULL },
+     { ARGTYPE_END,    NULL,        0,                                 0    } };
+
 struct Node4D
 {
    ushort Zone,Net,Node,Point;
@@ -84,15 +92,21 @@ int main(int argc, char **argv)
    if(!osInit())
       exit(OS_EXIT_ERROR);
 
-   if(argc != 2 && argc!=3)
+   if(argc == 2 && strcmp(argv[1],"?")==0)
    {
-		printf("Usage: CrashGetNode <node> [<nodelistdir>]\n");
+      printargs(args);
       osEnd();
       exit(OS_EXIT_OK);
    }
 	
-	if(argc == 3)
-		dir=argv[2];
+   if(!parseargs(args,argc,argv))
+   {
+      osEnd();
+      exit(OS_EXIT_ERROR);
+   }
+
+	if(args[ARG_DIRECTORY].data)
+		dir=(uchar *)args[ARG_DIRECTORY].data;
 
 	else		
 		dir=getenv("CMNODELISTDIR");
@@ -104,9 +118,9 @@ int main(int argc, char **argv)
 		exit(OS_EXIT_ERROR);
 	}
 	
-	if(!Parse4D(argv[1],&n4d))
+	if(!Parse4D((uchar *)args[ARG_NODE].data,&n4d))
 	{
-		printf("Invalid node %s\n",argv[1]);
+		printf("Invalid node %s\n",(uchar *)args[ARG_NODE].data);
 		exit(OS_EXIT_ERROR);
 	}
 

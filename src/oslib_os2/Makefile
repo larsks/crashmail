@@ -11,7 +11,7 @@ oslib.a : $(OBJS)
 
 # os
 
-osfile.o : osfile.c
+osfile.o: osfile.c
 	$(CC) -c osfile.c -o osfile.o
  
 osmisc.o : osmisc.c
@@ -26,9 +26,10 @@ osmem.o : osmem.c
 ospattern.o : ospattern.c
 	$(CC) -c ospattern.c -o ospattern.o
 
-os.o : os.c
+os.o: os.c
 	$(CC) -c os.c -o os.o
 
-clean :
+clean:
 	$(RM) *.o *.a
+
 

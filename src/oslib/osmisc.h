@@ -7,8 +7,12 @@ void osSetComment(uchar *file,uchar *comment);
 bool osExists(uchar *file);
 
 int osChDirExecute(uchar *dir,uchar *cmd);
-bool osMkDir(uchar *dir);
+int osExecute(uchar *cmd);
 
+bool osRename(uchar *oldfile,uchar *newfile);
+bool osDelete(uchar *file);
+
+bool osMkDir(uchar *dir);
 void osSleep(int secs);
 
 #endif

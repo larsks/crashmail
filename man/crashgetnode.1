@@ -1,0 +1,27 @@
+.TH CRASHGETNODE 1 1999-08-01 "Johan Billing" "CrashMail"
+.SH NAME
+crashgetnode \- Lookup node in CrashMail nodelist
+.SH SYNOPSIS
+.B crashgetnode
+node [nodelistdir]
+.SH DESCRIPTION
+Looks up the specified node in the nodelist and prints the information
+that was found.
+If no nodelist directory is specified, CrashGetNode uses
+the path specified in the environment variable CMNODELISTDIR.
+.SH OPTIONS
+.TP
+.I node
+The node address to be looked up.
+.TP
+.I nodelistdir
+The directory where the nodelist resides.
+.SH "SEE ALSO"
+.BR crashmail (1),
+.BR crashlist (1)
+.\".SH FILES
+.\".SH BUGS
+.SH AUTHOR
+CrashMail is written by Johan Billing <billing@df.lth.se>.
+.PP
+This manual page was written by Peter Karlsson <peter@softwolves.pp.se>.

@@ -1,11 +1,11 @@
 #include "crashmail.h"
 
 #ifdef PLATFORM_AMIGA
-const uchar ver[]="\0$VER: CrashMailII/" OS_PLATFORM_NAME " " VERSION " " __AMIGADATE__;
+const uchar ver[]="\0$VER: CrashMail II/" OS_PLATFORM_NAME " " VERSION " " __AMIGADATE__;
 #endif
 
 /* Version string to use when writing config */
-uchar *config_version="CrashMailII " VERSION;
+uchar *config_version="CrashMail II " VERSION;
 
 /*********************************** Global *******************************/
 
@@ -66,27 +66,27 @@ uchar *prinames[]={"Normal","Hold","Normal","Direct","Crash"};
 #define ARG_NOSECURITY     19
 
 struct argument args[] =
-   { { ARGTYPE_BOOL,   "SCAN",         0    },
-     { ARGTYPE_BOOL,   "TOSS",         0    },
-     { ARGTYPE_STRING, "TOSSFILE",     NULL },
-     { ARGTYPE_STRING, "TOSSDIR",      NULL },
-     { ARGTYPE_STRING, "SCANAREA",     NULL },
-     { ARGTYPE_STRING, "SCANLIST",     NULL },
-     { ARGTYPE_STRING, "RESCAN",       NULL },
-     { ARGTYPE_STRING, "RESCANNODE",   NULL },
-     { ARGTYPE_STRING, "RESCANMAX",    NULL },
-     { ARGTYPE_STRING, "SENDQUERY",    NULL },
-     { ARGTYPE_STRING, "SENDLIST",     NULL },
-     { ARGTYPE_STRING, "SENDUNLINKED", NULL },
-     { ARGTYPE_STRING, "SENDHELP",     NULL },
-     { ARGTYPE_STRING, "SENDINFO",     NULL },
-     { ARGTYPE_STRING, "REMOVE",       NULL },
-     { ARGTYPE_STRING, "SETTINGS",     NULL },
-     { ARGTYPE_BOOL,   "VERSION",      0    },
-     { ARGTYPE_BOOL,   "LOCK",         0    },
-     { ARGTYPE_BOOL,   "UNLOCK",       0    },
-     { ARGTYPE_BOOL,   "NOSECURITY",   0    },
-     { ARGTYPE_END,     NULL,          0    } };
+   { { ARGTYPE_BOOL,   "SCAN",         0, 0    },
+     { ARGTYPE_BOOL,   "TOSS",         0, 0    },
+     { ARGTYPE_STRING, "TOSSFILE",     0, NULL },
+     { ARGTYPE_STRING, "TOSSDIR",      0, NULL },
+     { ARGTYPE_STRING, "SCANAREA",     0, NULL },
+     { ARGTYPE_STRING, "SCANLIST",     0, NULL },
+     { ARGTYPE_STRING, "RESCAN",       0, NULL },
+     { ARGTYPE_STRING, "RESCANNODE",   0, NULL },
+     { ARGTYPE_STRING, "RESCANMAX",    0, NULL },
+     { ARGTYPE_STRING, "SENDQUERY",    0, NULL },
+     { ARGTYPE_STRING, "SENDLIST",     0, NULL },
+     { ARGTYPE_STRING, "SENDUNLINKED", 0, NULL },
+     { ARGTYPE_STRING, "SENDHELP",     0, NULL },
+     { ARGTYPE_STRING, "SENDINFO",     0, NULL },
+     { ARGTYPE_STRING, "REMOVE",       0, NULL },
+     { ARGTYPE_STRING, "SETTINGS",     0, NULL },
+     { ARGTYPE_BOOL,   "VERSION",      0, 0    },
+     { ARGTYPE_BOOL,   "LOCK",         0, 0    },
+     { ARGTYPE_BOOL,   "UNLOCK",       0, 0    },
+     { ARGTYPE_BOOL,   "NOSECURITY",   0, 0    },
+     { ARGTYPE_END,     NULL,          0, 0    } };
 
 bool init_openlog;
 bool init_dupebuf;
@@ -291,7 +291,7 @@ bool BeforeScanToss(void)
    {
       LogWrite(1,SYSTEMINFO,"Deleting orphan tempfile %s",fe->Name);
       MakeFullPath(config.cfg_PacketCreate,fe->Name,buf,200);
-      remove(buf);
+      osDelete(buf);
    }
 
    jbFreeList(&NewPktFEList);
@@ -316,7 +316,7 @@ void Version(void)
 {
    int i;
 
-   printf("This is CrashMailII version %s\n",VERSION);
+   printf("This is CrashMail II version %s\n",VERSION);
    printf("\n");
    printf("Operating system: %s\n",OS_PLATFORM_NAME);
    printf("Compilation date: %s\n",__DATE__);
@@ -506,7 +506,7 @@ void UnlockConfig(uchar *file)
 	strcpy(buf,file);
 	strcat(buf,".busy");
 	
-	remove(buf);
+	osDelete(buf);
 }
 
 void CleanUp(int err)
@@ -563,7 +563,10 @@ int main(int argc, char **argv)
       CleanUp(OS_EXIT_OK);
    }
 
-   cfg=OS_CONFIG_NAME;
+	cfg=getenv(OS_CONFIG_VAR);
+
+   if(!cfg)
+		cfg=OS_CONFIG_NAME;
 
    if(args[ARG_SETTINGS].data)
       cfg=(uchar *)args[ARG_SETTINGS].data;

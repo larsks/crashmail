@@ -250,6 +250,8 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
             return(FALSE);
          }
 
+			LastCNode->EchomailPri=PKTS_NORMAL;
+
          while(jbstrcpy(buf2,cfgbuf,200,&jbcpos))
          {
             if(stricmp(buf2,"NOTIFY")==0)
@@ -278,6 +280,15 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
 
             else if(stricmp(buf2,"AUTOADD")==0)
                LastCNode->Flags|=NODE_AUTOADD;
+
+            else if(stricmp(buf2,"CRASH")==0)
+               LastCNode->EchomailPri=PKTS_CRASH;
+
+            else if(stricmp(buf2,"DIRECT")==0)
+               LastCNode->EchomailPri=PKTS_DIRECT;
+
+            else if(stricmp(buf2,"HOLD")==0)
+               LastCNode->EchomailPri=PKTS_HOLD;
 
             else
             {
@@ -1840,6 +1851,15 @@ void WriteNode(struct ConfigNode *tmpnode,osFile osfh)
    if(tmpnode->Flags & NODE_AUTOADD)
       osFPrintf(osfh," AUTOADD");
 
+   if(tmpnode->EchomailPri == PKTS_CRASH)
+      osFPrintf(osfh," CRASH");
+
+   if(tmpnode->EchomailPri == PKTS_DIRECT)
+      osFPrintf(osfh," DIRECT");
+
+   if(tmpnode->EchomailPri == PKTS_HOLD)
+      osFPrintf(osfh," HOLD");
+
    osFPrintf(osfh,"\n");
 
    if(tmpnode->AreafixPW[0] || tmpnode->Groups[0] || tmpnode->ReadOnlyGroups[0] || tmpnode->AddGroups[0])
@@ -1873,12 +1893,11 @@ void WriteNode(struct ConfigNode *tmpnode,osFile osfh)
    {
       osFPrintf(osfh,"REMOTESYSOP ");
       WriteSafely(osfh,tmpnode->SysopName);
+      osFPrintf(osfh,"\n");
    }
 
    if(tmpnode->DefaultGroup)
       osFPrintf(osfh,"DEFAULTGROUP %lc\n",tmpnode->DefaultGroup);
-
-   osFPrintf(osfh,"\n");
 }
 
 void WriteArea(struct Area *tmparea,osFile osfh)
@@ -2001,8 +2020,6 @@ void WriteArea(struct Area *tmparea,osFile osfh)
 
    if(tmparea->Flags & AREA_IGNORESEENBY)
       osFPrintf(osfh,"IGNORESEENBY\n");
-
-   osFPrintf(osfh,"\n");
 }
 
 bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
@@ -2112,6 +2129,7 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
    for(area=(struct Area *)cfg->AreaList.First;area;area=area->Next)
       if(area->changed)
       {
+		   osFPrintf(newfh,"\n");
          WriteArea(area,newfh);
          area->changed=FALSE;
       }
@@ -2119,9 +2137,9 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
    osClose(oldfh);
    osClose(newfh);
 
-   remove(cfgbak);
-   rename(cfg->filename,cfgbak);
-   rename(cfgtemp,cfg->filename);
+   osDelete(cfgbak);
+   osRename(cfg->filename,cfgbak);
+   osRename(cfgtemp,cfg->filename);
 
    cfg->changed=FALSE;
 

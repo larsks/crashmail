@@ -7,10 +7,14 @@
 #define ARGTYPE_STRING 1
 #define ARGTYPE_BOOL   2
 
+#define ARGFLAG_AUTO       1 /* Keyword does not have to be specified */
+#define ARGFLAG_MANDATORY  2 /* Argument cannot be left out */
+
 struct argument
 {
    ushort type;
    uchar *name;
+	ushort flags;
    void *data;
 };
 

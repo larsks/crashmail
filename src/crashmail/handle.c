@@ -817,14 +817,18 @@ bool iswildcard(uchar *str)
 void ExpandNodePat(struct Node4DPat *temproute,struct Node4D *dest,struct Node4D *sendto)
 {
    long region,hub;
-   
+	struct Node4D n4d;
+	   
    region=0;
    hub=0; 
    
    if(config.cfg_NodelistType)
    {
-      if(temproute->Type == PAT_REGION) region=(*config.cfg_NodelistType->nlGetRegion)(dest);
-      if(temproute->Type == PAT_HUB) hub=(*config.cfg_NodelistType->nlGetHub)(dest);
+		Copy4D(&n4d,dest);
+		n4d.Point=0;
+
+      if(temproute->Type == PAT_REGION) region=(*config.cfg_NodelistType->nlGetRegion)(&n4d);
+      if(temproute->Type == PAT_HUB) hub=(*config.cfg_NodelistType->nlGetHub)(&n4d);
      
       if(region == -1) region=0;
       if(hub == -1) hub=0;
@@ -1166,22 +1170,56 @@ bool Remap(struct MemMessage *mm,struct Node4D *newdest,uchar *newto)
 
 /* WriteRFC and WriteMSG */
 
-bool WriteRFC(struct MemMessage *mm,uchar *name)
+void MakeRFCAddr(uchar *dest,uchar *nam,struct Node4D *node,uchar *dom)
+{
+	uchar domain[50],name[50];
+	int j;
+	
+	/* Prepare domain */
+
+	strcpy(domain,dom);
+	
+	for(j=0;domain[j];j++)
+		domain[j]=tolower(domain[j]);
+		
+ 	if(stricmp(domain,"fidonet")==0)
+		strcpy(domain,"fidonet.org");	
+		
+	/* Prepare name */
+
+	strcpy(name,nam);
+	
+	for(j=0;name[j];j++)
+		if(name[j] == ' ') name[j]='_';
+
+	/* Make addr */
+	
+	if(node->Point != 0) 
+		sprintf(dest,"%s@p%u.f%u.n%u.z%u.%s",
+			name,
+			node->Point,
+			node->Node,
+			node->Net,
+			node->Zone,
+			domain);
+
+	else
+		sprintf(dest,"%s@f%u.n%u.z%u.%s",
+			name,
+			node->Node,
+			node->Net,
+			node->Zone,
+			domain);
+}
+
+bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
 {
    osFile fh;
    uchar *domain;
    struct Aka *aka;
    struct TextChunk *tmp;
    ulong c,d,lastspace;
-   uchar buffer[100];
-
-   if(!(fh=osOpen(name,MODE_NEWFILE)))
-   {
-      LogWrite(1,SYSTEMERR,"Unable to write RFC-message to %s",name);
-      return(FALSE);
-   }
-
-   /* Write header */
+   uchar buffer[100],fromaddr[100],toaddr[100];
 
    for(aka=(struct Aka *)config.AkaList.First;aka;aka=aka->Next)
       if(Compare4D(&mm->DestNode,&aka->Node)==0) break;
@@ -1191,22 +1229,37 @@ bool WriteRFC(struct MemMessage *mm,uchar *name)
    if(aka && aka->Domain[0]!=0)
       domain=aka->Domain;
 
-   osFPrintf(fh,"From: %lu:%lu/%lu.%lu@%s (%s)\n",mm->OrigNode.Zone,
-                                                  mm->OrigNode.Net,
-                                                  mm->OrigNode.Node,
-                                                  mm->OrigNode.Point,
-                                                  domain,
-                                                  mm->From);
+	if(rfcaddr)
+	{
+		MakeRFCAddr(fromaddr,mm->From,&mm->OrigNode,domain);
+		MakeRFCAddr(toaddr,mm->To,&mm->DestNode,domain);
+	}
+	else
+	{
+   	sprintf(fromaddr,"%u:%u/%u.%u@%s",mm->OrigNode.Zone,
+                                            mm->OrigNode.Net,
+                                            mm->OrigNode.Node,
+                                            mm->OrigNode.Point,
+                                            domain);
 
-   osFPrintf(fh,"To: %lu:%lu/%lu.%lu@%s (%s)\n",mm->DestNode.Zone,
-                                                mm->DestNode.Net,
-                                                mm->DestNode.Node,
-                                                mm->DestNode.Point,
-                                                domain,
-                                                mm->To);
+   	sprintf(toaddr,"%u:%u/%u.%u@%s",mm->DestNode.Zone,
+                                          mm->DestNode.Net,
+                                          mm->DestNode.Node,
+                                          mm->DestNode.Point,
+                                          domain);
+	}
 
+   if(!(fh=osOpen(name,MODE_NEWFILE)))
+   {
+      LogWrite(1,SYSTEMERR,"Unable to write RFC-message to %s",name);
+      return(FALSE);
+   }
+
+   /* Write header */
+
+   osFPrintf(fh,"From: %s (%s)\n",fromaddr,mm->From);
+   osFPrintf(fh,"To: %s (%s)\n",toaddr,mm->To);
    osFPrintf(fh,"Subject: %s\n",mm->Subject);
-
    osFPrintf(fh,"Date: %s\n",mm->DateTime);
 
    if(mm->MSGID[0]!=0)
@@ -1403,7 +1456,6 @@ bool HandleNetmail(struct MemMessage *mm)
    bool istext;
    uchar buf[400],buf2[200],buf3[200],subjtemp[80];
    ulong c,d,arcres;
-   bool found;
    time_t t;
    struct tm *tp;
    ulong size;
@@ -1480,28 +1532,6 @@ bool HandleNetmail(struct MemMessage *mm)
 
    if(aka)
    {
-      /* Remap name */
-
-      for(remap=(struct Remap *)config.RemapList.First;remap;remap=remap->Next)
-         if(osMatchPattern(remap->Pattern,mm->To)) break;
-
-      if(remap)
-      {
-			strcpy(buf,mm->To);
-         ExpandNodePat(&remap->DestPat,&mm->DestNode,&n4d);
-
-         if(!Remap(mm,&n4d,remap->NewTo))
-            return(FALSE);
-
-         LogWrite(4,TOSSINGINFO,"Remapped message to %s to %s at %lu:%lu/%lu.%lu",
-																						buf,
-                                                                  mm->To,
-                                                                  n4d.Zone,
-                                                                  n4d.Net,
-                                                                  n4d.Node,
-                                                                  n4d.Point);
-      }
-
       /* Robotnames */
 
       for(robot=(struct Robot *)config.RobotList.First;robot;robot=robot->Next)
@@ -1509,27 +1539,32 @@ bool HandleNetmail(struct MemMessage *mm)
 
       if(robot)
       {
-         bool msg,rfc;
-         uchar msgbuf[L_tmpnam],rfcbuf[L_tmpnam];
+         bool msg,rfc1,rfc2;
+         uchar msgbuf[L_tmpnam],rfcbuf1[L_tmpnam],rfcbuf2[L_tmpnam];
          uchar origbuf[30],destbuf[30];
 
          msg=FALSE;
-         rfc=FALSE;
+         rfc1=FALSE;
+			rfc2=FALSE;
 
          msgbuf[0]=0;
-         rfcbuf[0]=0;
+         rfcbuf1[0]=0;
+         rfcbuf2[0]=0;
 
          if(strstr(robot->Command,"%m")) msg=TRUE;
-         if(strstr(robot->Command,"%m")) rfc=TRUE;
+         if(strstr(robot->Command,"%r")) rfc1=TRUE;
+         if(strstr(robot->Command,"%R")) rfc2=TRUE;
 
-         if(rfc) tmpnam(rfcbuf);
+         if(rfc1) tmpnam(rfcbuf1);
+         if(rfc2) tmpnam(rfcbuf2);
          if(msg) tmpnam(msgbuf);
 
          Print4D(&mm->OrigNode,origbuf);
          Print4D(&mm->DestNode,destbuf);
 
          ExpandRobot(robot->Command,buf,400,
-            rfcbuf,
+            rfcbuf1,
+            rfcbuf2,
             msgbuf,
             mm->Subject,
             mm->DateTime,
@@ -1538,15 +1573,17 @@ bool HandleNetmail(struct MemMessage *mm)
             origbuf,
             destbuf);
 
-         if(rfc) WriteRFC(mm,rfcbuf);
+         if(rfc1) WriteRFC(mm,rfcbuf1,FALSE);
+         if(rfc2) WriteRFC(mm,rfcbuf2,TRUE);
          if(msg) WriteMSG(mm,msgbuf); 
 
          LogWrite(4,SYSTEMINFO,"Executing external command \"%s\"",buf);
 
-         arcres=system(buf);
+         arcres=osExecute(buf);
 
-         if(rfc) remove(rfcbuf);
-         if(msg) remove(msgbuf);
+         if(rfc1) osDelete(rfcbuf1);
+         if(rfc2) osDelete(rfcbuf2);
+         if(msg) osDelete(msgbuf);
 
          if(arcres == 0)
          {
@@ -1577,6 +1614,28 @@ bool HandleNetmail(struct MemMessage *mm)
                return(TRUE);
          }
       }
+
+      /* Remap name */
+
+      for(remap=(struct Remap *)config.RemapList.First;remap;remap=remap->Next)
+         if(osMatchPattern(remap->Pattern,mm->To)) break;
+
+      if(remap)
+      {
+			strcpy(buf,mm->To);
+         ExpandNodePat(&remap->DestPat,&mm->DestNode,&n4d);
+
+         if(!Remap(mm,&n4d,remap->NewTo))
+            return(FALSE);
+
+         LogWrite(4,TOSSINGINFO,"Remapped message to %s to %s at %lu:%lu/%lu.%lu",
+																						buf,
+                                                                  mm->To,
+                                                                  n4d.Zone,
+                                                                  n4d.Net,
+                                                                  n4d.Node,
+                                                                  n4d.Point);
+      }
    }
 
    /* Find correct area */
@@ -1587,7 +1646,7 @@ bool HandleNetmail(struct MemMessage *mm)
          if(Compare4D(&tmparea->Aka->Node,&mm->DestNode)==0)
             break;
 
-         for(inode=(struct ImportNode *)tmparea->TossNodes.First;inode && !found;inode=inode->Next)
+         for(inode=(struct ImportNode *)tmparea->TossNodes.First;inode;inode=inode->Next)
             if(Compare4D(&inode->Node,&mm->DestNode)==0) break;
 
          if(inode)
@@ -1990,10 +2049,10 @@ bool HandleNetmail(struct MemMessage *mm)
 
       Print4D(&tmproute->Aka->Node,buf2);
 
-      sprintf(buf,"\x01Via %s @%04u%02u%02u.%02u%02u%02u CrashMailII/" OS_PLATFORM_NAME " " VERSION "\x0d",
+      sprintf(buf,"\x01Via %s @%04u%02u%02u.%02u%02u%02u CrashMail II/" OS_PLATFORM_NAME " " VERSION "\x0d",
          buf2,
          tp->tm_year+1900,
-         tp->tm_mon,
+         tp->tm_mon+1,
          tp->tm_mday,
          tp->tm_hour,
          tp->tm_min,

@@ -33,19 +33,21 @@ Copyright
 JAMLIB is copyright 1996 Björn Stenberg. See src/jamlib/jamlib.doc for more
 information.
 
-All other parts of CrashMail are copyright 1999 Johan Billing. Permission to 
-use, copy and distribute CrashMail is granted provided that the copyright 
-notice above is included. Permission to modify CrashMail for personal use is
-granted. Distributing modified versions of CrashMail is allowed provided that
-the documentation clearly states that it is a modified version. Parts of 
-CrashMail may be freely used in other projects as long as the documentation
-mentions the original copyright holder.
+Except where explicitly stated otherwise, all other parts of CrashMail are 
+copyright 1999 Johan Billing. Permission to use, copy and distribute CrashMail 
+is granted provided that this copyright notice is included. Permission to 
+modify CrashMail is granted. Distributing modified versions of CrashMail is 
+allowed provided that the documentation clearly states that it is a modified 
+version. Parts of CrashMail may be freely used in other projects as long as 
+the documentation mentions the original copyright holder.
 
 ================
 Acknowledgements
 ================
 Many thanks to Björn Stenberg for creating the excellent subroutine library
 JAMLIB which CrashMail uses for handling JAM messagebases.
+
+Thanks for Peter Karlsson for porting CrashMail II to OS/2 and the man pages.
 
 =============
 Documentation
@@ -61,15 +63,15 @@ Items that need to be discussed
 
 Platforms
 ---------
-This version of CrashMail can be compiled for Win32 and Linux platforms.
-If you are interested in running CrashMail on another platform, please
-contact me if you are willing to do the work necessary to adapt CrashMail
-to your platform. The amount of work required mostly depends on whether
-your C-compiler supports some common POSIX-functions which CrashMail uses.
+This version of CrashMail can be compiled for Win32, Linux and OS/2. If you 
+are interested in running CrashMail on another platform, please contact me if
+you are willing to do the work necessary to adapt CrashMail to your platform. 
+The amount of work required mostly depends on whether your C-compiler supports 
+some common POSIX-functions which CrashMail uses.
 
 Some notes on different platforms:
 
- Win32
+ Win32 & OS/2
 
   If you want to use an old reader that only can handle 8+3 filenames,
   you have to use %8 in the path of your DEFAULT area if you are using
@@ -131,7 +133,8 @@ RESCANMAX <string>
 
 SETTINGS <string>
 
- Use this configuration file instead of the default.
+ Use this configuration file instead of the default. You can use the 
+ environment variable CMCONFIGFILE to set the default configuration file.
 
 VERSION
 
@@ -182,6 +185,10 @@ crashexport <crashmail.prefs> <output file> <format> [GROUP <groups>]
  GOLDED
  
    Creates an area configuration file in GoldED format. 
+
+ TIMED
+ 
+   Creates an area configuration file in timEd format. 
 
 crashstats <statsfile> [SORT <mode>] [LAST7] [NONODES] [NOAREAS]
  
@@ -246,9 +253,10 @@ crashmaint [MAINT] [PACK] [VERBOSE] [SETTINGS <filename>] [PATTERN <pattern>]
   the Deleted flag from the messagebase.
   
  Both MAINT and PACK can be specified at the same time. You can specicy a 
- config file other than the default with the SETTINGS keyword. Using the 
- PATTERN, you can perform the operations on only some of your areas. VERBOSE
- gives you a lot of information which you don't really need-
+ config file other than the default with the SETTINGS keyword (use the 
+ environment variable CMCONFIGFILE to set the default configuration file).
+ Using the PATTERN keyword, you can perform the operations on only some of your
+ areas. VERBOSE gives you a lot of information which you don't really need.
 
  Example: crashmaint MAINT PACK PATTERN R20_AMIGA*
  

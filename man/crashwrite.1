@@ -1,0 +1,62 @@
+.TH CRASHWRITE 1 1999-08-01 "Johan Billing" "CrashMail"
+.SH NAME
+crashwrite \- Creates PKT file from text file
+.SH SYNOPSIS
+.B crashwrite
+DIR directory
+[FROMNAME string] [FROMADDR node] [TONAME string] [TOADDR node]
+[SUBJECT string]
+[AREA area] [ORIGIN origin] [TEXT filename] [NOMSGID] [FILEATTACH]
+.SH DESCRIPTION
+CrashWrite reads a text file and creates a .pkt file that can be processed
+by CrashMail. This can be used to post announcements and other messages in
+areas. The best way to use CrashWrite is to let it generate packets in a
+separate directory and then toss them with TOSSDIR NOSECURITY.
+.PP
+There are many keywords for CrashWrite. All keywords are optional except for
+DIRECTORY. If you do not enter a keyword, a default value will be used.
+.SH OPTIONS
+.PD 0
+.TP
+.I FROMNAME string
+.TP
+.I FROMADDR node
+.TP
+.I TONAME string
+.TP
+.I TOADDR node
+.TP
+.I SUBJECT string
+Use these keywords to set the header of the message. You only need to enter
+TONAME and TOADDR for netmails.
+.PD
+.TP
+.I AREA area
+The area the message should be posted in. If you do not enter an area, the
+message will be sent as a netmail.
+.TP
+.I ORIGIN origin
+The origin line for the message. This keyword has no effect for netmail
+messages.
+.TP
+.I DIR directory
+The directory where the packet should be placed.
+.TP
+.I TEXT filename
+The name of a text file that should be included as the message text.
+.TP
+.I NOMSGID
+Prevents CrashWrite from adding a MSGID line.
+.TP
+.I FILEATTACH
+Sets the file-attach flag for netmails. The filename should be put in the
+subject line.
+.\"SH EXAMPLES
+.SH "SEE ALSO"
+.BR crashmail (1)
+.\"SH FILES
+.\"SH BUGS
+.SH AUTHOR
+CrashMail is written by Johan Billing <billing@df.lth.se>
+.PP
+This manual page was written by Peter Karlsson <peter@softwolves.pp.se>

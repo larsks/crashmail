@@ -15,6 +15,7 @@ typedef unsigned short UINT16; /* Unsigned 16-bit integer */
 #define OS_PATH_CHARS "\\"
 
 #define OS_CONFIG_NAME "crashmail.prefs"
+#define OS_CONFIG_VAR "CMCONFIGFILE"
 
 /*
    Used by MakeFullPath. If path doesn't end with one of these characters,

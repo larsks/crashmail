@@ -304,7 +304,7 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
 			/* Delete message with KILLSENT flag */
 			
 			LogWrite(2,TOSSINGINFO,"Deleting message with KILLSENT flag");
-		   remove(buf);
+		   osDelete(buf);
 		}
 		else
 		{
@@ -397,7 +397,7 @@ bool msg_WriteHighWater(struct msg_Area *area)
       return(TRUE);
    }
 
-   strcpy(Msg.From,"CrashMailII");
+   strcpy(Msg.From,"CrashMail II");
    strcpy(Msg.To,"All");
    strcpy(Msg.Subject,"HighWater mark");
 

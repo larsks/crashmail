@@ -43,18 +43,18 @@ uchar *ver="$VER: CrashWrite "VERSION" ("__COMMODORE_DATE__")";
 #define ARG_FILEATTACH  10
 
 struct argument args[] =
-   { { ARGTYPE_STRING, "FROMNAME",     NULL },
-     { ARGTYPE_STRING, "FROMADDR",     NULL },
-     { ARGTYPE_STRING, "TONAME",       NULL },
-     { ARGTYPE_STRING, "TOADDR",       NULL },
-     { ARGTYPE_STRING, "SUBJECT",      NULL },
-     { ARGTYPE_STRING, "AREA",         NULL },
-     { ARGTYPE_STRING, "ORIGIN",       NULL },
-     { ARGTYPE_STRING, "DIR",          NULL },
-     { ARGTYPE_STRING, "TEXT",         NULL },
-	  { ARGTYPE_BOOL,   "NOMSGID",      NULL },
-	  { ARGTYPE_BOOL,   "FILEATTACH",   NULL },
-     { ARGTYPE_END,     NULL,          0    } };
+   { { ARGTYPE_STRING, "FROMNAME",     0,                 NULL },
+     { ARGTYPE_STRING, "FROMADDR",     0,                 NULL },
+     { ARGTYPE_STRING, "TONAME",       0,                 NULL },
+     { ARGTYPE_STRING, "TOADDR",       0,                 NULL },
+     { ARGTYPE_STRING, "SUBJECT",      0,                 NULL },
+     { ARGTYPE_STRING, "AREA",         0,                 NULL },
+     { ARGTYPE_STRING, "ORIGIN",       0,                 NULL },
+     { ARGTYPE_STRING, "DIR",          ARGFLAG_MANDATORY, NULL },
+     { ARGTYPE_STRING, "TEXT",         0,                 NULL },
+	  { ARGTYPE_BOOL,   "NOMSGID",      0,                 NULL },
+	  { ARGTYPE_BOOL,   "FILEATTACH",   0,                 NULL },
+     { ARGTYPE_END,     NULL,          0,                 0    } };
 
 struct Node4D
 {
@@ -183,13 +183,6 @@ int main(int argc, char **argv)
       osEnd();
       exit(OS_EXIT_ERROR);
    }
-
-   if(!args[ARG_DIR].data)
-	{
-		printf("No directory specified\n");
-		osEnd();
-		exit(OS_EXIT_ERROR);
-	}
 
    if(args[ARG_FROMADDR].data)
    {
@@ -343,7 +336,7 @@ int main(int argc, char **argv)
    	{
       	printf("Unable to open \"%s\" for reading\n",(uchar *)args[ARG_TEXT].data);
 			osClose(ofh);
-			remove(fullname);
+			osDelete(fullname);
 			exit(OS_EXIT_ERROR);
       }
 

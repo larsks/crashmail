@@ -1,4 +1,4 @@
-; Example configuration file for CrashMailII
+; Example configuration file for CrashMail II
 ;
 ; This file demonstrates all keywords you can use in the configuration file.
 ;
@@ -444,6 +444,19 @@ DOMAIN "FidoNet"
 ;  New areas from this node should be auto-added to the configuration. If
 ;  auto-add is not set, the areas will still be added but with an UNCONFIRMED
 ;  line.
+;
+; CRASH
+; 
+;  Send echomail to this node with priority Crash.
+;
+; DIRECT
+; 
+;  Send echomail to this node with priority Direct.
+;
+; HOLD
+; 
+;  Send echomail to this node with priority Hold.
+;
 
 NODE 2:200/100.0 "ZIP" "" PACKNETMAIL AUTOADD
 DEFAULTGROUP A
@@ -481,8 +494,12 @@ REMAP "Johannes Nilsson" "*" "2:200/207.5"
 ; CrashMail executes the specified command when a message is received for
 ; an address that matches the pattern. The following %-codes can be used;
 ;
-;  %r  Name of a file that contains a message in a text format similar to
-;      that used for e-mail messages on the internet.
+;  %r  RFC-style with Fidonet addresses. Name of a file that contains a 
+;		 message in a text format similar to that used for e-mail messages on 
+;      the internet, but addresses are still in x:x/x.x@domain format.
+;  %R  RFC-style with RFC-style addresses. Name of a file that contains a 
+;		 message in a text format similar to that used for e-mail messages on 
+;      the internet, but addresses are in name@pX.fX.nX.zX.domain format.
 ;  %m  Name of a file that contains the message as a *.msg file
 ;  %f  From name
 ;  %o  Originating node

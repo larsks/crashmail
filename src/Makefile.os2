@@ -24,15 +24,15 @@ CMNLLIB = cmnllib/cmnllib.a
 
 # Commands
 
-CC = gcc $(DEFS) -I $(INCDIR) -Wall
+CC = gcc $(DEFS) -I $(INCDIR) -Wall 
 RM = del
 STRIP = emxbind -s
 
 # Objects
 
 SHOBJS = $(OBJDIR)/jblist.o \
-         $(OBJDIR)/jbstrcpy.o \
-         $(OBJDIR)/mystrncpy.o \
+	 $(OBJDIR)/jbstrcpy.o \
+	 $(OBJDIR)/mystrncpy.o \
          $(OBJDIR)/parseargs.o \
          $(OBJDIR)/path.o 
 
@@ -185,3 +185,4 @@ $(OBJDIR)/nl_cmnl.o : crashmail/nl_cmnl.c
 clean : 
 	$(RM) obj\*.o
 	
+

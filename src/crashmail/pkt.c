@@ -671,7 +671,7 @@ void FinishPacket(struct Pkt *pkt)
 
       MakeFullPath(config.cfg_PacketCreate,buf1,oldname,200);
       MakeFullPath(config.cfg_PacketCreate,buf2,newname,200);
-      rename(oldname,newname);
+      osRename(oldname,newname);
    }
    
    jbFreeNode(&PktList,(struct jbNode *)pkt);

@@ -102,4 +102,86 @@ Changes in version 0.5
    create arealists in GoldED format. The old version of CrashAreasBBS had 
    some trouble with pass-through areas, this is gone in CrashExport.
 
+Changes in version 0.52
+
+ CrashMail:
+
+ - Three new flags for the NODE keyword: CRASH, DIRECT and HOLD. With these
+   flags, you can set the priority for packed and unpacked netmail.
+
+ - When the packet directory was missing, the error message said that the
+   outbound directory was missing. This could be very confusing. Fixed.
+
+ - Fixed a Y2K-related bug in the JAM import function. 
+
+ - Node patterns with REGION or HUB did not work for points. Fixed.
+
+ - Added the new %-code %R for the ROBOTNAME keyword. %R gives the message
+   in RFC-format with the addresses in RFC-format (name@pX.fX.nX.zX.domain).
+
+ - When importing messages, CrashMail now checks for robot and AreaFix names
+   before messages are remapped. If you want to remap messages to AreaFix, you 
+   have to make sure that no AreaFix names are configured. REMAPNODE still
+   works as before. 
+	
+ - CrashMail now updates the DateProcessed field when exporting messages from
+   a JAM area.
+
+ - CrashMail no longer is so strict with names of packet files names. Packet
+   names are now considered valid even if they contain non-hexadecimal 
+   characters.
+
+ - When glibc 2.1 was used, the Linux version of CrashMail exported messages
+   from JAM messagebases with an incorrect date. The time was one hour ahead.
+   This has now been fixed.
+	
+ - Dates in Via lines were one month early. Fixed.
+ 
+ - If a netmail area had an IMPORT line, all netmails would be imported to 
+   that area. This has been fixed and IMPORT now works as intended.
+	
+ - CrashMail no longer aborts if a JAM area could not be opened when exporting
+   messages. CrashMail instead continues and exports mail from all other areas.
+
+ - CrashMail used to create an invalid configuration file when auto-adding 
+   areas to a config file where the last line did not end with an end-of-line
+   character. This has now been fixed.
+
+ - You can now use the environment variable CMCONFIGFILE to set the default
+   configuration file for CrashMail.
+	
+ CrashExport:
+ 
+ - CrashExport did not write netmail areas correctly to a GoldED configuration
+   file. This has now been fixed.
+
+ - CrashExport can now also create en area configuration file for timEd.
+ 
+ - CrashExport no longer exports areas with the UNCONFIRMED keyword.
+ 
+ CrashStats
+ 
+ - The total number of messages per day were not calculated correctly in the
+   LAST7 mode, instead a random number would be shown. The average total number 
+   of messages per day was also incorrect.  These bugs have now been fixed.
+
+ CrashMaint
+
+ - You can now use the environment variable CMCONFIGFILE to set the default
+   configuration file for CrashMail.
+
+ All programs:
+ 
+ - The argument parsing has been improved. The main change for the user is that
+   "programname ?" now gives a more helpful output. 
+	
+ - The functions remove(), rename() and system() has been moved to the oslib. 
+   This change should not be noticable for the user.
+
+ - Peter Karlsson has prepared man-pages for CrashMail and all related tools. 
+   Thanks, Peter! These are handy under Linux, but can also be used on other 
+   platforms if you install a "man"-program.
+
+ - Peter Karlsson has ported CrashMail II to OS/2. Thanks, Peter!
+	
 

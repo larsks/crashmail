@@ -1,0 +1,109 @@
+.TH CRASHMAIL 1 1999-08-01 "Johan Billing" "CrashMail"
+.SH NAME
+crashmail \- A Fidonet *.JAM and MSG tosser
+.SH SYNOPSIS
+.B crashmail
+[SETTINGS filename]
+[SCAN] [TOSS]
+[TOSSFILE filename] [TOSSDIR directory]
+[SCANAREA area] [SCANLIST filename]
+[RESCAN area RESCANNODE node [RESCANMAX max]]
+[VERSION] [LOCK] [UNLOCK] [NOSECURITY]
+.SH DESCRIPTION
+Welcome to CrashMail II! CrashMail II is basically a more portable version
+of CrashMail, my tosser for Amiga computers. Users of the old Amiga
+version will probably find some things familiar while some features are
+gone such as the ARexx port (for obvious reasons!) and the GUI
+configuration editor. The only feature that CrashMail II has and the old
+CrashMail hasn't is support for JAM messagebases.
+.SH OPTIONS
+.TP
+.I SCAN
+Scan all areas for messages to export.
+.TP
+.I TOSS
+Toss all .pkt files and bundles in inbound directory.
+.TP
+.I TOSSFILE filename
+Toss the specified file.
+.TP
+.I TOSSDIR directory
+Toss all files in the specified directory.
+.TP
+.I SCANAREA area
+Scan the specified area.
+.TP
+.I SCANLIST filename
+Scan all areas listed in the specified file.
+.TP
+.I RESCAN area
+.PD 0
+.TP
+.I RESCANNODE node
+.TP
+.I RESCANMAX max
+Rescans the specied area for the specied node. If RESCANMAX is specified,
+it sets the maximum number of messages to rescan.
+.PD
+.TP
+.I SETTINGS filename
+Use this configuration file instead of the default.You can use the 
+environment variable CMCONFIGFILE to set the default configuration file.
+.TP
+.I VERSION
+Show version information about CrashMail.
+.TP
+.I LOCK
+Locks CrashMail's configuration file and then exits. CrashMail has a simple
+locking mechanism to ensure that two instances of CrashMail never use the
+same configuration file at the same time. You can use this if you want to
+temporarily want to stop CrashMail from running, e.g. when updating the
+nodelist.
+.TP
+.I UNLOCK
+Removes the lock on CrashMail's configuration file. Only use this when the
+configuration file previously has been locked with LOCK, otherwise terrible
+things might happen.
+.TP
+.I NOSECURITY
+Process all packets without security checks. This is intended to be used
+mainly with TOSSDIR/TOSSFILE and with packets created by CrashWrite.
+.\"SH EXAMPLES
+.SH "SEE ALSO"
+.BR crashexport (1),
+.BR crashlist (1),
+.BR crashmaint (1),
+.BR crashwrite (1),
+.BR crashgetnode (1),
+.BR crashstats (1)
+.SH FILES
+.I crashmail.prefs
+.SH BUGS
+.SS Win32
+If you want to use an old reader that only can handle 8+3 filenames,
+you have to use %8 in the path of your
+.I DEFAULT
+area if you are using the auto-add feature.
+This creates an 8 digit serial number to use as the path for the area.
+Note that if CrashMail is run twice in a short period of time (a few seconds),
+it might create duplicate paths.
+Avoid %8 if it is at all possible.
+.SS Linux
+Don't use the ~ character in paths. Such paths are expanded to point
+to your home directory by the shell and not by the i/o functions in
+the system. They will not work in CrashMail.
+.PP
+In *.msg areas, make sure that all files are named *.msg and not *.MSG!
+If they are not named in lowercase, CrashMail will not export them.
+.PP
+As an extra bonus, the Linux version of CrashMail can use the syslog instead
+of using its own log file. Just use "syslog" as the name of your log file.
+.PP
+If the precompiled binaries in the CrashMail archive don't work on your
+system, you will have to compile your own. See
+.I src/ReadMe.txt
+for more information about this.
+.SH AUTHOR
+CrashMail is written by Johan Billing <billing@df.lth.se>
+.PP
+This manual page was written by Peter Karlsson <peter@softwolves.pp.se>

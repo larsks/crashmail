@@ -37,6 +37,12 @@ int osChDirExecute(uchar *dir,uchar *cmd)
    return(res);
 }
 
+
+int osExecute(uchar *cmd)
+{
+   return system(cmd);
+}
+
 bool osExists(uchar *file)
 {
    struct stat st;
@@ -53,6 +59,23 @@ bool osMkDir(uchar *dir)
       return(FALSE);
 
    return(TRUE);
+}
+
+
+bool osRename(uchar *oldfile,uchar *newfile)
+{
+	if(rename(oldfile,newfile) == 0)
+		return(TRUE);
+
+	return(FALSE);
+}
+
+bool osDelete(uchar *file)
+{
+	if(remove(file) == 0)
+		return(TRUE);
+		
+	return(FALSE);
 }
 
 void osSleep(int secs)

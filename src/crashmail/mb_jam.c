@@ -200,6 +200,7 @@ bool jam_beforefunc(void)
 
    t1=time(NULL);
    tp=gmtime(&t1);
+   tp->tm_isdst=-1;
    t2=mktime(tp);
    jam_utcoffset=t2-t1;
 
@@ -948,6 +949,9 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
 
 	   Header_S.Attribute |= MSG_SENT;
 
+      Header_S.DateProcessed = time(NULL);
+      Header_S.DateProcessed -= jam_utcoffset;
+
 	   if(JAM_LockMB(ja->Base_PS,10))
    	{
       	LogWrite(1,SYSTEMERR,"Timeout when trying to lock JAM messagebase \"%s\"",area->Path);
@@ -971,8 +975,13 @@ bool jam_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
    /* Open the area */
 
    if(!(ja=jam_getarea(area)))
-      return(FALSE);
-
+	{
+		if(nomem)
+	      return(FALSE);
+			
+		return(TRUE); /* Area did not exist and could not be created. Go on anyway. */
+	}
+	
    if(config.cfg_jam_Flags & CFG_JAM_HIGHWATER)
       jam_gethighwater(ja);
 

@@ -154,7 +154,8 @@ struct ConfigNode
    uchar DefaultGroup;
    ulong Flags;
    uchar SysopName[36];
-
+	uchar EchomailPri;
+	
    uchar RemoteAFName[36];
    uchar RemoteAFPw[72];
 

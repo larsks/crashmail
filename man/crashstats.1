@@ -1,0 +1,54 @@
+.TH CRASHSTATS 1 1999-08-01 "Johan Billing" "CrashMail"
+.SH NAME
+crashstats \- Display CrashMail statistics
+.SH SYNOPSIS
+.B crashstats 
+statsfile [SORT mode] [LAST7] [NONODES] [NOAREAS]
+.SH DESCRIPTION
+This command displays the statistics file created by CrashMail.
+.SH OPTIONS
+.TP
+.I statsfile
+The statistics file to look up information from.
+.TP
+.I SORT mode
+This keywords specifies the sort mode (see below for list of sort modes).
+.TP
+.I LAST7
+Displays detailed information about the flow of messages in areas for
+the last seven days.
+.TP
+.I NONODES
+Hide node statistics.
+.TP
+.I NOAREAS
+Hide area statistics.
+.SH "SORT MODES"
+.TP
+.B a
+Sort alphabetically.
+.TP
+.B t
+Sort by total number of messages.
+.TP
+.B m
+Sort by msgs/day.
+.TP
+.B d
+Sort by first time messages were imported.
+.TP
+.B l
+Sort by last time messages were imported.
+.TP
+.B u
+Sort by number of dupes.
+.\"SH EXAMPLES
+.SH "SEE ALSO"
+.BR crashmail (1)
+.SH FILES
+.I crashmail.stats
+.\"SH BUGS
+.SH AUTHOR
+CrashMail is written by Johan Billing <billing@df.lth.se>
+.PP
+This manual page was written by Peter Karlsson <peter@softwolves.pp.se>

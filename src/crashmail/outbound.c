@@ -33,7 +33,7 @@ void UnlockBasename(uchar *basename)
 	strcpy(buf,basename);
 	strcat(buf,".bsy");
 	
-	remove(buf);
+	osDelete(buf);
 }
 
 void MakeBaseName(struct Node4D *n4d,uchar *basename)
@@ -371,7 +371,7 @@ void MakeArcName(struct ConfigNode *cnode,uchar *dest)
       if(strnicmp(arc,fe->Name,9)==0 && fe->Size == 0)
       {
 			MakeFullPath(config.cfg_PacketDir,fe->Name,buf,200);
-			remove(buf);
+			osDelete(buf);
 			jbFreeNode(&ArcList,(struct jbNode *)fe);
 		}
 
@@ -455,7 +455,7 @@ void HandleOrphan(uchar *name)
    buf[strlen(buf)-7]=0; /* Remove .orphan */
 
    if(AddFlow(buf,&n4d,type,mode))
-   	remove(name); /* Orphan file no longer needed */
+   	osDelete(name); /* Orphan file no longer needed */
 }
 
 void MakeOrphan(uchar *file,struct Node4D *n4d,char type,long mode)
@@ -694,21 +694,21 @@ bool PackFile(char *file)
 
          ExpandPacker(cnode->Packer->Packer,buf,200,arcname,pktname);
 
-         rename(file,pktname);   
-         res=system(buf);
+         osRename(file,pktname);   
+         res=osExecute(buf);
          
          if(res == 0)
          {
 				UpdateFile(arcname);
 
-            remove(pktname);
+            osDelete(pktname);
 
-            if(!doAddFlow(arcname,basename,type,FLOW_TRUNC))
-               MakeOrphan(arcname,&n4d,type,FLOW_TRUNC);
+            if(!doAddFlow(arcname,basename,cnode->EchomailPri,FLOW_TRUNC))
+               MakeOrphan(arcname,&n4d,cnode->EchomailPri,FLOW_TRUNC);
          }   
          else
          {
-	         rename(pktname,file);
+	         osRename(pktname,file);
             LogWrite(1,SYSTEMERR,"Packer failed: %lu",res);
 				UnlockBasename(basename);
 				return(FALSE);
@@ -737,8 +737,8 @@ bool PackFile(char *file)
          }
          else
          {
-            if(!doAddFlow(pktname,basename,type,FLOW_DELETE))
-               MakeOrphan(pktname,&n4d,type,FLOW_DELETE);
+            if(!doAddFlow(pktname,basename,cnode->EchomailPri,FLOW_DELETE))
+               MakeOrphan(pktname,&n4d,cnode->EchomailPri,FLOW_DELETE);
          }      
       }
    }
@@ -819,7 +819,7 @@ bool PackFile(char *file)
 		osClose(ofh);
 		osFree(copybuf);
 
-		remove(file);
+		osDelete(file);
    }
 
 	UnlockBasename(basename);
@@ -839,7 +839,7 @@ bool ArchiveOutbound(void)
 
    if(!(osReadDir(config.cfg_PacketDir,&ArcList,IsOrphan)))
    {
-      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_Outbound);
+      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
       return(FALSE);
    }
 
@@ -859,7 +859,7 @@ bool ArchiveOutbound(void)
 
    if(!(osReadDir(config.cfg_PacketDir,&ArcList,IsArc)))
    {
-      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_Outbound);
+      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
       return(FALSE);
    }
 
@@ -873,7 +873,7 @@ bool ArchiveOutbound(void)
 	
    if(!(osReadDir(config.cfg_PacketDir,&PktList,IsPktTmp)))
    {
-      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_Outbound);
+      LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
       jbFreeList(&PktList);
       return(FALSE);
    }

@@ -26,8 +26,8 @@ uchar *ver="$VER: CrashList " VERSION " " __AMIGADATE__;
 #define ARG_DIRECTORY 0
 
 struct argument args[] =
-   { { ARGTYPE_STRING, NULL,           NULL },
-     { ARGTYPE_END,    NULL,          0    } };
+   { { ARGTYPE_STRING, "DIRECTORY", ARGFLAG_AUTO,  NULL },
+     { ARGTYPE_END,    NULL,        0,             0    } };
 
 struct idx
 {
@@ -251,7 +251,7 @@ int main(int argc, char **argv)
 
    if(argc == 2 && strcmp(argv[1],"?")==0)
    {
-		printf("Usage: CrashList [<dir>]\n");
+      printargs(args);
       osEnd();
       exit(OS_EXIT_OK);
    }
