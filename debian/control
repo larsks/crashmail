@@ -1,7 +1,7 @@
 Source: crashmail
 Section: mail
 Priority: extra
-Maintainer: peter karlsson <peterk@debian.org>
+Maintainer: Peter Karlsson <peterk@debian.org>
 Standards-Version: 3.6.1
 Build-Depends: debhelper (>= 2.0.0)
 

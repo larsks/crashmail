@@ -1,4 +1,4 @@
-# Created for Debian by peter karlsson <peterk@debian.org>
+# Created for Debian by Peter Karlsson <peterk@debian.org>
 
 DESTDIR =
 BINDIR = $(DESTDIR)/usr/bin
@@ -23,6 +23,7 @@ install:
 	cp -a man/* $(MANDIR)/
 	install -d $(DOCDIR)
 	install -m 644 doc/ReadMe.txt $(DOCDIR)
+	install -m 644 doc/filter.txt $(DOCDIR)
 	install -d $(DOCDIR)/examples
 	install -m 644 doc/example.prefs $(DOCDIR)/examples
 	install -d $(DATADIR)
