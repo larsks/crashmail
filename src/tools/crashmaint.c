@@ -25,7 +25,7 @@
 #include <shared/storedmsg.h>
 #include <shared/fidonet.h>
 
-#define VERSION "1.1"
+#define VERSION "1.2"
 
 #ifdef PLATFORM_AMIGA
 uchar *ver="$VER: CrashMaint "VERSION" ("__COMMODORE_DATE__")";
@@ -437,6 +437,8 @@ bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose)
 
 #ifdef MSGBASE_JAM
 
+long jam_utcoffset = 0xbaadf00d;
+
 bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 {
    ulong today,active,basenum,total,del,num,day;
@@ -448,6 +450,20 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 	uchar buf[200],oldname[200],tmpname[200];
 	bool firstwritten;
 	uchar *msgtext;
+
+   /* Some timezone tricks */
+
+   if(jam_utcoffset == 0xbaadf00d) 
+   {
+      time_t t1,t2;
+      struct tm *tp;
+
+      t1=time(NULL);
+      tp=gmtime(&t1);
+      tp->tm_isdst=-1;
+      t2=mktime(tp);
+      jam_utcoffset=t2-t1;
+   }
 			
    printf("Processing %s...\n",area->Tagname);
 
@@ -540,7 +556,7 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
       del=0;
       num=0;
 		
-		today=time(NULL) / (24*60*60);
+      today=(time(NULL)-jam_utcoffset) / (24*60*60);
 
 		while(num < total && !ctrlc)
 		{

@@ -1,3 +1,27 @@
+/*
+    JAMLIB - A JAM subroutine library
+    Copyright (C) 1999 Björn Stenberg
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    Changes made by Johan Billing 2000-04-16:
+	 
+    - Changed source to use feof() instead of errno == EPASTEOF
+    - Changed source to use structrw to read and write structures
+*/	 
+
 /***********************************************************************
 **
 **  LASTREAD.C -- Lastread pointer handling
@@ -82,7 +106,7 @@ int JAM_WriteLastRead( s_JamBase* 	Base_PS,
 	}
 
 	/* be safe, check it */
-   if ( 1 > freadjamlastread(Base_PS->LrdFile_PS,&Record_S) ) {
+	if ( 1 > freadjamlastread(Base_PS->LrdFile_PS,&Record_S) ) {
 	    Base_PS->Errno_I = errno;
 	    return JAM_IO_ERROR;
 	}
@@ -95,7 +119,7 @@ int JAM_WriteLastRead( s_JamBase* 	Base_PS,
 		return JAM_IO_ERROR;
 	    }
 
-       if ( 1 > fwritejamlastread(Base_PS->LrdFile_PS,Record_PS) ) {
+	if ( 1 > fwritejamlastread(Base_PS->LrdFile_PS,Record_PS) ) {
 		Base_PS->Errno_I = errno;
 		return JAM_IO_ERROR;
 	    }
@@ -114,7 +138,7 @@ int JAM_WriteLastRead( s_JamBase* 	Base_PS,
 
     for ( Pos_I = 0; ; Pos_I++ ) {
 
-   if ( 1 > freadjamlastread(Base_PS->LrdFile_PS,&Record_S) ) {
+        if ( 1 > freadjamlastread(Base_PS->LrdFile_PS,&Record_S) ) {
             if ( feof(Base_PS->LrdFile_PS) ) {
 
 		/* user not in file, append a new record  */

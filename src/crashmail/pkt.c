@@ -297,7 +297,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
       strncpy(buf,&PktHeader[PKTHEADER_PASSWORD],8);
       buf[8]=0;
 
-      if(tmpcnode->PacketPW[0]!=0 && stricmp(buf,tmpcnode->PacketPW)!=0)
+      if(tmpcnode->PacketPW[0]!=0 && stricmp(buf,tmpcnode->PacketPW)!=0 && !no_security)
       {
          LogWrite(1,TOSSINGERR,"Wrong password");
          osClose(fh);
@@ -847,13 +847,13 @@ bool WriteEchoMail(struct MemMessage *mm,struct ConfigNode *node, struct Aka *ak
             return(FALSE);
          }
 
-      if(!mmSortNodes2D(&mm->SeenBy))
+      if(!mmSortNodes2D(&seenbylist))
       {
          jbFreeList(&seenbylist);
          return(FALSE);
       }
 
-      if(!WriteSeenBy(pkt,&mm->SeenBy))
+      if(!WriteSeenBy(pkt,&seenbylist))
       {
          jbFreeList(&seenbylist);
          return(FALSE);

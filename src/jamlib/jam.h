@@ -1,3 +1,28 @@
+/*
+    JAMLIB - A JAM subroutine library
+    Copyright (C) 1999 Björn Stenberg
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    Changes made by Johan Billing 2000-04-16:
+	 
+    - Added #defines for JAM_NO_MESSAGE and JAM_CORRUPT_MSG
+    - Added #ifndef linux around typedefs for ushort and ulong
+    - Added prototype for JAM_AddEmptyMessage()
+*/	 
+
 /***********************************************************************
 **
 **  JAM Definitions
@@ -210,58 +235,60 @@ typedef struct {
 */
 
 /* mbase.c */
-int JAM_OpenMB		( uchar* 		Basename_PC,
-						  s_JamBase** 		NewArea_PPS );
+int JAM_OpenMB          ( uchar* 		Basename_PC,
+			  s_JamBase** 		NewArea_PPS );
 						  
-int JAM_CloseMB	( s_JamBase* 		Area_PS );
+int JAM_CloseMB         ( s_JamBase* 		Area_PS );
 
-int JAM_CreateMB	( uchar* 		Basename_PC,
-						  ulong 		BaseMsg_I,
-						  s_JamBase** 		NewArea_PPS );
+int JAM_CreateMB        ( uchar* 		Basename_PC,
+			  ulong 		BaseMsg_I,
+			  s_JamBase**		NewArea_PPS );
 
-int JAM_RemoveMB	( s_JamBase* 		Area_PS,
-						  uchar* 		Basename_PC );
+int JAM_RemoveMB        ( s_JamBase* 		Area_PS,
+			  uchar* 		Basename_PC );
 
 int JAM_LockMB		( s_JamBase* 		Area_PS,
-						  int			Timeout_I );
+			  int			Timeout_I );
 
 int JAM_UnlockMB	( s_JamBase* 		Area_PS );
 
 int JAM_ReadMBHeader	( s_JamBase* 		Area_PS,
-							  s_JamBaseHeader* 	Header_PS );
+			  s_JamBaseHeader* 	Header_PS );
 							  
 int JAM_WriteMBHeader	( s_JamBase* 		Area_PS,
-								  s_JamBaseHeader* 	Header_PS );
+			  s_JamBaseHeader* 	Header_PS );
 								  
 int JAM_FindUser	( s_JamBase* 		Area_PS,
-						  ulong 		UserCrc_I,
-						  ulong 		StartMsg_I,
-						  ulong* 		MsgNo_PI );
+			  ulong 		UserCrc_I,
+			  ulong 		StartMsg_I,
+			  ulong* 		MsgNo_PI );
+
 int JAM_GetMBSize	( s_JamBase* 		Area_PS,
-			 			  ulong* 		Messages_PI );
+ 			  ulong* 		Messages_PI );
 
 /* message.c */
 
 int JAM_ReadMsgHeader	( s_JamBase* 		Area_PS, 
-								  ulong 		MsgNo_I,
-								  s_JamMsgHeader*	Header_PS, 
-								  s_JamSubPacket** 	SubfieldPack_PPS );
+			  ulong 		MsgNo_I,
+			  s_JamMsgHeader*	Header_PS, 
+			  s_JamSubPacket** 	SubfieldPack_PPS );
+			  
 int JAM_ReadMsgText	( s_JamBase* 		Area_PS, 
-							  ulong 		Offset_I,
-							  ulong 		Length_I,
-							  uchar* 		Buffer_PC );
+			  ulong 		Offset_I,
+			  ulong 		Length_I,
+			  uchar* 		Buffer_PC );
 							  
 int JAM_AddMessage	( s_JamBase* 		Area_PS,
-							  s_JamMsgHeader*	Header_PS, 
-							  s_JamSubPacket*	SubPack_PS,
-							  uchar*		Text_PC,
-							  ulong			TextLen_I );
+			  s_JamMsgHeader*	Header_PS, 
+			  s_JamSubPacket*	SubPack_PS,
+			  uchar*		Text_PC,
+			  ulong			TextLen_I );
 							  
-int JAM_AddEmptyMessage	(  s_JamBase* 		Area_PS );
+int JAM_AddEmptyMessage	( s_JamBase* 		Area_PS );
 
 int JAM_ChangeMsgHeader	( s_JamBase* 		Area_PS,
-								  ulong 		MsgNo_I,
-								  s_JamMsgHeader* 	Header_PS );
+			  ulong 		MsgNo_I,
+			  s_JamMsgHeader* 	Header_PS );
 
 int JAM_ClearMsgHeader	( s_JamMsgHeader* 	Header_PS );
 
@@ -270,20 +297,26 @@ int JAM_Errno		( s_JamBase* 		Area_PS );
 /* lastread.c */
 
 int JAM_ReadLastRead	( s_JamBase* 		Area_PS,
-							  ulong 		User_I,
-							  s_JamLastRead* 	Record_PS );
+			  ulong 		User_I,
+			  s_JamLastRead* 	Record_PS );
 
 int JAM_WriteLastRead	( s_JamBase* 		Area_PS,
-								  ulong 		User_I,
-								  s_JamLastRead* 	Record_PS );
+			  ulong 		User_I,
+			  s_JamLastRead* 	Record_PS );
 
 /* subpacket.c */
 
 s_JamSubPacket* JAM_NewSubPacket	( void );
+
 int 		JAM_DelSubPacket	( s_JamSubPacket* SubPack_PS );
+
 s_JamSubfield* 	JAM_GetSubfield		( s_JamSubPacket* SubPack_PS );
+
+s_JamSubfield*	JAM_GetSubfield_R	( s_JamSubPacket* SubPack_PS , 
+					  ulong* Count_PI);
+
 int 		JAM_PutSubfield		( s_JamSubPacket* SubPack_PS,
-										  s_JamSubfield*  Field_PS );
+					  s_JamSubfield*  Field_PS );
 
 /* crc32.c */
 

@@ -2,46 +2,112 @@
 
                        A JAM subroutine library
 
-                         by Bj”örn Stenberg
+                         by Björn Stenberg
 
+                     modifications by Johan Billing
 
-                             Version 1.0
+                             Version 1.3
 
-                              1996-03-06
+                              2001-05-22
 
 
 GENERAL
 =======
 
-Copyright
----------
-  This subroutine library is Copyright 1996 Bj”örn Stenberg
+History
+-------
+JAMLIB 1.0 was originally released by Björn Stenberg 1996-03-06. Since 
+the original license did not permit modification of the library, 
+Johan Billing contacted Björn Stenberg and asked him to change the 
+license. Björn Stenberg agreed to change the license to the GNU Lesser
+General Public License 1999-12-21 (see the accompanying file LICENSE).
 
-  Permission to use, copy, and distribute this software and its
-documentation is hereby granted without fee, provided that the above
-copyright notice appear in all copies and that the copyright notice and
-this permission notice appear in supporting documentation.
+  After that, some minor additions and bug fixes were made by Johan 
+Billing and JAMLIB 1.1 was released under the new license.
+
+Changes in 1.3:
+
+ * JAM_AddMessage() would fail when trying to add an empty message 
+   to the messagebase under Linux. Fixed.
+
+Changes in 1.2:
+
+ * Since JAM_GetSubField() is not reentrant and cannot be used in 
+   multi-threaded applications, JAM_GetSubField_R() was added as a
+   replacement for cases where a reentrant function is needed.   
+
+Changes in 1.1:
+
+ * Added support for Win32 and Linux
+
+ * Added JAM_AddEmptyMessage()
+
+ * Rewrote the Makefiles
+
+ * Rewrote the CRC32 routine
+
+ * Fixed broken JAM_FindUser()
+
+ * Fixed broken JAM_GetSubfield()
+
+ * Changed JAM_OpenMB so that files are opened in binary mode. This is
+   necessary to use JAMLIB under Windows.
+ 
+ * Improved JAM_ReadMsgHeader() to give the error JAM_NO_MESSAGE if
+   the message no longer exists in the messagebase and JAM_CORRUPT_MSG
+   if the subfields of the message have been corrupted.
+
+ * Improved portability by changing JAMLIB so that it no longer reads
+   and writes stuctures directly using fread() and fwrite().
+
+ * Improved ANSI-C compatibilty by no longer including the non-ANSI
+   header file memory.h and using feof() to check for EOF instead of
+   errno == EPASTEOF.
+
+ * Added an #ifdef so that ushort and ulong are no longer defined in
+   jam.h when compiling under Linux. These are normally already defined 
+   in the standard header files.
+
+
+License
+-------
+JAMLIB - A JAM subroutine library
+Copyright (C) 1999 Björn Stenberg
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA  
 
 
 Description
 -----------
-  These are a collection of subroutines that encapsulate much of the
+These are a collection of subroutines that encapsulate much of the
 format-specific and tedious details of the JAM message base format. The
 idea is that application programmers by using these routines can
 concentrate on the more high-level issues of their programs instead of
 worrying about their JAM routines.
 
-  I wrote these routines primarily because I needed them myself. I was
-trying to implement JAM support in my FrexxLink BBS system and was
-frustrated by the poor level of documentation supplied in the JAMAPI
-archive distributed by the JAM authors. Finally, I dove into the JAMAPI
-source code in a desperate attempt at finding out how to use it. To my
-despair, I discovered that the JAMAPI is targeted at a very low level. I
-would need to implement a lot of JAM-handling code into my own program.
+  I [Björn Stenberg] wrote these routines primarily because I needed 
+them myself. I was trying to implement JAM support in my FrexxLink BBS 
+system and was frustrated by the poor level of documentation supplied in 
+the JAMAPI archive distributed by the JAM authors. Finally, I dove into 
+the JAMAPI source code in a desperate attempt at finding out how to use it. 
+To my despair, I discovered that the JAMAPI is targeted at a very low level. 
+I would need to implement a lot of JAM-handling code into my own program.
 
   This library is an attempt to do two things:
 
-  Firstly, provide an, at least sparesly, _documented_ API, allowing
+  Firstly, provide an, at least sparingly, _documented_ API, allowing
 application programmers to easily implement JAM into their programs.
 
   Secondly, raise the level of functionality above that of the original
@@ -57,7 +123,7 @@ easier than perhaps was the case before.
 
 References
 ----------
-  If you are extra curious about the JAM message format, I suggest you get
+If you are extra curious about the JAM message format, I suggest you get
 a hold of an archive called JAMAPI.ARJ. That archive contains a file called
 JAM.DOC which is the file I have used as reference for the development of
 these routines.
@@ -65,11 +131,12 @@ these routines.
 
 Credits
 -------
-  All code is written by myself, except for the CRC32 routine which i
-snatched from the JAMAPI archive and just modified slightly. Mats Wallin
-wrote that one, I believe. The jam.h header file is a compilation of the
-best from the various header files in the JAMAPI package with some of my
-additions as well.
+All original code except for the CRC32 routine was written by Björn 
+Stenberg. The CRC32 code was rewritten by Johan Billing for JAMLIB 1.1 
+to replace the original CRC32 code whose origin and copyright was unclear. 
+The jam.h header file is a compilation of the best from the various header 
+files in the JAMAPI package with some of additions by Björn Stenberg as well. 
+Additions and modifications by Johan Billing.
 
   The JAM message base proposal is:
 
@@ -80,15 +147,15 @@ additions as well.
 
 Contact Information
 -------------------
-  If you wish to contact me, I can be reached at the following addresses:
-
-  FidoNet:      2:201/328 (BBS phone: +46-8-6121258 V34,CM)
-  AmigaNet:     39:164/102
-  Email:        Bjorn.Stenberg@sth.frontec.se
-  Paper mail:   Bj”rn Stenberg
-                Birger Jarlsgatan 93 B
-                113 56 Stockholm
-                Sweden
+For questions about JAMLIB, please contact:
+  
+   Johan Billing
+  
+   Fidonet: 2:205/454.77
+   E-mail: billing@df.lth.se
+  
+  If you wish to contact Björn Stenberg, his current e-mail address (as of
+1999-12-21) is bjorn@haxx.nu.
 
 
 THE LIBRARY
@@ -605,7 +672,9 @@ Returns
         0               if successful
         JAM_IO_ERROR    if an I/O error occured. see JAM_Errno()
         JAM_NO_MEMORY   if a memory allocation failed
-
+		  JAM_NO_MESSAGE	if message has been removed
+		  JAM_CORRUPT_MSG if message subfields are corrupted
+		  
 Example
         {
           s_JamMsgHeader  Header_S;
@@ -780,6 +849,29 @@ Example
 
 
 
+=================================================================
+JAM_AddEmptyMessage - Add a empty message entry to a message base
+=================================================================
+Syntax
+        int JAM_AddEmptyMessage( s_JamBase*      Base_PS);
+
+Description
+        Adds an empty message header to the message base. Useful
+        when writing a messagebase maintenance utility.
+
+Parameters
+        Base_PS         The message base to use
+
+Returns
+        0               if successful
+        JAM_IO_ERROR    if an I/O error occured. see JAM_Errno()
+        JAM_NOT_LOCKED  if the message base is not locked
+
+Example
+        none
+
+
+
 ===============================================
 JAM_ChangeMsgHeader - Change a message's header
 ===============================================
@@ -937,9 +1029,9 @@ Example
 
 
 
-=======================================================
-JAM_GetSubfield - Get a subfield from a subfield packet
-=======================================================
+=======================================================================
+JAM_GetSubfield - Get a subfield from a subfield packet (not reentrant)
+=======================================================================
 
 Syntax
         s_JamSubfield* JAM_GetSubfield( s_JamSubPacket* SubPack_PS );
@@ -947,6 +1039,11 @@ Syntax
 Description
         Returns a pointer to the first/next subfield struct in the subfield
         packet.
+		  
+        WARNING: This function is not reentrant and should not be used in
+        multi-threaded applications unless you know what you are doing.
+		  
+        Use JAM_GetSubfield_R instead when a reentrant function is needed.
 
 Parameter
         SubPack_PS      The subfield packet to use. If this parameter is
@@ -964,8 +1061,6 @@ Example
           s_JamMsgHeader  Header_S;
           int             Result_I;
 
-          /* [lock the message base] */
-
           Result_I = JAM_ReadMsgHeader( 0, &Header_S, &SubPack_PS );
           if ( Result_I )
             printf("JAM_ReadMsgHeader returned %d.\n", Result_I );
@@ -978,6 +1073,53 @@ Example
         }
 
 
+
+=====================================================================
+JAM_GetSubfield_R - Get a subfield from a subfield packet (reentrant)
+=====================================================================
+
+Syntax
+        s_JamSubfield* JAM_GetSubfield( s_JamSubPacket* SubPack_PS,
+                                        ulong*          Count_PI );
+
+Description
+        Returns a pointer to the first/next subfield struct in the subfield
+        packet.
+
+        This function is a reentrant replacement for JAM_GetSubfield.
+
+Parameter
+        SubPack_PS      The subfield packet to use. 
+
+        Count_PI        Pointer to a variable that contains the number of
+                        the subfield to retrieve. The variable should be
+                        set to zero the first time the function is called
+                        and is then automatically increased by the function
+                        for any subsequent calls.
+
+Returns
+        A pointer to a subfield, if successful, or NULL if there are no
+        more subfields in the packet.
+
+Example
+        {
+          s_JamSubPacket* SubPack_PS;
+          s_JamSubfield*  Subfield_PS;
+          s_JamMsgHeader  Header_S;
+          ulong           Count_I;
+          int             Result_I;
+	
+          Result_I = JAM_ReadMsgHeader( 0, &Header_S, &SubPack_PS );
+          if ( Result_I )
+            printf("JAM_ReadMsgHeader returned %d.\n", Result_I );
+
+          Count_I = 0;     
+
+          while( ( Subfield_PS = JAM_GetSubfield_R( SubPack_PS , &Count_I ) ) )
+            printf("Subfield id %d\n", Subfield_PS->LoID );
+
+          JAM_DelSubPacket( SubPack_PS );
+        }
 
 =======================================================
 JAM_PutSubfield - Put a subfield into a subfield packet
@@ -1143,7 +1285,9 @@ Syntax
                          ulong  Length_I );
 
 Description
-        Calculates the Crc32 value for a block of data.
+        Calculates the Crc32 value for a block of data. All ASCII 
+		  characters are converted to lowercase before calculating
+		  the CRC (the input data is unchanged).
 
 Parameters
         Buffer_PC       A pointer to the first byte of the data block

@@ -1,3 +1,32 @@
+/*
+    JAMLIB - A JAM subroutine library
+    Copyright (C) 1999 Björn Stenberg
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+    Changes made by Johan Billing 2000-04-16:
+	 
+    - Fixed broken JAM_GetSubfield()
+    - #includes stdlib.h instead of malloc.h and memory.h
+
+    Changes made by Johan Billing 2000-09-17:
+	 
+    - Added JAM_GetSubfield_R()
+
+*/	 
+
 /***********************************************************************
 **
 **  SUBPACKET.C -- Subfield packet handling
@@ -68,6 +97,7 @@ int JAM_DelSubPacket( s_JamSubPacket* SubPack_PS )
 /***********************************************************************
 **
 **  JAM_GetSubfield -- Get first/next subfield from a subfield packet
+**                     (not reentrant)
 **
 ***********************************************************************/
 s_JamSubfield* JAM_GetSubfield( s_JamSubPacket* SubPack_PS )
@@ -82,6 +112,20 @@ s_JamSubfield* JAM_GetSubfield( s_JamSubPacket* SubPack_PS )
 
     if ( NextIndex_I < LastPack_PS->NumFields )
 	return LastPack_PS->Fields[ NextIndex_I++ ];
+
+    return NULL;
+}
+
+/***********************************************************************
+**
+**  JAM_GetSubfield_R -- Get first/next subfield from a subfield packet
+**                       (reentrant)
+**
+***********************************************************************/
+s_JamSubfield* JAM_GetSubfield_R( s_JamSubPacket* SubPack_PS , ulong* Count_PI)
+{
+    if ( *Count_PI < SubPack_PS->NumFields )
+	     return SubPack_PS->Fields[ (*Count_PI)++ ];
 
     return NULL;
 }

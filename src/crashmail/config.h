@@ -44,8 +44,8 @@
 
 #ifdef MSGBASE_JAM
 #define CFG_JAM_HIGHWATER     (1L<<0)
-#define CFG_JAM_LINK          (1L<<0)
-#define CFG_JAM_QUICKLINK     (1L<<1)
+#define CFG_JAM_LINK          (1L<<1)
+#define CFG_JAM_QUICKLINK     (1L<<2)
 #endif
 
 #ifdef PLATFORM_AMIGA
@@ -58,11 +58,12 @@
 #define AREA_IGNOREDUPES    8
 #define AREA_IGNORESEENBY  16
 
-#define AREATYPE_NETMAIL	1
+#define AREATYPE_NETMAIL   1
 #define AREATYPE_ECHOMAIL  2
 #define AREATYPE_DEFAULT   3
 #define AREATYPE_BAD       4
 #define AREATYPE_LOCAL     5
+#define AREATYPE_DELETED   6
 
 struct Area
 {

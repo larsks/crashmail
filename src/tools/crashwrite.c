@@ -17,10 +17,10 @@
 
 #include <shared/fidonet.h>
 
-#define VERSION "1.0"
+#define VERSION "1.1"
 
 #define VERSION_MAJOR 1
-#define VERSION_MINOR 0
+#define VERSION_MINOR 1
 
 #ifdef PLATFORM_AMIGA
 uchar *ver="$VER: CrashWrite "VERSION" ("__COMMODORE_DATE__")";
@@ -112,6 +112,7 @@ int main(int argc, char **argv)
 	ushort attr;
 	uchar fromname[36],toname[36],subject[72],datetime[20],origin[80];
 	uchar pktname[30],fullname[200],readbuf[100];
+	int i;
 	
 	from4d.Zone=0;
 	from4d.Net=0;
@@ -164,7 +165,7 @@ int main(int argc, char **argv)
 
    if(args[ARG_PKTFROMADDR].data)
    {
-      if(!(Parse4D((uchar *)args[ARG_FROMADDR].data,&pktfrom4d)))
+      if(!(Parse4D((uchar *)args[ARG_PKTFROMADDR].data,&pktfrom4d)))
       {
          printf("Invalid address \"%s\"\n",(uchar *)args[ARG_PKTFROMADDR].data);
 			osEnd();
@@ -174,7 +175,7 @@ int main(int argc, char **argv)
 
    if(args[ARG_PKTTOADDR].data)
    {
-      if(!(Parse4D((uchar *)args[ARG_TOADDR].data,&pktto4d)))
+      if(!(Parse4D((uchar *)args[ARG_PKTTOADDR].data,&pktto4d)))
       {
          printf("Invalid address \"%s\"\n",(uchar *)args[ARG_PKTFROMADDR].data);
 			osEnd();
@@ -327,18 +328,10 @@ int main(int argc, char **argv)
 
       while(osFGets(ifh,readbuf,100))
       {
-         if(readbuf[0]!=0)
-         {
-            if('\n'==readbuf[strlen(readbuf)-1])
-            {
-               readbuf[strlen(readbuf)-1]=0;
-			      osFPrintf(ofh,"%s\x0d",readbuf);
-			   }
-			   else
-			   {
-			      osFPrintf(ofh,"%s",readbuf);
-			   }
-			}
+			for(i=0;readbuf[i];i++)
+				if(readbuf[i] == '\n') readbuf[i]=0x0d;
+
+         osFPrintf(ofh,"%s",readbuf);
       }
 
 		osClose(ifh);
