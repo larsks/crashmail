@@ -1,3 +1,9 @@
+crashmail (0.71-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Peter Karlsson <peterk@debian.org>  Wed, 28 Jul 2004 19:20:00 +0100
+
 crashmail (0.70-2) unstable; urgency=low
 
   * Added missing document "filter.txt" to the package.
