@@ -1,0 +1,9 @@
+crashmail (0.52-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- peter karlsson <peter@softwolves.pp.se>  Tue, 19 Oct 1999 20:54:38 +0200
+
+Local variables:
+mode: debian-changelog
+End:

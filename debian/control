@@ -1,0 +1,17 @@
+Source: crashmail
+Section: mail
+Priority: optional
+Maintainer: peter karlsson <peter@softwolves.pp.se>
+Standards-Version: 2.5.1
+
+Package: crashmail
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: JAM and *.MSG capable Fidonet tosser
+ CrashMail II is basically a more portable version of
+ CrashMail, a tosser for Amiga computers. Users of the old
+ Amiga version will probably find some things familiar
+ while some features are gone such as the ARexx port (for
+ obvious reasons!) and the GUI configuration editor. The
+ only feature that CrashMail II has and the old CrashMail
+ hasn't is support for JAM messagebases.
