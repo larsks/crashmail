@@ -1,13 +1,14 @@
 Source: crashmail
 Section: mail
 Priority: optional
-Maintainer: Per Lundberg <plundis@debian.org>
-Standards-Version: 2.5.1
+Maintainer: peter karlsson <peterk@debian.org>
+Standards-Version: 3.0.1
+Build-Depends: debhelper
 
 Package: crashmail
 Architecture: any
 Depends: ${shlibs:Depends}
-Suggests: zip, unzip, lha
+Suggests: zip, unzip, lha, goldedplus
 Description: JAM and *.MSG capable Fidonet tosser
  CrashMail II is basically a more portable version of
  CrashMail, a tosser for Amiga computers. Users of the old

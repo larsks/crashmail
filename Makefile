@@ -22,7 +22,8 @@ install:
 	install -d $(DOCDIR)
 	install -m 644 doc/AreafixHelp.txt $(DOCDIR)
 	install -m 644 doc/ReadMe.txt $(DOCDIR)
-	install -m 644 doc/example.prefs $(DOCDIR)
+	install -d $(DOCDIR)/examples
+	install -m 644 doc/example.prefs $(DOCDIR)/examples
 
 clean:
 	make -C src cleanlinux

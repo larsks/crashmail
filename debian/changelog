@@ -1,3 +1,13 @@
+crashmail (0.60-2) unstable; urgency=low
+
+  * New maintainer (previously sponsored).
+  * Updated to Standards-Version 3.0.1.
+  * Added Build-Depends.
+  * Suggests goldedplus (Fidonet reader).
+  * Move sample preferences file to be compliant with debian-policy.
+
+ -- peter karlsson <peterk@debian.org>  Fri, 25 Aug 2000 20:10:00 +0200
+
 crashmail (0.60-1) unstable; urgency=low
 
   * New upstream release.
@@ -12,7 +22,3 @@ crashmail (0.52-1) unstable; urgency=low
   * Initial Release.
 
  -- Per Lundberg <plundis@debian.org>  Tue, 19 Oct 1999 20:54:38 +0200
-
-Local variables:
-mode: debian-changelog
-End:
