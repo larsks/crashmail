@@ -1,0 +1,17 @@
+INCDIR = ../
+
+CC = gcc -DPLATFORM_OS2 -I $(INCDIR) --ansi -Wall
+AR = ar -ru
+RM = del
+
+OBJS    = cmnllib.o
+
+cmnllib.a : $(OBJS) 
+	$(AR) cmnllib.a $(OBJS)
+	
+cmnllib.o: cmnllib.c
+	$(CC) -c cmnllib.c -o cmnllib.o
+
+clean :
+	$(RM) *.o *.a
+	

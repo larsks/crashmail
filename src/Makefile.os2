@@ -1,0 +1,187 @@
+# Makefile for Linux
+
+# General
+
+PLATFORMDEF = -DPLATFORM_OS2
+MBDEFS = -DMSGBASE_JAM -DMSGBASE_MSG
+NLDEFS = -DNODELIST_CMNL
+
+EXESUFFIX = .exe
+
+DEFS = $(PLATFORMDEF) $(MBDEFS) $(NLDEFS)
+
+# Directories
+
+BINDIR = ../bin
+OBJDIR = obj
+INCDIR = ./
+
+# Libraries
+
+OSLIB = oslib_os2/oslib.a
+JAMLIB = jamlib/jamlib.a
+CMNLLIB = cmnllib/cmnllib.a
+
+# Commands
+
+CC = gcc $(DEFS) -I $(INCDIR) -Wall
+RM = del
+STRIP = emxbind -s
+
+# Objects
+
+SHOBJS = $(OBJDIR)/jblist.o \
+         $(OBJDIR)/jbstrcpy.o \
+         $(OBJDIR)/mystrncpy.o \
+         $(OBJDIR)/parseargs.o \
+         $(OBJDIR)/path.o 
+
+MBOBJS = $(OBJDIR)/mb.o \
+      	 $(OBJDIR)/mb_msg.o \
+	 $(OBJDIR)/mb_jam.o \
+	 jamlib/jamlib.a
+
+NLOBJS = $(OBJDIR)/nl.o \
+      	 $(OBJDIR)/nl_cmnl.o \
+	 cmnllib/cmnllib.a
+
+CMOBJS = $(OBJDIR)/crashmail.o \
+      	 $(OBJDIR)/logwrite.o \
+	 $(OBJDIR)/dupe.o \
+	 $(OBJDIR)/stats.o \
+	 $(OBJDIR)/misc.o \
+	 $(OBJDIR)/safedel.o \
+	 $(OBJDIR)/toss.o \
+	 $(OBJDIR)/pkt.o \
+	 $(OBJDIR)/handle.o \
+	 $(OBJDIR)/node4d.o \
+	 $(OBJDIR)/config.o \
+	 $(OBJDIR)/memmessage.o \
+	 $(OBJDIR)/scan.o \
+	 $(OBJDIR)/outbound.o \
+	 $(OBJDIR)/areafix.o
+
+files : $(BINDIR)/crashmail$(EXESUFFIX) \
+        $(BINDIR)/crashstats$(EXESUFFIX) \
+	$(BINDIR)/crashlist$(EXESUFFIX) \
+	$(BINDIR)/crashgetnode$(EXESUFFIX) \
+        $(BINDIR)/crashmaint$(EXESUFFIX) \
+	$(BINDIR)/crashwrite$(EXESUFFIX) \
+	$(BINDIR)/crashexport$(EXESUFFIX)        
+
+$(BINDIR)/crashmail$(EXESUFFIX) : $(CMOBJS) $(SHOBJS) $(NLOBJS) $(MBOBJS) $(OSLIB)
+	$(CC) -o $(BINDIR)/crashmail$(EXESUFFIX) $(CMOBJS) $(SHOBJS) $(NLOBJS) $(MBOBJS) $(OSLIB)
+	$(STRIP) $(BINDIR)/crashmail$(EXESUFFIX)
+	
+$(BINDIR)/crashstats$(EXESUFFIX) : tools/crashstats.c $(SHOBJS) $(OSLIB)
+	$(CC) -o $(BINDIR)/crashstats$(EXESUFFIX) tools/crashstats.c $(SHOBJS) $(OSLIB)
+	$(STRIP) $(BINDIR)/crashstats$(EXESUFFIX)
+	
+$(BINDIR)/crashlist$(EXESUFFIX) : tools/crashlist.c $(SHOBJS) $(OSLIB) 
+	$(CC) -o $(BINDIR)/crashlist$(EXESUFFIX) tools/crashlist.c $(SHOBJS) $(OSLIB) 
+	$(STRIP) $(BINDIR)/crashlist$(EXESUFFIX)
+
+$(BINDIR)/crashgetnode$(EXESUFFIX) : tools/crashgetnode.c $(SHOBJS) $(CMNLLIB) $(OSLIB) 
+	$(CC)  -o $(BINDIR)/crashgetnode$(EXESUFFIX) tools/crashgetnode.c $(SHOBJS) $(CMNLLIB) $(OSLIB)
+	$(STRIP) $(BINDIR)/crashgetnode$(EXESUFFIX)
+ 
+$(BINDIR)/crashmaint$(EXESUFFIX) : tools/crashmaint.c $(SHOBJS) $(OSLIB) $(JAMLIB)
+	$(CC) -o $(BINDIR)/crashmaint$(EXESUFFIX) tools/crashmaint.c $(SHOBJS) $(OSLIB) $(JAMLIB)
+	$(STRIP) $(BINDIR)/crashmaint$(EXESUFFIX)
+
+$(BINDIR)/crashwrite$(EXESUFFIX) : tools/crashwrite.c $(SHOBJS) $(OSLIB)
+	$(CC) -o $(BINDIR)/crashwrite$(EXESUFFIX) tools/crashwrite.c $(SHOBJS) $(OSLIB)
+	$(STRIP) $(BINDIR)/crashwrite$(EXESUFFIX)                          
+
+$(BINDIR)/crashexport$(EXESUFFIX) : tools/crashexport.c $(SHOBJS) $(OSLIB)
+	$(CC) -o $(BINDIR)/crashexport$(EXESUFFIX) tools/crashexport.c $(SHOBJS) $(OSLIB)
+	$(STRIP) $(BINDIR)/crashexport$(EXESUFFIX)                          
+
+# crashmail
+
+$(OBJDIR)/crashmail.o : crashmail/crashmail.c 
+	$(CC) -c crashmail/crashmail.c -o $(OBJDIR)/crashmail.o 
+
+$(OBJDIR)/logwrite.o : crashmail/logwrite.c 
+	$(CC) -c crashmail/logwrite.c -o $(OBJDIR)/logwrite.o
+
+$(OBJDIR)/dupe.o : crashmail/dupe.c 
+	$(CC) -c crashmail/dupe.c -o $(OBJDIR)/dupe.o
+
+$(OBJDIR)/stats.o : crashmail/stats.c 
+	$(CC) -c crashmail/stats.c -o $(OBJDIR)/stats.o
+
+$(OBJDIR)/misc.o : crashmail/misc.c 
+	$(CC) -c crashmail/misc.c -o $(OBJDIR)/misc.o
+ 
+$(OBJDIR)/safedel.o : crashmail/safedel.c 
+	$(CC) -c crashmail/safedel.c -o $(OBJDIR)/safedel.o
+
+$(OBJDIR)/toss.o : crashmail/toss.c 
+	$(CC) -c crashmail/toss.c -o $(OBJDIR)/toss.o
+
+$(OBJDIR)/scan.o : crashmail/scan.c 
+	$(CC) -c crashmail/scan.c -o $(OBJDIR)/scan.o
+
+$(OBJDIR)/pkt.o : crashmail/pkt.c 
+	$(CC) -c crashmail/pkt.c -o $(OBJDIR)/pkt.o
+
+$(OBJDIR)/memmessage.o : crashmail/memmessage.c 
+	$(CC) -c crashmail/memmessage.c -o $(OBJDIR)/memmessage.o
+
+$(OBJDIR)/handle.o : crashmail/handle.c 
+	$(CC) -c crashmail/handle.c -o $(OBJDIR)/handle.o
+
+$(OBJDIR)/node4d.o : crashmail/node4d.c 
+	$(CC) -c crashmail/node4d.c -o $(OBJDIR)/node4d.o
+
+$(OBJDIR)/config.o : crashmail/config.c 
+	$(CC) -c crashmail/config.c -o $(OBJDIR)/config.o
+
+$(OBJDIR)/outbound.o : crashmail/outbound.c 
+	$(CC) -c crashmail/outbound.c -o $(OBJDIR)/outbound.o
+
+$(OBJDIR)/areafix.o : crashmail/areafix.c 
+	$(CC) -c crashmail/areafix.c -o $(OBJDIR)/areafix.o
+
+# shared
+	
+$(OBJDIR)/jblist.o : shared/jblist.c  
+	$(CC) -c shared/jblist.c -o $(OBJDIR)/jblist.o
+
+$(OBJDIR)/jbstrcpy.o : shared/jbstrcpy.c
+	$(CC) -c shared/jbstrcpy.c -o $(OBJDIR)/jbstrcpy.o
+
+$(OBJDIR)/mystrncpy.o : shared/mystrncpy.c
+	$(CC) -c shared/mystrncpy.c -o $(OBJDIR)/mystrncpy.o
+
+$(OBJDIR)/parseargs.o : shared/parseargs.c
+	$(CC) -c shared/parseargs.c -o $(OBJDIR)/parseargs.o
+
+$(OBJDIR)/path.o : shared/path.c
+	$(CC) -c shared/path.c -o $(OBJDIR)/path.o
+
+# mb
+
+$(OBJDIR)/mb.o : crashmail/mb.c
+	$(CC) -c crashmail/mb.c -o $(OBJDIR)/mb.o 
+
+$(OBJDIR)/mb_msg.o : crashmail/mb_msg.c
+	$(CC) -c crashmail/mb_msg.c -o $(OBJDIR)/mb_msg.o
+
+$(OBJDIR)/mb_jam.o : crashmail/mb_jam.c
+	$(CC) -c crashmail/mb_jam.c -o $(OBJDIR)/mb_jam.o
+
+# nl
+
+$(OBJDIR)/nl.o : crashmail/nl.c
+	$(CC) -c crashmail/nl.c -o $(OBJDIR)/nl.o
+
+$(OBJDIR)/nl_cmnl.o : crashmail/nl_cmnl.c
+	$(CC) -c crashmail/nl_cmnl.c -o $(OBJDIR)/nl_cmnl.o
+
+# Clean
+
+clean : 
+	$(RM) obj\*.o
+	
