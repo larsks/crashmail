@@ -41,6 +41,14 @@
     - JAM_CreateMB() would not unlock and close the newly created messagebase
       upon failure.
 
+    Changes made by Johan Billing 2004-07-10
+
+    - Updated the Win32-specific parts of the code to make it compatible with
+      newer versions of MinGW (tested with 3.1.0-1):
+
+      * Now uses Sleep() instead of sleep()
+      * Changed _LK_UNLOCK to _LK_UNLCK in jam_Lock()
+      
 */
 
 /***********************************************************************
@@ -66,6 +74,12 @@
 #if defined( __WIN32__ )
 #include <sys/locking.h>
 #include <io.h>
+#include <windows.h>
+
+#if !defined( _LK_UNLCK ) && defined ( _LK_UNLOCK )
+#define _LK_UNLCK _LK_UNLOCK /* For backwards compatibility */
+#endif
+
 #endif
 
 #if defined( __LINUX__ )
@@ -80,7 +94,7 @@
 #endif
 
 #if defined( __WIN32__ )
-#define JAM_Sleep(x) sleep(x*1000)
+#define JAM_Sleep(x) Sleep(x*1000)
 #endif
 
 #if defined( __LINUX__ )
@@ -476,7 +490,7 @@ int jam_Lock( s_JamBase* Base_PS, int DoLock_I )
     if ( DoLock_I )
         Status_I = _locking(Handle_I,_LK_NBLCK,1);
     else
-        Status_I = _locking(Handle_I,_LK_UNLOCK,1);
+        Status_I = _locking(Handle_I,_LK_UNLCK,1);
 
     if ( Status_I )
        return JAM_LOCK_FAILED;

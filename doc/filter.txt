@@ -249,7 +249,7 @@ BOUNCEHEADER <message>
 
 REMAPMSG <new name> <destination pattern>
 
- This command can change the destination name and node f a netmail message. If
+ This command can change the destination name and node of a netmail message. If
  the new name is "*", the old name will be kept.
 
  Examples:

@@ -662,12 +662,10 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    {
       if(res == JAM_NO_MESSAGE)
       {
-         JAM_DelSubPacket(SubPacket_PS);
          return(TRUE); /* Message no longer exists */
       }
       else
       {
-         JAM_DelSubPacket(SubPacket_PS);
          LogWrite(1,TOSSINGERR,"Failed to read message #%lu in JAM messagebase \"%s\"",num,area->Path);
          return(TRUE);
       }

@@ -1,12 +1,16 @@
-This is probably the last major revision of CrashMail. I put this release
-together mainly since I had some good code that I had written a long time
-ago that had never made it into a released version of CrashMail. I felt that
-that code was too good to waste and so now it finally is incorporated into
-CrashMail along with some other improvements.
-
-If you are using CrashMail, please send me an e-mail (billing@df.lth.se).
+Version 0.7 was probably the last major revision of CrashMail. If you 
+are using CrashMail, please send me an e-mail (billing@df.lth.se).
 I am curious about how many CrashMail users there still are...
 
+Changes in version 0.71
+
+ - Fixed a bug that could cause CrashMail to crash when exporting messages 
+   from a JAM area with deleted messages. 
+
+ - Updated JAMLIB to 1.3.2
+
+ - Win32 binaries are now compiled with MinGW 3.1.0-1 instead of 
+   gcc-2.95-mingw32.
 
 Changes in version 0.7
 
