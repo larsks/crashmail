@@ -1,16 +1,12 @@
-#include <string.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <dir.h>
+#include <windows.h>
+
+#include <stdlib.h> /* For system() */
 
 #include <shared/types.h>
 #include <shared/jblist.h>
 
 #include <oslib/osmisc.h>
 #include <oslib/osfile.h>
-
-#include <sys/stat.h>
 
 void osSetComment(uchar *file,uchar *comment)
 {
@@ -24,15 +20,15 @@ int osChDirExecute(uchar *dir,uchar *cmd)
    char olddir[300];
    int res;
    
-   if(!getcwd(olddir,300))
+   if(!GetCurrentDirectory(300,olddir))
       return(-1);
 
-   if(chdir(dir) != 0)
+   if(!SetCurrentDirectory(dir))
       return(-1);
 
-   res=system(cmd);
+   res=osExecute(cmd);
 
-   chdir(olddir);
+   SetCurrentDirectory(olddir);
 
    return(res);
 }
@@ -45,26 +41,30 @@ int osExecute(uchar *cmd)
 
 bool osExists(uchar *file)
 {
-   struct stat st;
+   HANDLE hFind;
+   WIN32_FIND_DATA FindFileData;
 
-   if(stat(file,&st) == 0)
-      return(TRUE);
+   hFind = FindFirstFile(file,&FindFileData);
+   FindClose(hFind);
 
-   return(FALSE);
-}
-
-bool osMkDir(uchar *dir)
-{
-   if(mkdir(dir) != 0)
+   if (hFind == INVALID_HANDLE_VALUE)
       return(FALSE);
 
    return(TRUE);
 }
 
+bool osMkDir(uchar *dir)
+{
+   if(CreateDirectory(dir,NULL))
+      return(TRUE);
+
+   return(FALSE);
+}
+
 
 bool osRename(uchar *oldfile,uchar *newfile)
 {
-	if(rename(oldfile,newfile) == 0)
+   if(MoveFile(oldfile,newfile))
 		return(TRUE);
 
 	return(FALSE);
@@ -72,7 +72,7 @@ bool osRename(uchar *oldfile,uchar *newfile)
 
 bool osDelete(uchar *file)
 {
-	if(remove(file) == 0)
+   if(DeleteFile(file))
 		return(TRUE);
 		
 	return(FALSE);
@@ -80,7 +80,26 @@ bool osDelete(uchar *file)
 
 void osSleep(int secs)
 {
-   sleep(secs*1000);
+   Sleep(secs*1000);
 }
+
+uchar *osErrorMsg(ulong errnum)
+{
+   uchar charbuf[1000];
+   static uchar oembuf[1000];
+
+   FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK,
+                 NULL,(DWORD)errnum,0,charbuf,1000,NULL);
+
+   CharToOem(charbuf,oembuf);
+
+   return (uchar *)oembuf;
+}
+
+ulong osError(void)
+{
+   return (ulong)GetLastError();
+}
+
 
 

@@ -18,6 +18,8 @@ void afFreeReply(struct afReply *af);
 void afAddLine(struct afReply *af,uchar *fmt,...);
 void afSendMessage(struct afReply *af);
 
+void AddCommandReply(struct afReply *af,uchar *cmd,uchar *reply);
+
 void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode);
 void rawSendHelp(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode);
 void rawSendInfo(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode);
@@ -103,7 +105,7 @@ bool AreaFix(struct MemMessage *mm)
       {
          done=TRUE;
          sendarealist=TRUE;
-         afAddLine(afr,"%-30.30s Sending list of all areas",password);
+         AddCommandReply(afr,password,"Sending list of all areas");
       }
    }
 
@@ -122,7 +124,9 @@ bool AreaFix(struct MemMessage *mm)
          if(strncmp(buf,"---",3)==0)
             stop=TRUE;
 
-         else if(buf[0]=='%')
+			stripleadtrail(buf);
+
+         if(buf[0]=='%')
          {
             jbcpos=0;
             jbstrcpy(buf2,buf,100,&jbcpos);
@@ -131,7 +135,7 @@ bool AreaFix(struct MemMessage *mm)
             {
                if(cnode->Flags & NODE_PASSIVE)
                {
-                  afAddLine(afr,"%-30.30s Your system is already passive",buf);
+						AddCommandReply(afr,buf,"Your system is already passive");
                }
                else
                {
@@ -139,8 +143,8 @@ bool AreaFix(struct MemMessage *mm)
 						cnode->changed=TRUE;
                   config.changed=TRUE;
                   done=TRUE;
-                  afAddLine(afr,"%-30.30s Your system is marked as passive.",buf);
-                  afAddLine(afr,"%-30.20s Send %%RESUME to get echomail again.","");
+						AddCommandReply(afr,buf,"Your system is marked as passive");
+						AddCommandReply(afr,"","Send %%RESUME to get echomail again");
                }
             }
             else if(stricmp(buf2,"%RESUME")==0)
@@ -151,11 +155,11 @@ bool AreaFix(struct MemMessage *mm)
 						cnode->changed=TRUE;
                   config.changed=TRUE;
                   done=TRUE;
-                  afAddLine(afr,"%-30.30s Your system is active again.",buf);
+						AddCommandReply(afr,buf,"Your system is active again");
                }
                else
                {
-                  afAddLine(afr,"%-30.30s Your system is not paused.",buf);
+						AddCommandReply(afr,buf,"Your system is not paused");
                }
             }
             else if(stricmp(buf2,"%PWD")==0)
@@ -166,23 +170,23 @@ bool AreaFix(struct MemMessage *mm)
 						cnode->changed=TRUE;
                   config.changed=TRUE;
                   done=TRUE;
-                  afAddLine(afr,"%-30.30s AreaFix password changed.",buf);
+						AddCommandReply(afr,buf,"AreaFix password changed");
                }
                else
                {
-                  afAddLine(afr,"%-30.30s No new password specified.",buf);
+						AddCommandReply(afr,buf,"No new password specified");
                }
             }
             else if(stricmp(buf2,"%RESCAN")==0)
             {
                if(config.cfg_Flags & CFG_ALLOWRESCAN)
                {
-                  afAddLine(afr,"%-30.30s Will rescan all areas added after this line",buf);
+						AddCommandReply(afr,buf,"Will rescan all areas added after this line");
                   globalrescan=TRUE;
                }
                else
                {
-                  afAddLine(afr,"%-30.30s No rescanning allowed",buf);
+						AddCommandReply(afr,buf,"No rescanning allowed");
                }
             }
             else if(stricmp(buf2,"%COMPRESS")==0)
@@ -212,12 +216,12 @@ bool AreaFix(struct MemMessage *mm)
                            gotpacker=TRUE;
 
                         else
-                           afAddLine(afr,"%-30.20s Unknown packer. Choose from this list:",buf);
+									AddCommandReply(afr,buf,"Unknown packer. Choose from this list:");
                      }
                   }
                   else
                   {
-                     afAddLine(afr,"%-30.30s Sending list of packers:",buf);
+							AddCommandReply(afr,buf,"Sending list of packers:");
                   }
 
                   if(gotpacker)
@@ -225,61 +229,61 @@ bool AreaFix(struct MemMessage *mm)
                      cnode->Packer=tmppacker;
 							cnode->changed=TRUE;
                      config.changed=TRUE;
-                     afAddLine(afr,"%-30.20s Packer changed",buf);
+							AddCommandReply(afr,buf,"Packed changed");
                   }
                   else
                   {
                      for(tmppacker=(struct Packer *)config.PackerList.First;tmppacker;tmppacker=tmppacker->Next)
                      {
                         if(tmppacker->Packer[0])
-                           afAddLine(afr,"%-30.30s %s","",tmppacker->Name);
+									AddCommandReply(afr,"",tmppacker->Name);
                      }
 
-                     afAddLine(afr,"%-30.30s %s","","NONE");
+							AddCommandReply(afr,"","NONE");
                   }
                   done=TRUE;
                }
                else
                {
-                  afAddLine(afr,"%-30.30s No new method specified.",buf);
+						AddCommandReply(afr,buf,"No new method specified");
                }
             }
             else if(stricmp(buf2,"%LIST")==0)
             {
                sendarealist=TRUE;
                done=TRUE;
-               afAddLine(afr,"%-30.30s Sending list of all areas",buf);
+					AddCommandReply(afr,buf,"Sending list of all areas");
             }
 
             else if(stricmp(buf2,"%QUERY")==0)
             {
                sendareaquery=TRUE;
                done=TRUE;
-               afAddLine(afr,"%-30.30s Sending query",buf);
+					AddCommandReply(afr,buf,"Sending query");
             }
 
             else if(stricmp(buf2,"%UNLINKED")==0)
             {
                sendareaunlinked=TRUE;
                done=TRUE;
-               afAddLine(afr,"%-30.30s Sending list of all unlinked areas",buf);
+					AddCommandReply(afr,buf,"Sending list of all unlinkedareas");
             }
             else if(stricmp(buf2,"%HELP")==0)
             {
                sendhelp=TRUE;
                done=TRUE;
-               afAddLine(afr,"%-30.30s Sending help file",buf);
+					AddCommandReply(afr,buf,"Sending help file");
             }
             else if(stricmp(buf2,"%INFO")==0)
             {
                sendinfo=TRUE;
                done=TRUE;
-               afAddLine(afr,"%-30.30s Sending configuration info",buf);
+					AddCommandReply(afr,buf,"Sending configuration info");
             }
             else
             {
                done=TRUE;
-               afAddLine(afr,"%-30.30s Unknown command",buf);
+					AddCommandReply(afr,buf,"Unknown command");
             }
          }
          else if(buf[0]!=1 && buf[0]!=0)
@@ -296,7 +300,7 @@ bool AreaFix(struct MemMessage *mm)
             /* Separate command, name and opt */
 
             mystrncpy(areaname,buf,100);
-
+				
             opt="";
 
             for(q=0;areaname[q];q++)
@@ -311,8 +315,8 @@ bool AreaFix(struct MemMessage *mm)
                   opt=&opt[1];
             }
 
-            strip(areaname);
-            strip(opt);
+            striptrail(areaname);
+            striptrail(opt);
 
             if(areaname[0]=='-')
             {
@@ -351,7 +355,7 @@ bool AreaFix(struct MemMessage *mm)
                rescanarea=NULL;
 
                for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
-                  if(!(area->Flags & AREA_BAD) && !(area->Flags & AREA_NETMAIL) && !(area->Flags & AREA_DEFAULT))
+                  if(area->AreaType == AREATYPE_ECHOMAIL)
                   {
                      if(osMatchPattern(areaname,area->Tagname))
                      {
@@ -382,7 +386,7 @@ bool AreaFix(struct MemMessage *mm)
                                           afAddLine(afr,"   You have been banned from %s",area->Tagname);
 
                                        else
-                                          afAddLine(afr,"%-30.30s You have been banned from that area",buf);
+														AddCommandReply(afr,buf,"You have been banned from that area");
 
                                        LogWrite(3,AREAFIX,"AreaFix: This node is banned in %s",area->Tagname);
                                     }
@@ -396,7 +400,7 @@ bool AreaFix(struct MemMessage *mm)
                                              afAddLine(afr,"   Attached to %s as read-only",area->Tagname);
 
                                           else
-                                             afAddLine(afr,"%-30.30s Attached as read-only",buf);
+															AddCommandReply(afr,buf,"Attached as read-only");
                                        }
                                        else
                                        {
@@ -406,7 +410,7 @@ bool AreaFix(struct MemMessage *mm)
                                              afAddLine(afr,"   Attached to %s",area->Tagname);
 
                                           else
-                                             afAddLine(afr,"%-30.30s Attached",buf);
+															AddCommandReply(afr,buf,"Attached");
                                        }
 
                                        if(!(temptnode=osAllocCleared(sizeof(struct TossNode))))
@@ -429,7 +433,7 @@ bool AreaFix(struct MemMessage *mm)
                                  }
                                  else if(!iswild)
                                  {
-                                    afAddLine(afr,"%-30.30s You don't have access to that area",buf);
+												AddCommandReply(afr,buf,"You don't have access to that area");
                                  }
                               }
                               else
@@ -440,7 +444,7 @@ bool AreaFix(struct MemMessage *mm)
                                     afAddLine(afr,"   You are already attached to %s",area->Tagname);
 
                                  else
-                                    afAddLine(afr,"%-30.30s You are already attached to that area",buf);
+												AddCommandReply(afr,buf,"You are already attached to that area");
                               }
                               break;
 
@@ -449,7 +453,7 @@ bool AreaFix(struct MemMessage *mm)
                               {
                                  if(!iswild)
                                  {
-                                    afAddLine(afr,"%-30.30s You are not attached to that area",buf);
+												AddCommandReply(afr,buf,"You are not attached to that area");
                                     patterndone=TRUE;
                                  }
                               }
@@ -463,7 +467,7 @@ bool AreaFix(struct MemMessage *mm)
                                        afAddLine(afr,"   You are not allowed to detach from %s",area->Tagname);
 
                                     else
-                                       afAddLine(afr,"%-30.30s You are not allowed to detach from that area",buf);
+													AddCommandReply(afr,buf,"You are not allowed to detach from that area");
                                  }
                                  else
                                  {
@@ -473,7 +477,7 @@ bool AreaFix(struct MemMessage *mm)
                                        afAddLine(afr,"   Detached from %s",area->Tagname);
 
                                     else
-                                       afAddLine(afr,"%-30.30s Detached",buf);
+													AddCommandReply(afr,buf,"Detached");
 
                                     wasfeed=FALSE;
 
@@ -532,7 +536,7 @@ bool AreaFix(struct MemMessage *mm)
                                  }
                                  else
                                  {
-                                    afAddLine(afr,"%-30.30s Will rescan area",buf);
+												AddCommandReply(afr,buf,"Will rescan area");
                                     rescanarea=area;
                                  }
                               }
@@ -616,9 +620,12 @@ bool AreaFix(struct MemMessage *mm)
 
                                  if(arealist)
                                  {
+												uchar buf2[100];
+
                                     LogWrite(3,AREAFIX,"AreaFix: %s requested from %lu:%lu/%lu.%lu",areaname,arealist->Node->Node.Zone,arealist->Node->Node.Net,arealist->Node->Node.Node,arealist->Node->Node.Point);
 
-                                    afAddLine(afr,"%-30.30s Request sent to %lu:%lu/%lu.%lu",buf,arealist->Node->Node.Zone,arealist->Node->Node.Net,arealist->Node->Node.Node,arealist->Node->Node.Point);
+                                    sprintf(buf2,"Request sent to %u:%u/%u.%u",arealist->Node->Node.Zone,arealist->Node->Node.Net,arealist->Node->Node.Node,arealist->Node->Node.Point);
+												AddCommandReply(afr,buf,buf2);
                                     RemoteAreafix(areaname,arealist->Node);
 
                                     area=AddArea(areaname,&arealist->Node->Node,&tmproute->Aka->Node,TRUE,config.cfg_Flags & CFG_FORWARDPASSTHRU);
@@ -645,7 +652,7 @@ bool AreaFix(struct MemMessage *mm)
 
                            if(!areaexists)
                            {
-                              afAddLine(afr,"%-30.30s Unknown area",buf);
+										AddCommandReply(afr,buf,"Unknown area");
                               LogWrite(3,AREAFIX,"AreaFix: Unknown area %s",areaname);
                            }
                         }
@@ -659,7 +666,7 @@ bool AreaFix(struct MemMessage *mm)
                            afAddLine(afr,"   There were no matching areas to detach from");
 
                         else
-                           afAddLine(afr,"%-30.30s Unknown area",buf);
+									AddCommandReply(afr,buf,"Unknown area");
                      }
                      break;
 
@@ -670,12 +677,12 @@ bool AreaFix(struct MemMessage *mm)
                            afAddLine(afr,"   There were no matching areas");
 
                         else
-                           afAddLine(afr,"%-30.30s You are not attached to this area",buf);
+									AddCommandReply(afr,buf,"You are not attached to this area");
                      }
                      else
                      {
                         if(rescanarea && !globalrescan && opt[0]==0)
-                           afAddLine(afr,"%-30.30s Nothing to do",buf);
+									AddCommandReply(afr,buf,"Nothing to do");
                      }
                      break;
                }
@@ -976,7 +983,9 @@ bool AddForwardList(struct Arealist *arealist)
    
    if(!(fh=osOpen(arealist->AreaFile,MODE_OLDFILE)))
    {
-      LogWrite(1,AREAFIX,"AreaFix: File %s not found",arealist->AreaFile);
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"AreaFix: File %s not found",arealist->AreaFile);
+		LogWrite(1,SYSTEMERR,"AreaFix: Error: %s",osErrorMsg(err));
       return(TRUE);
    }
 
@@ -1030,6 +1039,19 @@ bool AddForwardList(struct Arealist *arealist)
    
    osClose(fh);
    return(TRUE);
+}
+
+void AddCommandReply(struct afReply *afr,uchar *cmd,uchar *reply)
+{
+	if(strlen(cmd) <= 30)
+	{
+   	afAddLine(afr,"%-30s %s",cmd,reply);
+	}
+	else
+	{
+   	afAddLine(afr,"%s",cmd);
+   	afAddLine(afr,"%-30s %s","",reply);
+	}	
 }
 
 void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
@@ -1115,7 +1137,7 @@ void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNod
    /* Add local areas */
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
-      if(!(area->Flags & AREA_NETMAIL) && !(area->Flags & AREA_BAD) && !(area->Flags & AREA_DEFAULT))
+      if(area->AreaType == AREATYPE_ECHOMAIL)
       {
          short add;
          bool attached,feed;
@@ -1275,7 +1297,9 @@ void rawSendHelp(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
 
    if(!(fh=osOpen(config.cfg_AreaFixHelp,MODE_OLDFILE)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"AreaFix: Unable to open %s",config.cfg_AreaFixHelp);
+		LogWrite(1,SYSTEMERR,"AreaFix: Error: %s",osErrorMsg(err));
       afAddLine(afr,"*** Error *** : Couldn't open help file");
    }
    else
@@ -1581,6 +1605,12 @@ struct Arealist *FindForward(uchar *tagname,uchar *flags)
             }
             osClose(fh);
          }
+			else
+			{
+				ulong err=osError();
+				LogWrite(1,SYSTEMERR,"Failed to open file %s",arealist->AreaFile);
+				LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+			}
       }
    }
    return(NULL);

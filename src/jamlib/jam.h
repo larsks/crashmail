@@ -7,17 +7,16 @@
 #ifndef __JAM_H__
 #define __JAM_H__
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 
-#ifndef __UCHAR_DEFINED__
-#define __UCHAR_DEFINED__
-
-typedef unsigned char  uchar;    /* must be  8 bits wide */
+#ifndef linux
 typedef unsigned short ushort;   /* must be 16 bits wide */
 typedef unsigned long  ulong;    /* must be 32 bits wide */
-
 #endif
+
+typedef unsigned char  uchar;    /* must be  8 bits wide */
 
 /*
 **  Error codes
@@ -27,8 +26,10 @@ typedef unsigned long  ulong;    /* must be 32 bits wide */
 #define JAM_LOCK_FAILED 3  /* lock could not be set */
 #define JAM_NOT_LOCKED  4  /* the message base was not locked before writing */
 #define JAM_NO_MEMORY   5  /* out of memory! */
-#define JAM_NO_USER	6  /* user not found */
+#define JAM_NO_USER	6  	/* user not found */
 #define JAM_NO_MESSAGE  7  /* message has been deleted */
+#define JAM_CORRUPT_MSG 8  /* message header is corrupt */
+
 /*
 **  CRC definitions
 */

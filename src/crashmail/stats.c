@@ -44,7 +44,9 @@ bool WriteStats(uchar *file)
 
    if(!(fh=osOpen(file,MODE_NEWFILE)))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Unable to open %s for writing",file);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
    }
 
@@ -52,9 +54,12 @@ bool WriteStats(uchar *file)
    nodes=0;
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
-      if(!(area->Flags & AREA_DEFAULT) && !(area->Flags & AREA_UNCONFIRMED))
-         areas++;
-
+		if(area->AreaType == AREATYPE_BAD || area->AreaType == AREATYPE_ECHOMAIL || area->AreaType == AREATYPE_NETMAIL)
+		{
+      	if(!(area->Flags & AREA_UNCONFIRMED))
+	         areas++;
+		}
+		
    for(cnode=(struct ConfigNode *)config.CNodeList.First;cnode;cnode=cnode->Next)
       nodes++;
 
@@ -67,18 +72,21 @@ bool WriteStats(uchar *file)
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
    {
-      if(!(area->Flags & AREA_DEFAULT) && !(area->Flags & AREA_UNCONFIRMED))
-      {
-         strcpy(dastat.Tagname,area->Tagname);
-         dastat.TotalTexts=area->Texts;
-         dastat.Dupes=area->Dupes;
-         dastat.LastTime=area->LastTime;
-         dastat.FirstTime=area->FirstTime;
-         memcpy(&dastat.Last8Days[0],&area->Last8Days[0],sizeof(ushort)*8);
-         Copy4D(&dastat.Aka,&area->Aka->Node);
-         dastat.Group=area->Group;
+		if(area->AreaType == AREATYPE_BAD || area->AreaType == AREATYPE_ECHOMAIL || area->AreaType == AREATYPE_NETMAIL)
+		{
+      	if(!(area->Flags & AREA_UNCONFIRMED))
+			{
+	         strcpy(dastat.Tagname,area->Tagname);
+   	      dastat.TotalTexts=area->Texts;
+      	   dastat.Dupes=area->Dupes;
+	         dastat.LastTime=area->LastTime;
+   	      dastat.FirstTime=area->FirstTime;
+      	   memcpy(&dastat.Last8Days[0],&area->Last8Days[0],sizeof(ushort)*8);
+	         Copy4D(&dastat.Aka,&area->Aka->Node);
+   	      dastat.Group=area->Group;
 
-         osWrite(fh,&dastat,sizeof(struct DiskAreaStats));
+      	   osWrite(fh,&dastat,sizeof(struct DiskAreaStats));
+			}
       }
    }
 

@@ -13,8 +13,10 @@ struct jbList PktList;
 struct jbList DeleteList;
 
 bool nomem;
-bool diskfull;
+bool ioerror;
 bool exitprg;
+
+ulong ioerrornum;
 
 ulong toss_total;
 ulong toss_bad;
@@ -115,7 +117,6 @@ bool Init(void)
 
    if(!OpenLogfile(config.cfg_LogFile))
    {
-      printf("Failed to open logfile %s\n",config.cfg_LogFile);
       Free();
       return(FALSE);
    }
@@ -144,7 +145,7 @@ bool Init(void)
       return(FALSE);
 
    nomem=FALSE;
-   diskfull=FALSE;
+   ioerror=FALSE;
    exitprg=FALSE;
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
@@ -279,7 +280,9 @@ bool BeforeScanToss(void)
 
    if(!osReadDir(config.cfg_PacketCreate,&NewPktFEList,IsNewPkt))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketCreate);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
 
       if(config.cfg_NodelistType)
          (*config.cfg_NodelistType->nlEnd)();
@@ -357,7 +360,7 @@ bool Rescan(uchar *areaname,uchar *node,ulong max)
    }
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
-      if(!(area->Flags & AREA_BAD) && !(area->Flags & AREA_NETMAIL) && !(area->Flags & AREA_DEFAULT))
+      if(area->AreaType == AREATYPE_NETMAIL)
          if(stricmp(areaname,area->Tagname)==0) break;
 
    if(!area)
@@ -447,7 +450,7 @@ bool RemoveArea(uchar *areaname)
       return(FALSE);
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
-      if(!(area->Flags & AREA_BAD) && !(area->Flags & AREA_NETMAIL) && !(area->Flags & AREA_DEFAULT))
+      if(area->AreaType == AREATYPE_NETMAIL)
          if(stricmp(areaname,area->Tagname)==0) break;
 
    if(!area)
@@ -539,7 +542,7 @@ int main(int argc, char **argv)
    uchar *cfg;
    ulong cfgline;
    short seconderr;
-   uchar errorbuf[200];
+   uchar errorbuf[500];
 
    signal(SIGINT,breakfunc);
 
@@ -691,8 +694,8 @@ int main(int argc, char **argv)
    if(nomem)
       LogWrite(1,SYSTEMERR,"Out of memory");
 
-   if(diskfull)
-      LogWrite(1,SYSTEMERR,"Disk I/O error (disk full?)");
+   if(ioerror)
+      LogWrite(1,SYSTEMERR,"I/O error: %s",osErrorMsg(ioerrornum));
 
    if(ctrlc)
       LogWrite(1,SYSTEMERR,"*** User break ***");

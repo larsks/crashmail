@@ -5,11 +5,9 @@ help:
 	@echo make linux ............ Make Linux binaries
 	@echo make win32 ............ Make Win32 binaries
 	@echo make os2 .............. Make OS/2 binaries
-	@echo make os2nmake ......... Make OS/2 binaries [IBM nmake]
 	@echo make cleanlinux ....... Remove object files under Linux
 	@echo make cleanwin32 ....... Remove object files under Win32
 	@echo make cleanos2 ......... Remove object files under OS/2
-	@echo make cleanos2nmake .... Remove object files under OS/2 [IBM nmake]
 		
 linux :
 	make -C cmnllib -f Makefile.linux
@@ -29,16 +27,6 @@ os2 :
 	make -C oslib_os2 
 	make -f Makefile.os2
 
-os2nmake :
-	cd cmnllib
-	nmake /f Makefile.os2
-	cd ../jamlib
-	nmake /f Makefile.os2
-	cd ../oslib_os2
-	nmake
-	cd ..
-	nmake /f Makefile.os2
-	
 cleanlinux : 
 	make -C cmnllib -f Makefile.linux clean
 	make -C jamlib -f Makefile.linux clean
@@ -57,13 +45,4 @@ cleanos2 :
 	make -C oslib_os2 clean
 	make -f Makefile.os2 clean
 
-cleanos2nmake : 
-	cd cmnllib
-	nmake /f Makefile.os2 clean
-	cd ../jamlib
-	nmake /f Makefile.os2 clean
-	cd ../oslib_os2
-	nmake clean
-	cd ..
-	nmake /f Makefile.os2 clean
 

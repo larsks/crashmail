@@ -10,7 +10,10 @@ bool IsPktTmp(uchar *file);
 bool IsOrphan(uchar *file);
 bool IsBad(uchar *file);
 
-void strip(uchar *str);
+void striptrail(uchar *str);
+void striplead(uchar *str);
+void stripleadtrail(uchar *str);
+
 bool MatchFlags(uchar group,uchar *node);
 
 void ExpandRobot(uchar *cmd,uchar *dest,ulong destsize,
@@ -28,12 +31,13 @@ void ExpandRobot(uchar *cmd,uchar *dest,ulong destsize,
 void MakeFidoDate(time_t tim,uchar *dest);
 bool AddTID(struct MemMessage *mm);
 
-bool MoveFile(uchar *file,uchar *newfile);
-bool CopyFile(uchar *file,uchar *newfile);
+bool movefile(uchar *file,uchar *newfile);
+bool copyfile(uchar *file,uchar *newfile);
 
 uchar ChangeType(struct Node4D *dest,uchar pri);
 bool MakeNetmailKludges(struct MemMessage *mm);
 time_t FidoToTime(uchar *date);
+bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain);
 bool ExtractAddress(uchar *origin, struct Node4D *n4d,uchar *domain);
 
 unsigned long hextodec(char *hex);

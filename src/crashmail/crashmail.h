@@ -12,6 +12,7 @@
 #include <shared/mystrncpy.h>
 #include <shared/jbstrcpy.h>
 #include <shared/path.h>
+#include <shared/node4d.h>
 
 #include <oslib/os.h>
 #include <oslib/osmem.h>
@@ -23,10 +24,10 @@
 #include <shared/fidonet.h>
 #include <shared/storedmsg.h>        
 
+#include "node4dpat.h"
 #include "nl.h"
 #include "mb.h"
 #include "memmessage.h"
-#include "node4d.h"
 #include "config.h"
 #include "memmessage.h"
 #include "logwrite.h"
@@ -42,18 +43,20 @@
 #include "areafix.h"
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 52
+#define VERSION_MINOR 6
 
-#define VERSION "0.52"
+#define VERSION "0.6"
 
-#define TID_VERSION "0.52"
+#define TID_VERSION "0.6"
 
 extern struct jbList PktList;
 extern struct jbList DeleteList;
 
 extern bool nomem;
-extern bool diskfull;
+extern bool ioerror;
 extern bool exitprg;
+
+extern ulong ioerrornum;
 
 extern ulong toss_total;
 extern ulong toss_bad;

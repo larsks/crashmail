@@ -196,11 +196,15 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
       return(TRUE);
    }
 
-   if((Msg.Attr & FLAG_SENT) && !isrescanning)
-   {
-      /* Message already sent */
-      osClose(fh);
-      return(TRUE);
+
+	if(!isrescanning)
+	{
+		if((Msg.Attr & FLAG_SENT) || !(Msg.Attr & FLAG_LOCAL))
+		{
+			/* Don't touch if the message is sent or not local */
+			osClose(fh);
+   	   return(TRUE);
+		}
    }
 
    mm->OrigNode.Net=Msg.OrigNet;
@@ -208,7 +212,7 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    mm->DestNode.Net=Msg.DestNet;
    mm->DestNode.Node=Msg.DestNode;
 
-   if(area->Flags & AREA_NETMAIL)
+   if(area->AreaType == AREATYPE_NETMAIL)
       strcpy(mm->Area,"");
 
    else
@@ -299,7 +303,7 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
       sprintf(buf2,"%lu.msg",num);
       MakeFullPath(area->Path,buf2,buf,200);
 
-		if((config.cfg_Flags & CFG_ALLOWKILLSENT) && (oldattr & FLAG_KILLSENT) && (area->Flags & AREA_NETMAIL))
+		if((config.cfg_Flags & CFG_ALLOWKILLSENT) && (oldattr & FLAG_KILLSENT) && (area->AreaType == AREATYPE_NETMAIL))
 		{
 			/* Delete message with KILLSENT flag */
 			
@@ -357,7 +361,10 @@ bool msg_GetHighLowMsg(struct msg_Area *area)
 
       if(!osMkDir(area->area->Path))
       {
+			ulong err=osError();
          LogWrite(1,SYSTEMERR,"Unable to create directory");
+			LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+				
          return(FALSE);
       }
    }
@@ -367,7 +374,10 @@ bool msg_GetHighLowMsg(struct msg_Area *area)
 
    if(!osScanDir(area->area->Path,msg_scandirfunc))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to scan directory %s",area->area->Path);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
+			
       return(FALSE);
    }
 
@@ -421,14 +431,23 @@ bool msg_WriteHighWater(struct msg_Area *area)
 
    if(!(fh=osOpen(buf,MODE_NEWFILE)))
    {
-      LogWrite(1,TOSSINGERR,"Failed to write Highwater mark to %s",buf);
+		ulong err=osError();
+      LogWrite(1,SYSTEMERR,"Failed to write Highwater mark to %s",buf);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
    }
 
-   osWrite(fh,&Msg,sizeof(struct StoredMsg));
-   osWrite(fh,"",1);
+   if(!osWrite(fh,&Msg,sizeof(struct StoredMsg)))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+	
+   if(!osWrite(fh,"",1))
+		{ ioerror=TRUE; ioerrornum=osError(); }
+	
    osClose(fh);
 
+   if(ioerror)
+      return(FALSE);
+	
    return(TRUE);
 }
 
@@ -449,7 +468,7 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
    Msg.ReplyTo=0;
    Msg.NextReply=0;
    Msg.Cost= mm->Cost;
-   Msg.Attr= mm->Attr | FLAG_SENT;
+   Msg.Attr= mm->Attr;
 
    if(mm->Area[0]==0)
    {
@@ -484,12 +503,16 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
 
    /* Write header */
 
-   osWrite(fh,&Msg,sizeof(struct StoredMsg));
+	if(!osWrite(fh,&Msg,sizeof(struct StoredMsg)))
+		{ ioerror=TRUE; ioerrornum=osError(); }
 
    /* Write text */
 
    for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
-      osWrite(fh,chunk->Data,chunk->Length);
+	{
+      if(!osWrite(fh,chunk->Data,chunk->Length))
+			{ ioerror=TRUE; ioerrornum=osError(); }
+	}	
 
    /* Write seen-by */
 
@@ -504,7 +527,10 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
       }
 
       if(sbbuf[0])
-         osWrite(fh,sbbuf,(ulong)strlen(sbbuf));
+		{
+         if(!osWrite(fh,sbbuf,(ulong)strlen(sbbuf)))
+				{ ioerror=TRUE; ioerrornum=osError(); }
+		}	
 
       osFree(sbbuf);
    }
@@ -515,16 +541,22 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
       for(c=0;c<path->Paths;c++)
          if(path->Path[c][0]!=0)
          {
-            osWrite(fh,"\x01PATH: ",7);
-            osWrite(fh,path->Path[c],(ulong)strlen(path->Path[c]));
-            osWrite(fh,"\x0d",1);
+				if(!osWrite(fh,"\x01PATH: ",7))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+				
+            if(!osWrite(fh,path->Path[c],(ulong)strlen(path->Path[c])))
+					{ ioerror=TRUE; ioerrornum=osError(); }
+
+            if(!osWrite(fh,"\x0d",1))
+					{ ioerror=TRUE; ioerrornum=osError(); }
          }
 
-   osPutChar(fh,0);
+   if(!osPutChar(fh,0))
+		{ ioerror=TRUE; ioerrornum=osError(); }
 
    osClose(fh);
 
-   if(diskfull)
+   if(ioerror)
       return(FALSE);
 
    return(TRUE);

@@ -9,10 +9,12 @@
 #include <shared/types.h>
 #include <shared/jblist.h>
 #include <shared/parseargs.h>
+#include <shared/node4d.h>
 
 #include <oslib/os.h>
 #include <oslib/osmem.h>
 #include <oslib/osfile.h>
+#include <oslib/osmisc.h>
 
 #define VERSION "1.0"
 #define COPYRIGHT "1998"
@@ -20,11 +22,6 @@
 #ifdef PLATFORM_AMIGA
 uchar *ver="$VER: CrashStats "VERSION" ("__COMMODORE_DATE__")";
 #endif
-
-struct Node4D
-{
-   ushort Zone,Net,Node,Point;
-};
 
 #define STATS_IDENTIFIER   "CST3"
 
@@ -228,34 +225,6 @@ bool Sort(struct jbList *list,uchar sortmode)
 	return(TRUE);
 }
 
-int Compare4D(struct Node4D *node1,struct Node4D *node2)
-{
-   if(node1->Zone!=0 && node2->Zone!=0)
-   {
-      if(node1->Zone > node2->Zone) return(1);
-      if(node1->Zone < node2->Zone) return(-1);
-   }
-
-   if(node1->Net  > node2->Net) return(1);
-   if(node1->Net  < node2->Net) return(-1);
-
-   if(node1->Node > node2->Node) return(1);
-   if(node1->Node < node2->Node) return(-1);
-
-   if(node1->Point > node2->Point) return(1);
-   if(node1->Point < node2->Point) return(-1);
-
-   return(0);
-}
-
-void Copy4D(struct Node4D *node1,struct Node4D *node2)
-{
-   node1->Zone=node2->Zone;
-   node1->Net=node2->Net;
-   node1->Node=node2->Node;
-   node1->Point=node2->Point;
-}
-
 int CompareNodes(const void *a1,const void *a2)
 {
    struct NodeStatsNode **s1,**s2;
@@ -417,7 +386,9 @@ int main(int argc, char **argv)
 
    if(!(fh=osOpen(args[ARG_FILE].data,MODE_OLDFILE)))
    {
+		ulong err=osError();
       printf("Error opening %s\n",(char *)args[ARG_FILE].data);
+		printf("Error: %s\n",osErrorMsg(err));		
       osEnd();
       exit(OS_EXIT_ERROR);
    }

@@ -5,11 +5,14 @@
 **  Author: Bj”rn Stenberg (bjorn.stenberg@sth.frontec.se)
 **
 ***********************************************************************/
+
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "jam.h"
+#include "structrw.h"
 
 /***********************************************************************
 **
@@ -34,8 +37,7 @@ int JAM_ReadMsgHeader( s_JamBase* 	Base_PS,
     }
 
     /* read index record */
-    if ( 1 > fread( &Index_S, sizeof( s_JamIndex ),
-		    1, Base_PS->IdxFile_PS ) ) {
+    if ( 1 > freadjamindex(Base_PS->IdxFile_PS,&Index_S) ) {
 	Base_PS->Errno_I = errno;
 	return JAM_IO_ERROR;
     }
@@ -53,20 +55,20 @@ int JAM_ReadMsgHeader( s_JamBase* 	Base_PS,
     }
 
     /* read header */
-    if ( 1 > fread( Header_PS, sizeof( s_JamMsgHeader ),
-		    1, Base_PS->HdrFile_PS ) ) {
+    if ( 1 > freadjammsgheader(Base_PS->HdrFile_PS,Header_PS) ) {
 	Base_PS->Errno_I = errno;
 	return JAM_IO_ERROR;
     }
 
     /* are Subfields requested? */
     if ( SubfieldPack_PPS && Header_PS->SubfieldLen ) {
-	s_JamSaveSubfield*	Field_PS;
 	s_JamSubPacket*		SubPacket_PS;
-	char* 			Buf_PC;
+   s_JamSubfield        Subfield_S;
+
+   char*       Buf_PC;
 	char*			Ptr_PC;
 	char*			Roof_PC;
-	int   			BufSize_I = Header_PS->SubfieldLen;
+   int         BufSize_I = Header_PS->SubfieldLen;
 
 	Buf_PC = (void*) malloc( BufSize_I );
 	if ( !Buf_PC )
@@ -79,6 +81,7 @@ int JAM_ReadMsgHeader( s_JamBase* 	Base_PS,
 	}
 
 	SubPacket_PS = JAM_NewSubPacket();
+
 	if ( !SubPacket_PS )
 	    return JAM_NO_MEMORY;
 
@@ -87,22 +90,21 @@ int JAM_ReadMsgHeader( s_JamBase* 	Base_PS,
 	/* cut out the subfields */
 	for ( Ptr_PC = Buf_PC;
 	      Ptr_PC < Roof_PC; 
-	      Ptr_PC += Field_PS->DatLen + sizeof( s_JamSaveSubfield ) ) {
+         Ptr_PC += Subfield_S.DatLen + SIZE_JAMSAVESUBFIELD ) {
 
-	    s_JamSubfield Subfield_S;
 	    int		  Status_I;
 
-	    Field_PS = (s_JamSaveSubfield*) Ptr_PC;
+       getjamsubfield(Ptr_PC,&Subfield_S);
 
-	    Subfield_S.LoID   = Field_PS->LoID;
-	    Subfield_S.HiID   = Field_PS->HiID;
-	    Subfield_S.DatLen = Field_PS->DatLen;
-	    Subfield_S.Buffer = (uchar*)Field_PS + sizeof( s_JamSaveSubfield );
+       if((char *)Subfield_S.Buffer + Subfield_S.DatLen > Roof_PC)
+           return JAM_CORRUPT_MSG;
 
 	    Status_I = JAM_PutSubfield( SubPacket_PS, &Subfield_S );
+
 	    if ( Status_I )
-		return Status_I;
+           return Status_I;
 	}
+
 	free( Buf_PC );
 
 	*SubfieldPack_PPS = SubPacket_PS;
@@ -177,8 +179,7 @@ int JAM_ChangeMsgHeader( s_JamBase* 	 Base_PS,
     }
 
     /* read index record */
-    if ( 1 > fread( &Index_S, sizeof( s_JamIndex ),
-		    1, Base_PS->IdxFile_PS ) ) {
+    if ( 1 > freadjamindex(Base_PS->IdxFile_PS,&Index_S) ) {
 	Base_PS->Errno_I = errno;
 	return JAM_IO_ERROR;
     }
@@ -190,8 +191,7 @@ int JAM_ChangeMsgHeader( s_JamBase* 	 Base_PS,
     }
 
     /* write header */
-    if ( 1 > fwrite( Header_PS, sizeof( s_JamMsgHeader ),
-		     1, Base_PS->HdrFile_PS ) ) {
+    if ( 1 > fwritejammsgheader(Base_PS->HdrFile_PS,Header_PS) ) {
 	Base_PS->Errno_I = errno;
 	return JAM_IO_ERROR;
     }
@@ -319,8 +319,7 @@ int JAM_AddMessage( s_JamBase* 		Base_PS,
    Index_S.HdrOffset = Offset_I;
 
    /* write new header */
-   if ( 1 > fwrite( Header_PS, sizeof( s_JamMsgHeader ),
-	     1, Base_PS->HdrFile_PS ) ) {
+   if ( 1 > fwritejammsgheader(Base_PS->HdrFile_PS,Header_PS) ) {
 		Base_PS->Errno_I = errno;
 		return JAM_IO_ERROR;
    }
@@ -337,8 +336,7 @@ int JAM_AddMessage( s_JamBase* 		Base_PS,
 	   	   Subfield_PS = JAM_GetSubfield( NULL ) ) {
 
 		   /* first, save Subfield header */
-		   if ( 1 > fwrite( Subfield_PS, sizeof( s_JamSaveSubfield ),
-				     1, Base_PS->HdrFile_PS ) ) {
+         if ( 1 > fwritejamsavesubfield(Base_PS->HdrFile_PS,(s_JamSaveSubfield *)Subfield_PS) ) {
 				Base_PS->Errno_I = errno;
 				return JAM_IO_ERROR;
 		   }
@@ -375,8 +373,7 @@ int JAM_AddMessage( s_JamBase* 		Base_PS,
    */
 
    /* write index record */
-   if ( 1 > fwrite( &Index_S, sizeof( s_JamIndex ),
-	     1, Base_PS->IdxFile_PS ) ) {
+   if ( 1 > fwritejamindex(Base_PS->IdxFile_PS,&Index_S) ) {
 		Base_PS->Errno_I = errno;
 		return JAM_IO_ERROR;
    }
@@ -420,8 +417,7 @@ int JAM_AddEmptyMessage( s_JamBase* 		Base_PS)
 	Index_S.UserCRC = 0xffffffff;
 
    /* write index record */
-   if ( 1 > fwrite( &Index_S, sizeof( s_JamIndex ),
-	     1, Base_PS->IdxFile_PS ) ) {
+   if ( 1 > fwritejamindex(Base_PS->IdxFile_PS,&Index_S) ) {
 		Base_PS->Errno_I = errno;
 		return JAM_IO_ERROR;
    }

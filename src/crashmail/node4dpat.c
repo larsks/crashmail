@@ -1,102 +1,5 @@
 #include "crashmail.h"
 
-/*****************************************************/
-/*                                                   */
-/* Routines for parsing and comparing node numbers   */
-/* and node patterns in 2D, 4D and 5D. Even special  */
-/* handling for DestPat:s!                           */
-/*                                                   */
-/*****************************************************/
-
-bool Parse4D(uchar *buf, struct Node4D *node)
-{
-   ulong c=0,val=0;
-   bool GotZone=FALSE,GotNet=FALSE,GotNode=FALSE;
-
-   node->Zone=0;
-   node->Net=0;
-   node->Node=0;
-   node->Point=0;
-
-	for(c=0;c<strlen(buf);c++)
-	{
-		if(buf[c]==':')
-		{
-         if(GotZone || GotNet || GotNode) return(FALSE);
-			node->Zone=val;
-         GotZone=TRUE;
-			val=0;
-	   }
-		else if(buf[c]=='/')
-		{
-         if(GotNet || GotNode) return(FALSE);
-         node->Net=val;
-         GotNet=TRUE;
-			val=0;
-		}
-		else if(buf[c]=='.')
-		{
-         if(GotNode) return(FALSE);
-         node->Node=val;
-         GotNode=TRUE;
-			val=0;
-		}
-		else if(buf[c]>='0' && buf[c]<='9')
-		{
-         val*=10;
-         val+=buf[c]-'0';
-		}
-		else return(FALSE);
-	}
-   if(GotZone && !GotNet)  node->Net=val;
-   else if(GotNode)        node->Point=val;
-   else                    node->Node=val;
-
-   return(TRUE);
-}
-
-void Copy4D(struct Node4D *node1,struct Node4D *node2)
-{
-   node1->Zone=node2->Zone;
-   node1->Net=node2->Net;
-   node1->Node=node2->Node;
-   node1->Point=node2->Point;
-}
-
-int Compare4D(struct Node4D *node1,struct Node4D *node2)
-{
-   if(node1->Zone!=0 && node2->Zone!=0)
-   {
-      if(node1->Zone > node2->Zone) return(1);
-      if(node1->Zone < node2->Zone) return(-1);
-   }
-
-   if(node1->Net  > node2->Net) return(1);
-   if(node1->Net  < node2->Net) return(-1);
-
-   if(node1->Node > node2->Node) return(1);
-   if(node1->Node < node2->Node) return(-1);
-
-   if(node1->Point > node2->Point) return(1);
-   if(node1->Point < node2->Point) return(-1);
-
-   return(0);
-}
-
-void Print4D(struct Node4D *n4d,uchar *dest)
-{
-   if(n4d->Point)
-      sprintf(dest,"%u:%u/%u.%u",n4d->Zone,
-                                     n4d->Net,
-                                     n4d->Node,
-                                     n4d->Point);
-
-   else
-      sprintf(dest,"%u:%u/%u",n4d->Zone,
-                                 n4d->Net,
-                                 n4d->Node);
-}
-
 bool rawParse4DPat(uchar *buf, struct Node4DPat *node)
 {
    ulong c=0,tempc=0;
@@ -451,24 +354,82 @@ int Compare2DPat(struct Node2DPat *nodepat,ushort net,ushort node)
       return(0);
 }
 
+/* Expand destpat */
 
-bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain)
+bool iswildcard(uchar *str)
 {
-   ulong c=0;
-   uchar buf2[100];
+   int c;
 
-   domain[0]=0;
+   for(c=0;c<strlen(str);c++)
+      if(str[c]=='*' || str[c]=='?') return(TRUE);
 
-   mystrncpy(buf2,buf,100);
+   return(FALSE);
+}
 
-   for(c=0;c<strlen(buf2);c++)
-      if(buf2[c]=='@') break;
-
-   if(buf2[c]=='@')
+void ExpandNodePat(struct Node4DPat *temproute,struct Node4D *dest,struct Node4D *sendto)
+{
+   long region,hub;
+	struct Node4D n4d;
+	   
+   region=0;
+   hub=0; 
+   
+   if(config.cfg_NodelistType)
    {
-      buf2[c]=0;
-      mystrncpy(domain,&buf2[c+1],20);
-   }
+		Copy4D(&n4d,dest);
+		n4d.Point=0;
 
-   return Parse4D(buf2,n4d);
+      if(temproute->Type == PAT_REGION) region=(*config.cfg_NodelistType->nlGetRegion)(&n4d);
+      if(temproute->Type == PAT_HUB) hub=(*config.cfg_NodelistType->nlGetHub)(&n4d);
+     
+      if(region == -1) region=0;
+      if(hub == -1) hub=0;
+   }
+   
+   if(region == 0) region=dest->Net;
+   
+   switch(temproute->Type)
+   {
+      case PAT_PATTERN:
+         sendto->Zone  = iswildcard(temproute->Zone)  ? dest->Zone  : atoi(temproute->Zone);
+         sendto->Net   = iswildcard(temproute->Net)   ? dest->Net   : atoi(temproute->Net);
+         sendto->Node  = iswildcard(temproute->Node)  ? dest->Node  : atoi(temproute->Node);
+         sendto->Point = iswildcard(temproute->Point) ? dest->Point : atoi(temproute->Point);
+         break;
+
+      case PAT_ZONE:
+         sendto->Zone = dest->Zone;
+         sendto->Net = dest->Zone;
+         sendto->Node = 0;
+         sendto->Point = 0;
+         break;
+
+      case PAT_REGION:
+         sendto->Zone = dest->Zone;
+         sendto->Net = region;
+         sendto->Node = 0;
+         sendto->Point = 0;
+         break;
+
+      case PAT_NET:
+         sendto->Zone = dest->Zone;
+         sendto->Net = dest->Net;
+         sendto->Node = 0;
+         sendto->Point = 0;
+         break;
+
+      case PAT_HUB:
+         sendto->Zone = dest->Zone;
+         sendto->Net = dest->Net;
+         sendto->Node = hub;
+         sendto->Point = 0;
+         break;
+
+      case PAT_NODE:
+         sendto->Zone = dest->Zone;
+         sendto->Net = dest->Net;
+         sendto->Node = dest->Node;
+         sendto->Point = 0;
+         break;
+   }
 }

@@ -101,7 +101,7 @@ bool mmAddPath(uchar *str,struct jbList *list)
    }
 
    mystrncpy(path->Path[path->Paths],str,100);
-   strip(path->Path[path->Paths]);
+   striptrail(path->Path[path->Paths]);
    path->Paths++;
 
    return(TRUE);

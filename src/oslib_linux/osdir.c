@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -39,8 +40,8 @@ bool osReadDir(uchar *dirname,struct jbList *filelist,bool (*acceptfunc)(uchar *
 
          MakeFullPath(dirname,dirent->d_name,buf,200);
 
-	 if(stat(buf,&st) == 0)
-	 {
+			if(stat(buf,&st) == 0)
+	 		{
             if(!(tmp=(struct osFileEntry *)osAllocCleared(sizeof(struct osFileEntry))))
             {
                jbFreeList(filelist);

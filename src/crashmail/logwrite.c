@@ -31,7 +31,12 @@ bool OpenLogfile(uchar *logfile)
 #endif
 
    if(!(logfh=osOpen(logfile,MODE_READWRITE)))
+	{
+		ulong err=osError();
+      printf("Failed to open logfile %s\n",config.cfg_LogFile);
+		printf("Error: %s\n",osErrorMsg(err));	
       return(FALSE);
+	}
 
    osSeek(logfh,0,OFFSET_END);
 
@@ -97,7 +102,7 @@ void LogWrite(ulong level,ulong category,uchar *fmt,...)
    time(&t);
    tp=localtime(&t);
 
-   fprintf(logfh,"%c %02d-%s-%02d %02d:%02d:%02d ",
+   osFPrintf(logfh,"%c %02d-%s-%02d %02d:%02d:%02d ",
       categoryletters[category],
       tp->tm_mday,
       monthnames[tp->tm_mon],
@@ -106,8 +111,8 @@ void LogWrite(ulong level,ulong category,uchar *fmt,...)
       tp->tm_min,
       tp->tm_sec);
 
-   vfprintf(logfh,fmt,args);
-   fprintf(logfh,"\n");
+   osVFPrintf(logfh,fmt,args);
+   osFPrintf(logfh,"\n");
 
    va_end(args);
 }

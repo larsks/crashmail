@@ -369,7 +369,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
 
          LastCNode->DefaultGroup=buf2[0];
       }
-      else if(stricmp(cfgword,"AREA")==0 || stricmp(cfgword,"NETMAIL")==0)
+      else if(stricmp(cfgword,"AREA")==0 || stricmp(cfgword,"NETMAIL")==0 || stricmp(cfgword,"LOCALAREA")==0)
       {
          if(!(tmparea=(struct Area *)osAllocCleared(sizeof(struct Area))))
          {
@@ -452,7 +452,18 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
                return(FALSE);
             }
 
-            LastArea->Flags|=AREA_NETMAIL;
+            LastArea->AreaType=AREATYPE_NETMAIL;
+         }
+         else if(stricmp(cfgword,"LOCALAREA")==0)
+         {
+            if(!LastArea->Messagebase)
+            {
+               sprintf(cfgerr,"Netmail area cannot be pass-through");
+               osClose(cfgfh);
+               return(FALSE);
+            }
+
+            LastArea->AreaType=AREATYPE_LOCAL;
          }
          else if(stricmp(LastArea->Tagname,"BAD")==0)
          {
@@ -463,12 +474,16 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
                return(FALSE);
             }
 
-            LastArea->Flags|=AREA_BAD;
+            LastArea->AreaType=AREATYPE_BAD;
          }
          else if(stricmp(LastArea->Tagname,"DEFAULT")==0 || strnicmp(LastArea->Tagname,"DEFAULT_",8)==0)
          {
-            LastArea->Flags|=AREA_DEFAULT;
+            LastArea->AreaType=AREATYPE_DEFAULT;
          }
+			else
+			{
+				LastArea->AreaType=AREATYPE_ECHOMAIL;
+			}			
       }
       else if(stricmp(cfgword,"UNCONFIRMED")==0)
       {
@@ -527,12 +542,26 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
       }
       else if(stricmp(cfgword,"EXPORT")==0)
       {
+			struct Node4D tpl4d;
+
          if(!LastArea)
          {
             strcpy(cfgerr,"No previous AREA line");
             osClose(cfgfh);
             return(FALSE);
          }
+
+         if(LastArea->AreaType != AREATYPE_ECHOMAIL && LastArea->AreaType != AREATYPE_DEFAULT)
+         {
+            strcpy(cfgerr,"Not an echomail or default area");
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+			tpl4d.Zone=0;
+			tpl4d.Net=0;
+			tpl4d.Node=0;
+			tpl4d.Point=0;
 
          while(jbstrcpy(buf2,cfgbuf,100,&jbcpos))
          {
@@ -556,13 +585,16 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
                strcpy(buf2,&buf2[1]);
             }
 
-            if(!(Parse4D(buf2,&tmp4d)))
+            if(!(Parse4DTemplate(buf2,&tmp4d,&tpl4d)))
             {
                sprintf(cfgerr,"Invalid node number \"%s\"",buf2);
                osClose(cfgfh);
                return(FALSE);
             }
-
+				
+				Copy4D(&tpl4d,&tmp4d);
+				tpl4d.Point=0;
+				
             for(tmpnode=(struct ConfigNode *)cfg->CNodeList.First;tmpnode;tmpnode=tmpnode->Next)
                if(Compare4D(&tmp4d,&tmpnode->Node)==0) break;
 
@@ -594,7 +626,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
             return(FALSE);
          }
 
-         if(!(LastArea->Flags & AREA_NETMAIL))
+         if(LastArea->AreaType != AREATYPE_NETMAIL)
          {
             strcpy(cfgerr,"Not a netmail area");
             osClose(cfgfh);
@@ -1740,13 +1772,18 @@ bool CheckConfig(struct Config *cfg,uchar *cfgerr)
    /* Check for areas with same path */
 
    for(a1=(struct Area *)cfg->AreaList.First;a1;a1=a1->Next)
-      for(a2=a1->Next;a2;a2=a2->Next)
-         if(stricmp(a1->Path,a2->Path)==0 && a1->Messagebase && a2->Messagebase)
-         {
-            sprintf(cfgerr,"The areas %s and %s both have the same path",a1->Tagname,a2->Tagname);
-            return(FALSE);
-         }
-
+	{
+		if(a1->AreaType != AREATYPE_DEFAULT)
+		{
+	      for(a2=a1->Next;a2;a2=a2->Next)
+   	      if(stricmp(a1->Path,a2->Path)==0 && a1->Messagebase && a2->Messagebase)
+      	   {
+         	   sprintf(cfgerr,"The areas %s and %s both have the same path",a1->Tagname,a2->Tagname);
+            	return(FALSE);
+	         }
+		}
+	}
+	
    return(TRUE);
 }
 
@@ -1907,8 +1944,11 @@ void WriteArea(struct Area *tmparea,osFile osfh)
    struct BannedNode *tmpbnode;
    ulong c;
 
-   if(tmparea->Flags & AREA_NETMAIL)
+   if(tmparea->AreaType == AREATYPE_NETMAIL)
       osFPrintf(osfh,"NETMAIL ");
+
+   if(tmparea->AreaType == AREATYPE_LOCAL)
+      osFPrintf(osfh,"LOCALAREA ");
 
    else
       osFPrintf(osfh,"AREA ");
@@ -1928,7 +1968,7 @@ void WriteArea(struct Area *tmparea,osFile osfh)
       osFPrintf(osfh,"\n");
 	}
 	      
-   if(tmparea->Flags & AREA_NETMAIL)
+   if(tmparea->AreaType == AREATYPE_NETMAIL)
    {
       c=0;
 
@@ -1946,8 +1986,8 @@ void WriteArea(struct Area *tmparea,osFile osfh)
       }
       if(c!=0) osFPrintf(osfh,"\n");
    }
-   else
-      {
+   else if(tmparea->AreaType == AREATYPE_ECHOMAIL || tmparea->AreaType == AREATYPE_DEFAULT)
+   {
       c=0;
 
       for(tmptnode=(struct TossNode *)tmparea->TossNodes.First;tmptnode;tmptnode=tmptnode->Next)
@@ -2041,13 +2081,15 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
 
    if(!(oldfh=osOpen(cfg->filename,MODE_OLDFILE)))
    {
-      sprintf(cfgerr,"Unable to write to read file %s\n",cfgtemp);
+		ulong err=osError();
+      sprintf(cfgerr,"Unable to read file %s (error: %s)",cfgtemp,osErrorMsg(err));
       return(FALSE);
    }
 
    if(!(newfh=osOpen(cfgtemp,MODE_NEWFILE)))
    {
-      sprintf(cfgerr,"Unable to write to config file %s\n",cfgtemp);
+		ulong err=osError();
+      sprintf(cfgerr,"Unable to write to config file %s (error: %s)",cfgtemp,osErrorMsg(err));
       osClose(oldfh);
       return(FALSE);
    }

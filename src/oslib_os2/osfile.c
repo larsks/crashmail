@@ -1,30 +1,29 @@
+#include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
 
 #include <shared/types.h>
-
 #include <oslib/osfile.h>
-
-extern bool nomem,diskfull;
-
-/* OBS! Klarar _inte_ Read/Write mode */
 
 osFile osOpen(uchar *name,ulong mode)
 {
    FILE *fh;
 
-   if(mode == MODE_NEWFILE)
-      return (osFile) fopen(name,"wb");
-
-   if(mode == MODE_OLDFILE)
-      return (osFile )fopen(name,"rb");
-
-   /* MODE_READWRITE */
-   
-   if(!(fh=fopen(name,"r+b")))
-      fh=fopen(name,"w+b");
-
+   if(mode == MODE_NEWFILE) 
+	{
+		fh=fopen(name,"wb");
+	}
+   else if(mode == MODE_OLDFILE) 
+	{
+		fh=fopen(name,"rb");
+	}
+	else
+	{
+   	if(!(fh=fopen(name,"r+b")))
+	      fh=fopen(name,"w+b");
+	}
+	
    return (osFile) fh;
 }
 
@@ -50,22 +49,28 @@ ulong osRead(osFile os,void *buf,ulong bytes)
    return fread(buf,1,bytes,(FILE *)os);
 }
 
-void osPutChar(osFile os, uchar ch)
+bool osPutChar(osFile os, uchar ch)
 {
    if(fputc(ch,(FILE *)os)==EOF)
-      diskfull=TRUE;
+		return(FALSE);
+		
+	return(TRUE);
 }
 
-void osWrite(osFile os,const void *buf,ulong bytes)
+bool osWrite(osFile os,const void *buf,ulong bytes)
 {
    if(fwrite(buf,1,bytes,(FILE *)os)!=bytes)
-      diskfull=TRUE;
+		return(FALSE);
+		
+	return(TRUE);
 }
 
-void osPuts(osFile os,uchar *str)
+bool osPuts(osFile os,uchar *str)
 {
    if(fputs(str,(FILE *)os)==EOF)
-      diskfull=TRUE;
+		return(FALSE);
+		
+	return(TRUE);
 }
 
 ulong osFGets(osFile os,uchar *str,ulong max)
@@ -95,13 +100,32 @@ ulong osFTell(osFile os)
    return ftell((FILE *)os);
 }
 
-void osFPrintf(osFile os,uchar *fmt,...)
+
+bool osFPrintf(osFile os,uchar *fmt,...)
 {
    va_list args;
-
+	int res;
+	
    va_start(args, fmt);
-   vfprintf(os,fmt,args);
+   res=vfprintf(os,fmt,args);
    va_end(args);
+	
+	if(!res)
+		return(FALSE);
+		
+	return(TRUE);
+}
+
+bool osVFPrintf(osFile os,uchar *fmt,va_list args)
+{
+	int res;
+	
+   res=vfprintf(os,fmt,args);
+	
+	if(!res)
+		return(FALSE);
+		
+	return(TRUE);
 }
 
 void osSeek(osFile fh,ulong offset,short mode)

@@ -6,6 +6,8 @@
 #include <oslib/osfile.h>
 
 #include <shared/parseargs.h>
+#include <shared/node4d.h>
+
 #include <cmnllib/cmnllib.h>
 
 #define VERSION "1.0"
@@ -22,59 +24,7 @@ struct argument args[] =
      { ARGTYPE_STRING, "DIRECTORY", ARGFLAG_AUTO,                      NULL },
      { ARGTYPE_END,    NULL,        0,                                 0    } };
 
-struct Node4D
-{
-   ushort Zone,Net,Node,Point;
-};
-
 bool nomem,diskfull;
-
-bool Parse4D(uchar *buf, struct Node4D *node)
-{
-   ulong c=0,val=0;
-   bool GotZone=FALSE,GotNet=FALSE,GotNode=FALSE;
-
-   node->Zone=0;
-   node->Net=0;
-   node->Node=0;
-   node->Point=0;
-
-	for(c=0;c<strlen(buf);c++)
-	{
-		if(buf[c]==':')
-		{
-         if(GotZone || GotNet || GotNode) return(FALSE);
-			node->Zone=val;
-         GotZone=TRUE;
-			val=0;
-	   }
-		else if(buf[c]=='/')
-		{
-         if(GotNet || GotNode) return(FALSE);
-         node->Net=val;
-         GotNet=TRUE;
-			val=0;
-		}
-		else if(buf[c]=='.')
-		{
-         if(GotNode) return(FALSE);
-         node->Node=val;
-         GotNode=TRUE;
-			val=0;
-		}
-		else if(buf[c]>='0' && buf[c]<='9')
-		{
-         val*=10;
-         val+=buf[c]-'0';
-		}
-		else return(FALSE);
-	}
-   if(GotZone && !GotNet)  node->Net=val;
-   else if(GotNode)        node->Point=val;
-   else                    node->Node=val;
-
-   return(TRUE);
-}
 
 void strip(uchar *str)
 {                                                                                  int c;

@@ -243,12 +243,32 @@ bool IsBad(uchar *file)
    return(FALSE);
 }
 
-void strip(uchar *str)
+void striptrail(uchar *str)
 {
    int c;
 
-   for(c=strlen(str)-1;str[c] < 33 && c>=0;c--) str[c]=0;
+   for(c=strlen(str)-1;str[c] < 33 && c>=0;c--) 
+		str[c]=0;
 }
+
+
+void striplead(uchar *str)
+{
+   int c;
+
+	c=0;
+	
+	while(str[c]==' ')
+		c++;
+
+	strcpy(str,&str[c]);
+}
+
+void stripleadtrail(uchar *str)
+{
+	striplead(str);
+	striptrail(str);
+}	
 
 void BadFile(uchar *filename,uchar *comment)
 {
@@ -274,9 +294,11 @@ void BadFile(uchar *filename,uchar *comment)
 
    } while(osExists(destname));
 
-   if(!MoveFile(filename,destname))
+   if(!movefile(filename,destname))
    {
+		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to move %s to %s",filename,destname);
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return;
    }
 
@@ -325,15 +347,18 @@ void MakeFidoDate(time_t tim,uchar *dest)
 
 #define COPYBUFSIZE 5000
 
-bool CopyFile(uchar *file,uchar *newfile)
+bool copyfile(uchar *file,uchar *newfile)
 {
    osFile ifh,ofh;
    ulong len;
    uchar *copybuf;
 
    if(!(copybuf=(uchar *)malloc(COPYBUFSIZE)))
+	{
+		nomem=TRUE;
       return(FALSE);
-
+	}
+	
    if(!(ifh=osOpen(file,MODE_OLDFILE)))
    {
       free(copybuf); 
@@ -347,15 +372,18 @@ bool CopyFile(uchar *file,uchar *newfile)
       return(FALSE);
    }
 
-   while((len=osRead(ifh,copybuf,COPYBUFSIZE)) && !diskfull)
-      osWrite(ofh,copybuf,len);
+   while((len=osRead(ifh,copybuf,COPYBUFSIZE)))
+	{
+      if(!osWrite(ofh,copybuf,len))
+			{ ioerror=TRUE; ioerrornum=osError(); }
+	}	
 
    free(copybuf);
 
    osClose(ofh);
    osClose(ifh);
 
-   if(diskfull)
+   if(ioerror)
    {
       osDelete(newfile);
       return(FALSE);
@@ -364,12 +392,12 @@ bool CopyFile(uchar *file,uchar *newfile)
    return(TRUE);
 }
 
-bool MoveFile(uchar *file,uchar *newfile)
+bool movefile(uchar *file,uchar *newfile)
 {
    if(osRename(file,newfile))
       return(TRUE); /* rename was enough */
 
-   if(!CopyFile(file,newfile))
+   if(!copyfile(file,newfile))
       return(FALSE);
  
    osDelete(file);
@@ -515,6 +543,27 @@ time_t FidoToTime(uchar *date)
    return(t);
 }
 
+bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain)
+{
+   ulong c=0;
+   uchar buf2[100];
+
+   domain[0]=0;
+
+   mystrncpy(buf2,buf,100);
+
+   for(c=0;c<strlen(buf2);c++)
+      if(buf2[c]=='@') break;
+
+   if(buf2[c]=='@')
+   {
+      buf2[c]=0;
+      mystrncpy(domain,&buf2[c+1],20);
+   }
+
+   return Parse4D(buf2,n4d);
+}
+
 bool ExtractAddress(uchar *origin, struct Node4D *n4d,uchar *domain)
 {
    ulong pos,e;
@@ -564,12 +613,4 @@ unsigned long hextodec(char *hex)
       c++;
    }
 }
-
-
-
-
-
-
-
-
 

@@ -7,7 +7,9 @@
 ***********************************************************************/
 #include <stdio.h>
 #include <errno.h>
+
 #include "jam.h"
+#include "structrw.h"
 
 /***********************************************************************
 **
@@ -37,8 +39,7 @@ int JAM_ReadLastRead( s_JamBase*	Base_PS,
 
     for ( Pos_I = 0; ; Pos_I++ ) {
 
-	if ( 1 > fread( &Record_S, sizeof( s_JamLastRead ),
-		        1, Base_PS->LrdFile_PS ) ) {
+   if ( 1 > freadjamlastread(Base_PS->LrdFile_PS,&Record_S) ) {
             if ( feof(Base_PS->LrdFile_PS) )
 		return JAM_NO_USER;
 	    Base_PS->Errno_I = errno;
@@ -81,8 +82,7 @@ int JAM_WriteLastRead( s_JamBase* 	Base_PS,
 	}
 
 	/* be safe, check it */
-	if ( 1 > fread( &Record_S, sizeof( s_JamLastRead ),
-		        1, Base_PS->LrdFile_PS ) ) {
+   if ( 1 > freadjamlastread(Base_PS->LrdFile_PS,&Record_S) ) {
 	    Base_PS->Errno_I = errno;
 	    return JAM_IO_ERROR;
 	}
@@ -95,8 +95,7 @@ int JAM_WriteLastRead( s_JamBase* 	Base_PS,
 		return JAM_IO_ERROR;
 	    }
 
-	    if ( 1 > fwrite( Record_PS, sizeof( s_JamLastRead ), 1,
-			     Base_PS->LrdFile_PS ) ) {
+       if ( 1 > fwritejamlastread(Base_PS->LrdFile_PS,Record_PS) ) {
 		Base_PS->Errno_I = errno;
 		return JAM_IO_ERROR;
 	    }
@@ -115,9 +114,7 @@ int JAM_WriteLastRead( s_JamBase* 	Base_PS,
 
     for ( Pos_I = 0; ; Pos_I++ ) {
 
-	if ( 1 > fread( &Record_S, sizeof( s_JamLastRead ),
-		        1, Base_PS->LrdFile_PS ) ) {
-
+   if ( 1 > freadjamlastread(Base_PS->LrdFile_PS,&Record_S) ) {
             if ( feof(Base_PS->LrdFile_PS) ) {
 
 		/* user not in file, append a new record  */
@@ -142,8 +139,7 @@ int JAM_WriteLastRead( s_JamBase* 	Base_PS,
 	}
     }
 
-    if ( 1 > fwrite( Record_PS, sizeof( s_JamLastRead ),
-		     1, Base_PS->LrdFile_PS ) ) {
+    if ( 1 > fwritejamlastread(Base_PS->LrdFile_PS,Record_PS) ) {
 	Base_PS->Errno_I = errno;
 	return JAM_IO_ERROR;
     }
