@@ -328,9 +328,17 @@ int main(int argc, char **argv)
       while(osFGets(ifh,readbuf,100))
       {
          if(readbuf[0]!=0)
-            readbuf[strlen(readbuf)-1]=0;
-
-			osFPrintf(ofh,"%s\x0d",readbuf);
+         {
+            if('\n'==readbuf[strlen(readbuf)-1])
+            {
+               readbuf[strlen(readbuf)-1]=0;
+			      osFPrintf(ofh,"%s\x0d",readbuf);
+			   }
+			   else
+			   {
+			      osFPrintf(ofh,"%s",readbuf);
+			   }
+			}
       }
 
 		osClose(ifh);

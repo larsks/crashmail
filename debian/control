@@ -2,7 +2,7 @@ Source: crashmail
 Section: mail
 Priority: optional
 Maintainer: peter karlsson <peterk@debian.org>
-Standards-Version: 3.0.1
+Standards-Version: 3.2.1
 Build-Depends: debhelper
 
 Package: crashmail
