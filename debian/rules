@@ -62,7 +62,7 @@ binary-arch: build install
 	dh_installchangelogs doc/History.txt
 	dh_link
 	dh_strip
-	dh_compress
+	dh_compress -XAreafixHelp.txt
 	dh_fixperms
 #	# You may want to make some executables suid here.
 #	dh_suidregister
