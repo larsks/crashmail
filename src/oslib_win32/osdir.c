@@ -48,7 +48,7 @@ bool osReadDir(uchar *dirname,struct jbList *filelist,bool (*acceptfunc)(uchar *
                return(FALSE);
             }
 
-            mystrncpy(tmp->Name,dirent->d_name,40);
+            mystrncpy(tmp->Name,dirent->d_name,100);
             tmp->Size=st.st_size;
             tmp->Date=st.st_mtime;
 
@@ -89,7 +89,7 @@ struct osFileEntry *osGetFileEntry(uchar *file)
    if(!(tmp=(struct osFileEntry *)osAllocCleared(sizeof(struct osFileEntry))))
       return(FALSE);
 
-   mystrncpy(tmp->Name,GetFilePart(file),40);
+   mystrncpy(tmp->Name,GetFilePart(file),100);
 
    tmp->Size=st.st_size;
    tmp->Date=st.st_mtime;

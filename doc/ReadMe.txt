@@ -1,5 +1,5 @@
 
-                               CrashMail II 0.4
+                                 CrashMail II
 
                              The Next Generation!
 

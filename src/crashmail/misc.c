@@ -120,7 +120,10 @@ int DateCompareFE(const void *f1, const void *f2)
    if((*(struct osFileEntry **)f1)->Date < (*(struct osFileEntry  **)f2)->Date) 
       return(-1);
 
-   return(0);
+   return stricmp((*(struct osFileEntry **)f1)->Name,(*(struct osFileEntry **)f2)->Name);
+
+	/* Compares by filenames to get packet files with the same date in the right
+		order */
 }
 
 bool SortFEList(struct jbList *list)
@@ -532,27 +535,25 @@ bool ExtractAddress(uchar *origin, struct Node4D *n4d,uchar *domain)
 }
 
 
-unsigned long HexToDec(char *hex)
+unsigned long hextodec(char *hex)
 {
    char *hextab="0123456789abcdef";
    int c=0,c2=0;
    unsigned long result=0;
 
-   while(hex[c])
+   for(;;)
    {
-      hex[c]|=32;
-
       for(c2=0;c2<16;c2++)
-      {
-         if(hex[c] == hextab[c2])
-         {
-            result *= 16;
-            result += c2;
-         }
-      }
+         if(tolower(hex[c]) == hextab[c2]) break;
+		
+		if(c2 == 16)
+			return(result); /* End of correct hex number */
+
+      result *= 16;
+      result += c2;
+
       c++;
    }
-   return(result);
 }
 
 

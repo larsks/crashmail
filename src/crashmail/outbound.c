@@ -77,7 +77,13 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
          /* Not in main zone */
 
          num=n4d->Zone;
-         if(num > 0xfff) num=0xfff;
+
+			if(!(config.cfg_Flags & CFG_NOMAXOUTBOUNDZONE))
+			{
+         	if(num > 0xfff) 
+					num=0xfff;
+			}
+			
          sprintf(buf,".%03lx",num);
          strcat(basename,buf);         
       }
@@ -98,7 +104,13 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
       strcat(basename,tmproute->Aka->Domain);
       
       num=n4d->Zone;
-      if(num > 0xfff) num=0xfff;
+
+		if(!(config.cfg_Flags & CFG_NOMAXOUTBOUNDZONE))
+		{
+         if(num > 0xfff) 
+				num=0xfff;
+		}
+
       sprintf(buf,".%03lx",num);
       strcat(basename,buf);
    }
@@ -137,12 +149,36 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
    }
 }
 
+
+void WriteIndex(void)
+{
+	osFile fh;
+	uchar buf[200];
+	struct ConfigNode *cnode;
+	
+	MakeFullPath(config.cfg_PacketDir,"cmindex",buf,200);
+
+	/* Get basenum */
+	
+	if(!(fh=osOpen(buf,MODE_NEWFILE)))
+		return;
+		
+	for(cnode=(struct ConfigNode *)config.CNodeList.First;cnode;cnode=cnode->Next)
+		if(cnode->LastArcName[0]) 
+		{
+			Print4D(&cnode->Node,buf);
+			osFPrintf(fh,"%s %s\n",buf,cnode->LastArcName);
+		}
+
+	osClose(fh);
+}
+
 void ReadIndex(void)
 {
 	osFile fh;
 	uchar buf[200],buf2[200];
 	ulong jbcpos;
-	struct ConfigNode *cnode;
+	struct ConfigNode *cnode,*c1,*c2;
 	struct Node4D n4d;
 	
 	MakeFullPath(config.cfg_PacketDir,"cmindex",buf,200);
@@ -170,40 +206,47 @@ void ReadIndex(void)
 	}
 	
 	osClose(fh);
-}
 
-void WriteIndex(void)
-{
-	osFile fh;
-	uchar buf[200];
-	struct ConfigNode *cnode;
+	/* Check for duplicates */
 	
-	MakeFullPath(config.cfg_PacketDir,"cmindex",buf,200);
+   for(c1=(struct ConfigNode *)config.CNodeList.First;c1;c1=c1->Next)
+      for(c2=c1->Next;c2;c2=c2->Next)
+         if(c1->LastArcName[0] && hextodec(c1->LastArcName) == hextodec(c2->LastArcName))
+         {
+				LogWrite(1,TOSSINGINFO,"Warning: The same bundle name is used for %u:%u/%u.%u and %u:%u/%u.%u",
+					c1->Node.Zone,
+					c1->Node.Net,
+					c1->Node.Node,
+					c1->Node.Point,
+					c2->Node.Zone,
+					c2->Node.Net,
+					c2->Node.Node,
+					c2->Node.Point);
+					
+				LogWrite(1,TOSSINGINFO,"Cleared bundle name for %u:%u/%u.%u",
+					c2->Node.Zone,
+					c2->Node.Net,
+					c2->Node.Node,
+					c2->Node.Point);
 
-	/* Get basenum */
-	
-	if(!(fh=osOpen(buf,MODE_NEWFILE)))
-		return;
-		
-	for(cnode=(struct ConfigNode *)config.CNodeList.First;cnode;cnode=cnode->Next)
-		if(cnode->LastArcName[0]) 
-		{
-			Print4D(&cnode->Node,buf);
-			osFPrintf(fh,"%s %s\n",buf,cnode->LastArcName);
-		}
-
-	osClose(fh);
+				c2->LastArcName[0]=0;
+				WriteIndex();
+         }
 }
 
 bool ExistsBasenum(ulong num)
 {
 	uchar name[20];
 	struct osFileEntry *fe;
-	
+	struct ConfigNode *cnode;
+		
 	sprintf(name,"%08lx.",num);
 
 	for(fe=(struct osFileEntry *)ArcList.First;fe;fe=fe->Next)
-		if(strnicmp(fe->Name,name,9)==0 && IsArc(fe->Name)) return(TRUE);
+		if(IsArc(fe->Name) && hextodec(fe->Name) == num) return(TRUE);
+
+	for(cnode=(struct ConfigNode *)config.CNodeList.First;cnode;cnode=cnode->Next)
+		if(cnode->LastArcName[0] && hextodec(cnode->LastArcName) == num) return(TRUE);
 		
 	return(FALSE);
 }
@@ -248,8 +291,7 @@ void MakeArcName(struct ConfigNode *cnode,uchar *dest)
 	}
 	else
 	{
-		mystrncpy(buf,cnode->LastArcName,9);
-		basenum=HexToDec(buf);
+		basenum=hextodec(cnode->LastArcName);
 	}
 				
 	/* Get latest in list*/
@@ -546,6 +588,7 @@ void UpdateFile(uchar *name)
 	{
 		fe->Date=newfe->Date;
 		fe->Size=newfe->Size;
+		osFree(newfe);
 	}		
 	else
 	{
@@ -688,7 +731,7 @@ bool PackFile(char *file)
 
          if(!MoveFile(file,pktname))
          {
-            LogWrite(1,SYSTEMERR,"Failed to move file \"%s\" to \"%s\"",pktname,buf2);
+            LogWrite(1,SYSTEMERR,"Failed to move file \"%s\" to \"%s\"",file,pktname);
 				UnlockBasename(basename);
 				return(FALSE);
          }

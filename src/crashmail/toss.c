@@ -14,7 +14,7 @@ bool Compare(uchar *str,uchar *recog)
       {
          strncpy(buf,&recog[d+1],2);
          buf[2]=0;
-         comp=HexToDec(buf);
+         comp=hextodec(buf);
          if(str[c]!=comp) return(FALSE);
          d+=3;
       }

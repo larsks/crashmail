@@ -1,39 +1,39 @@
-Nytt i version 0.2:
+Changes in version 0.4
 
- - CrashAreasBBS skriver inte längre netmailareor till areas.bbs. Det 
-   förvirrade GoldED ganska ordentligt...
+ - First public release
+ 
+Changes in version 0.42
 
- - CrashMail spyr inte längre på rader i configen som bara innehåller 
-   ett par mellanslag och sedan ingenting
+ - Fixed bug that occurred when sending mail to nodes with long addresses 
+   (e.g. 9999:8888/7777.6666)
 	
- - Det finns numera en låsningsmekanism som förhindrar att flera instanser
-   av CrashMail använder samma configfil samtidigt.
+ - Fixed an error message in the outbound handling
+ 
+ - Fixed a bug that occurred when auto-adding pass-through areas
+
+ - Fixed a small memory leak
+
+ - CrashMail got caught in an infinite loop when an unknown nodelist format
+   was specified in the config. This is now fixed.
 	
- - Ska numera skapa directories med rätt permissions
+ - CrashMail no longer segfaults at startup when pass-through areas are used!
  
-Nytt i version 0.3:
+ - CrashMail now adds packets to bundles in the correct order
+ 
+ - CrashMail would under some circumstances use the same bundle for more than
+   one node. This has been fixed and a mechanism that checks that the same
+   bundle is not used for more than one node has been added.
 
- - AreaFix
- 
- - Kan numera hantera fileattacher
- 
- - Change funkar
- 
- - Två nya argument till CrashMail: LOCK och UNLOCK
- 
- - Remap funkar
+ - Routing did not work properly when BOUNCEPOINTS was turned on. Fixed. 
 
- - Kan numera exportera texter >10000 bytes utan att krascha
- 
- - Kan logga till sysloggen under linux 
+ - Removed an unnecessary linebreak from the bounce messages.
 
- - Outboundhanteringen är klar
- 
-Nytt i version 0.4
+ - New configuration keyword: NOMAXOUTBOUNDZONE. See example.prefs for more
+   information.
 
- - Loggar inte allt som LOG_INFO till sysloggen längre
- 
- - CrashMaint fixad
- 
- - Slängde in AreafixHelp.txt
+ - CrashList did not handle Pvt nodes correctly. Fixed.
+
+ - There was a small mistake in the example configuration file. The keyword is
+   REMOTEAF, not REMOTEAREAFIX. 
+
  

@@ -35,7 +35,7 @@ bool MakeNetmailKludges(struct MemMessage *mm);
 time_t FidoToTime(uchar *date);
 bool ExtractAddress(uchar *origin, struct Node4D *n4d,uchar *domain);
 
-unsigned long HexToDec(char *hex);
+unsigned long hextodec(char *hex);
 
 
 

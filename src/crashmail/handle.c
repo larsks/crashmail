@@ -1387,7 +1387,7 @@ bool HandleNetmail(struct MemMessage *mm)
    struct Route      *tmproute;
    struct Remap      *remap;
    struct RemapNode  *remapnode;
-   struct Node4D     n4d;
+	struct Node4D     n4d,Dest4D;
    struct PatternNode *patternnode;
    struct AreaFixName *areafixname;
    struct Robot *robot;
@@ -1696,31 +1696,41 @@ bool HandleNetmail(struct MemMessage *mm)
 		/* Set destination */
 		
 		if(mm->Type == PKTS_NORMAL)
-         ExpandNodePat(&tmproute->DestPat,&mm->DestNode,&n4d);
+		{
+			uchar buf1[50],buf2[50],buf3[50];
 
+			Print4DPat(&tmproute->Pattern,buf1);
+			Print4DPat(&tmproute->DestPat,buf2);
+			Print4D(&tmproute->Aka->Node,buf3);
+			LogWrite(6,DEBUG,"Uses this route statement: ROUTE \"%s\" \"%s\" \"%s\"",buf1,buf2,buf3);
+
+         ExpandNodePat(&tmproute->DestPat,&mm->DestNode,&Dest4D);
+		}
 		else
-			Copy4D(&n4d,&mm->DestNode);
-
+		{
+			Copy4D(&Dest4D,&mm->DestNode);
+		}
+		
 	   /* Change */
 
 	   oldtype=mm->Type;
-   	mm->Type=ChangeType(&n4d,mm->Type);
+   	mm->Type=ChangeType(&Dest4D,mm->Type);
 
 	   if(mm->Type != oldtype)
    	{
       	LogWrite(4,TOSSINGINFO,"Changed priority for netmail to %lu:%lu/%lu.%lu from %s to %s",
-				n4d.Zone,n4d.Net,n4d.Node,n4d.Point,
+				Dest4D.Zone,Dest4D.Net,Dest4D.Node,Dest4D.Point,
          	prinames[oldtype],prinames[mm->Type]);
 		}
 
-		if(n4d.Point != 0)
+		if(Dest4D.Point != 0)
 		{
 			if(mm->Type == PKTS_DIRECT || mm->Type == PKTS_CRASH)
 			{
-				n4d.Point=0;
+				Dest4D.Point=0;
 
 				LogWrite(4,TOSSINGINFO,"Cannot send %s to a point, sending to %lu:%lu/%lu.%lu instead",
-					prinames[mm->Type],n4d.Zone,n4d.Net,n4d.Node,n4d.Point);
+					prinames[mm->Type],Dest4D.Zone,Dest4D.Net,Dest4D.Node,Dest4D.Point);
 		   }
 		}
 
@@ -1829,7 +1839,7 @@ bool HandleNetmail(struct MemMessage *mm)
                   mm->DestNode.Point);
 
                sprintf(buf,
-                  "Warning! Your message has been bounced because the node\x0d"
+                  "Warning! Your message has been bounced because the node "
                   "%u:%u/%u doesn't exist in the nodelist.\x0d"
                   "\x0d",
                      mm->DestNode.Zone,
@@ -1870,7 +1880,7 @@ bool HandleNetmail(struct MemMessage *mm)
                      mm->DestNode.Node,
                      mm->DestNode.Point);
 
-                  sprintf(buf,"Warning! Your message has been bounced because the point\x0d"
+                  sprintf(buf,"Warning! Your message has been bounced because the point "
                               "%u:%u/%u.%u doesn't exist.\x0d"
                               "\x0d",
                                  mm->DestNode.Zone,
@@ -1904,7 +1914,7 @@ bool HandleNetmail(struct MemMessage *mm)
                                                                                          mm->DestNode.Zone,mm->DestNode.Net,mm->DestNode.Node,mm->DestNode.Point);
 
 
-               sprintf(buf,"Warning! Your message has been bounced because because routing\x0d"
+               sprintf(buf,"Warning! Your message has been bounced because because routing "
                            "of file-attaches to %u:%u/%u.%u is not allowed.\x0d"
                            "\x0d",mm->DestNode.Zone,mm->DestNode.Net,mm->DestNode.Node,mm->DestNode.Point);
 
@@ -1932,7 +1942,7 @@ bool HandleNetmail(struct MemMessage *mm)
             {
                strcat(subjtemp,GetFilePart(buf));
 
-               LogWrite(4,TOSSINGINFO,"Routing file %s to %lu:%lu/%lu.%lu",GetFilePart(buf),n4d.Zone,n4d.Net,n4d.Node,n4d.Point);
+               LogWrite(4,TOSSINGINFO,"Routing file %s to %lu:%lu/%lu.%lu",GetFilePart(buf),Dest4D.Zone,Dest4D.Net,Dest4D.Node,Dest4D.Point);
 
                if(isscanning)
                {
@@ -1940,11 +1950,11 @@ bool HandleNetmail(struct MemMessage *mm)
                   {
 							MakeFullPath(config.cfg_PacketDir,GetFilePart(buf),buf2,200);
                      CopyFile(buf,buf2);
-                     AddFlow(buf2,&n4d,mm->Type,FLOW_DELETE);
+                     AddFlow(buf2,&Dest4D,mm->Type,FLOW_DELETE);
                   }
                   else
                   {
-                     AddFlow(buf,&n4d,mm->Type,FLOW_NONE);
+                     AddFlow(buf,&Dest4D,mm->Type,FLOW_NONE);
                   }
                }
                else
@@ -1954,11 +1964,11 @@ bool HandleNetmail(struct MemMessage *mm)
 
                   if(MoveFile(buf2,buf3))
                   {
-                     AddFlow(buf3,&n4d,mm->Type,FLOW_DELETE);
+                     AddFlow(buf3,&Dest4D,mm->Type,FLOW_DELETE);
                   }
                   else
                   {
-                     AddFlow(buf2,&n4d,mm->Type,FLOW_DELETE);
+                     AddFlow(buf2,&Dest4D,mm->Type,FLOW_DELETE);
                   }
                }
             }
@@ -1990,21 +2000,21 @@ bool HandleNetmail(struct MemMessage *mm)
             mm->DestNode.Net,
             mm->DestNode.Node,
             mm->DestNode.Point,
-            n4d.Zone,
-            n4d.Net,
-            n4d.Node,
-            n4d.Point);
+            Dest4D.Zone,
+            Dest4D.Net,
+            Dest4D.Node,
+            Dest4D.Point);
 		}
       else
       {
          LogWrite(5,TOSSINGINFO,"Sending message directly to %lu:%lu/%lu.%lu",
-            n4d.Zone,
-            n4d.Net,
-            n4d.Node,
-            n4d.Point);
+            Dest4D.Zone,
+            Dest4D.Net,
+            Dest4D.Node,
+            Dest4D.Point);
 		}
 		
-      if(!WriteNetMail(mm,&n4d,tmproute->Aka))
+      if(!WriteNetMail(mm,&Dest4D,tmproute->Aka))
          return(FALSE);
 
       if((mm->Attr & FLAG_AUDIT) && (config.cfg_Flags & CFG_ANSWERAUDIT) && istossing)

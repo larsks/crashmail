@@ -142,7 +142,7 @@ bool Init(void)
    exitprg=FALSE;
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
-      area->Messagebase->active=TRUE;
+      if(area->Messagebase) area->Messagebase->active=TRUE;
 
    return(TRUE);
 }

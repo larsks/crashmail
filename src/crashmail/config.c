@@ -836,7 +836,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
             return(FALSE);
          }
 
-         for(i=0;AvailNodelists[i].name;c++)
+         for(i=0;AvailNodelists[i].name;i++)
             if(stricmp(buf2,AvailNodelists[i].name)==0) break;
 
          if(!AvailNodelists[i].name)
@@ -1475,6 +1475,10 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
       {
          cfg->cfg_Flags|=CFG_INCLUDEFORWARD;
       }
+      else if(stricmp(cfgword,"NOMAXOUTBOUNDZONE")==0)
+      {
+         cfg->cfg_Flags|=CFG_NOMAXOUTBOUNDZONE;
+      }
       else if(stricmp(cfgword,"NOROUTE")==0)
       {
          cfg->cfg_Flags|=CFG_NOROUTE;
@@ -1896,7 +1900,11 @@ void WriteArea(struct Area *tmparea,osFile osfh)
       WriteSafely(osfh,tmparea->Path);
       osFPrintf(osfh,"\n");
    }
-      
+	else
+	{
+      osFPrintf(osfh,"\n");
+	}
+	      
    if(tmparea->Flags & AREA_NETMAIL)
    {
       c=0;

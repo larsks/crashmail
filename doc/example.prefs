@@ -282,6 +282,19 @@ ALLOWRESCAN
 
 INCLUDEFORWARD
 
+; NOMAXOUTBOUNDZONE 
+;
+; CrashMail normally puts outgoing mail for all zones >4095 in the outbound
+; directory for zone 4095 (usually outbound.fff). If this switch is turned 
+; on, CrashMail will use separate outbound directories also for zones >4095. 
+; The background of this option is that the Binkley outbound style originated 
+; on platforms where file names were limited to 8+3 characters. For 
+; compatibility with many older mailers, leave this switch turned off.
+; There are however some mailers that also expect to find mail for zones 
+; >4095 in separate outbound directories. 
+
+;NOMAXOUTBOUNDZONE 
+
 ; Groupnames
 ; ==========
 ;
@@ -365,7 +378,7 @@ DOMAIN "FidoNet"
 ; NODE <node> <packer name> <packet password> [<flags>]
 ; AREAFIXINFO <areafix password> <groups> <read-only groups> <add groups>
 ; DEFAULTGROUP <group>
-; REMOTEAREAFIX <areafix name> <areafix password>
+; REMOTEAF <areafix name> <areafix password>
 ; REMOTESYSOP <name>
 ;
 ; These are the nodes you interchange mail with. You can only send echomail
@@ -374,7 +387,7 @@ DOMAIN "FidoNet"
 ; area is in one of the read-only groups, the node will be added as
 ; read-only. If a new area is added in one of the add groups, this node will
 ; automatically be subscribed to it. The default group is the group used for
-; areas that are autoadded from this node. REMOTEAREAFIX and REMOTESYSOP are
+; areas that are autoadded from this node. REMOTEAF and REMOTESYSOP are
 ; used when CrashMail needs to send messages to the AreaFix or the sysop of
 ; this node.
 ;

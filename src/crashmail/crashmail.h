@@ -42,11 +42,11 @@
 #include "areafix.h"
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 4
+#define VERSION_MINOR 42
 
-#define VERSION "0.4"
+#define VERSION "0.42"
 
-#define TID_VERSION "0.4"
+#define TID_VERSION "0.42"
 
 extern struct jbList PktList;
 extern struct jbList DeleteList;
