@@ -1,0 +1,659 @@
+; Example configuration file for CrashMailII
+;
+; This file demonstrates all keywords you can use in the configuration file.
+;
+; General configuration
+; =====================
+;
+; SYSOP <name>
+;
+; This keyword lets you configure the name of the system operator. It is used
+; as the sender name of all messages that CrashMail generates. (Bounce
+; messages, receipts, AreaFix responses.) Max 36 characters.
+
+SYSOP "Johan Billing"
+
+; LOGFILE <filename>
+; LOGLEVEL <level>
+;
+; Here you can configure the logging in CrashMail. CrashMail will write all
+; log messages with a level lower than the level configured here both to the
+; console and to the specified file.
+;
+; The following loglevels exist:
+;
+;  1  Minimum
+;  2  Small
+;  3  Normal
+;  4  Extra
+;  5  Extreme
+;  6  Debug
+
+LOGFILE "c:\\fido\\logs\\crashmail.log"
+LOGLEVEL 5
+
+; DUPEFILE <filename> <maxsize>
+; DUPEMODE BAD/KILL/IGNORE
+;
+; Here the file that CrashMail uses for its duplicate detection is specified.
+; Maxsize is specified in KB and sets the maximum size of the dupetable. Note
+; that CrashMail needs this amount of memory in a continous memory block.
+; Each stored message uses about 39.0865 bytes in the dupe table.
+;
+; These are the available modes for dupe checking:
+;
+;  BAD        Dupes are moved to the BAD area
+;  KILL       Dupes are killed
+;  IGNORE     No dupechecking
+
+DUPEFILE "c:\\fido\\logs\\crashmail.dupes" 200
+DUPEMODE BAD
+
+; LOOPMODE IGNORE/LOG/LOG+BAD
+;
+; Loop-mails are netmails that are routed between two systems in an infite
+; loop. CrashMail can detect such mails by checking if you system is already
+; listed in the ^Via lines of the message. This keyword decides what
+; CrashMail should do when such a message is encountered.
+;
+; IGNORE   do nothing at all
+; LOG      CrashMail logs that it has encountered a loop-mail.
+; LOG+BAD  CrashMail logs the loop-mail and imports a copy to your BAD area.
+;          Only the kludges are imported to preserve privacy.
+
+LOOPMODE LOG+BAD
+
+; MAXPKTSIZE <maxsize>
+; MAXBUNDLESIZE <maxsize>
+;
+; Here you can configure the maximum size of the .pkt files and bundles that
+; CrashMail generates. If a file grows bigger than this limit, CrashMail
+; starts a new bundle/pkt instead. The limits are in KB.
+
+MAXPKTSIZE 50
+MAXBUNDLESIZE 100
+
+; DEFAULTZONE <zone>
+;
+; If CrashMail can't figure out the zone of a message in another way, the
+; zone configured here is used.
+
+DEFAULTZONE 2
+
+; NODELIST <path> <type>
+;
+; This is the nodelist that CrashMail should use. To see the supported
+; nodelist formats, type "crashmail version". The meaning of path may
+; be different for different nodelist formats.
+
+; Paths
+; =====
+;
+; INBOUND <directory>
+;
+; The inbound directory is the directory where CrashMail looks for .pkt files
+; and bundles to toss.
+
+INBOUND "c:\\fido\\inbound"
+
+; OUTBOUND <directory>
+;
+; The outbound directory is where CrashMail writes the flow files that tells
+; the mailer what files to send.
+
+OUTBOUND "c:\\fido\\outbound"
+
+; TEMPDIR <directory>
+;
+; This is the directory where CrashMail unpacks incoming bundles.
+;
+
+TEMPDIR "c:\\fido\\temp"
+
+; CREATEPKTDIR <directory>
+;
+; This is the directory where CrashMail stores created .pkt files until they
+; are stored in the packet directory.
+
+CREATEPKTDIR "c:\\fido\\temp"
+
+; PACKETDIR <directory>
+;
+; This is the directory where CrashMail stores generated bundles.
+
+PACKETDIR "c:\\fido\\packets"
+
+; STATSFILE <filename>
+;
+; This is the file where CrashMail stores statistics about areas and nodes.
+; You can display the contents of this file with CrashStats.
+
+STATSFILE "c:\\fido\\crashmail.stats"
+
+; Switches
+; ========
+;
+; STRIPRE
+;
+; CrashMail should strip all occurences of "Re:", "Re[x]:" and "Re^x:"
+; in the subject of messages before they are imported.
+;
+STRIPRE
+
+; FORCEINTL
+;
+; CrashMail should add an INTL line to all messages even when the sender
+; and the destination are in the same zone.
+; originating
+
+FORCEINTL
+
+; NOROUTE
+;
+; CrashMail should never route netmails and just import them instead.
+
+NOROUTE
+
+;
+; ANSWERRECEIPT
+;
+; CrashMail should honor receipt requests.
+;
+
+ANSWERRECEIPT
+
+; ANSWERAUDIT
+;
+; CrashMail should honor audit requests.
+;
+
+ANSWERAUDIT
+
+; CHECKSEENBY
+;
+; CrashMail should never send echomail to nodes that already are in the
+; SEEN-BY lines.
+
+CHECKSEENBY
+
+; CHECKPKTDEST
+;
+; CrashMail should check the destination node of all incoming .pkt files and
+; only toss them if thety are adressed to one of the local AKAs.
+
+;CHECKPKTDEST
+
+; PATH3D
+;
+; CrashMail also adds points to ^PATH lines. Not always a good idea since it
+; is not allowed in the echomail standard.
+
+PATH3D
+
+; IMPORTEMPTYNETMAIL
+;
+; Some mailers like FrontDoor like to send meaningsless empty netmails with
+; no text. Spefify this options if you for some reason want to import such
+; mails.
+
+;IMPORTEMPTYNETMAIL
+
+; IMPORTAREAFIX
+;
+; Use this if you want messages to CrashMail's internal AreaFix to be
+; imported to your netmail area.
+
+IMPORTAREAFIX
+
+; NODIRECTATTACH
+;
+; Normally CrashMail changes all netmail messages with attached file to
+; direct status. Use this to turn off this behaviour.
+
+;NODIRECTATTACH
+
+; BOUNCEPOINTS
+;
+; Use this to bounce netmail messages to non-existing points with one of
+; your AKAs as boss.
+
+;BOUNCEPOINTS
+
+; IMPORTSEENBY
+;
+; Use this if you want to import the SEEN-BY lines.
+
+IMPORTSEENBY
+
+; AREAFIXREMOVE
+;
+; Use this to allow the AreaFix to remove areas when the last downlink
+; unsubscribed.
+
+AREAFIXREMOVE
+
+; WEEKDAYNAMING
+;
+; Name bundles according to the day of the week they are created.
+
+WEEKDAYNAMING
+
+; ADDTID
+;
+; Add a ^TID line to all messages exported by CrashMail.
+
+ADDTID
+
+; ALLOWRESCAN
+;
+; Allow nodes to rescan areas in the AreaFix.
+
+ALLOWRESCAN
+
+; FORWARDPASSTHRU
+;
+; Make areas created when they were forward-requested by a downlink pass-thru
+; rather than importing them to your messagebase.
+
+;FORWARDPASSTHRU
+
+; BOUNCEHEADERONLY
+;
+; Only write the header and do not include message text when messages are
+; bounced.
+
+;BOUNCEHEADERONLY
+
+; REMOVEWHENFEED
+;
+; CrashMail should remove areas when the feed unsubscribes to them. AreaFix
+; messages or notification messages can be sent to your downlinks, see the
+; Node configuration.
+
+;REMOVEWHENFEED
+
+; INCLUDEFORWARD
+;
+; Include all forward-requestable areas in the area lists generated by the
+; AreaFix.
+
+INCLUDEFORWARD
+
+; Groupnames
+; ==========
+;
+; GROUPNAME <letter> <description>
+;
+; Here you can describe you groups. These descriptions are used in the area
+; lists created by the AreaFix.
+
+GROUPNAME A "Molia"
+GROUPNAME H "Lokala"
+
+; Bounce
+; ======
+;
+; BOUNCE <pattern1> <pattern2> ...
+;
+; Bounce messages that match one of these pattern if the destination node
+; doesn't exist in the nodelist. This only works if you use a nodelist with
+; CrashMail. You can have multiple BOUNCE lines.
+
+BOUNCE "1:*/*.*" "2:*/*.*" "3:*/*.*" "4:*/*.*" "5:*/*.*" "6:*/*.*"
+
+; Fileattach
+; ==========
+;
+; FILEATTACH <pattern1> <pattern2> ...
+;
+; CrashMail will refuse to route files to nodes that are not configured
+; here and will send a bounce messages. Multiple FILEATTACH lines are
+; allowed.
+
+FILEATTACH "2:200/207.5"
+
+; Change
+; ======
+;
+; CHANGE <old flavour> <pattern> <new flavour>
+;
+; CrashMail can change the flavour (also known as priority) of netmail. Note
+; that this does not affect echomail.
+
+;CHANGE *             2:200/207.5  Hold
+;CHANGE Normal,Direct 2:200/*.*    Crash
+
+; Packers
+; =======
+;
+; PACKER <name> <pack command> <unpack command> <recog>
+;
+; Here you configure the external packers that CrashMail uses. %a stands for
+; archive name and %f stands for file name. The recog string is used when
+; CrashMail detects the packer used to pack a bundle. If the beginning of
+; the bundle matches the recog string, CrashMail uses that packer. ? can be
+; used as a wildcard and you can use $xx to specify a hexadecimal number.
+
+PACKER "LHA" "c:\\fido\\bin\\lha a %a %f" "c:\\fido\\bin\\lha x %a" "??-lh?-"
+PACKER "ZIP" "c:\\fido\\bin\\pkzip %a %f" "c:\\fido\\bin\\pkunzip %a" "PK"
+
+; AKA
+; ===
+;
+; AKA <node>
+; DOMAIN <domain>
+; ADDNODE node1 node2 ...
+; REMNODE nodepattern1 nodepattern2 ...
+;
+; Here you configure the adresses of your node. ADDNODE is used to add nodes
+; the the SEEN-BY lines in areas with this AKA and REMNODE is used to remove
+; nodes. Nodes for ADDNODE and REMNODE has to be 2D, that is only net/node
+; should be specified. Patterns are allowed for REMNODE.
+
+AKA 2:200/207.6
+DOMAIN "FidoNet"
+
+AKA 2:200/108.7
+DOMAIN "FidoNet"
+
+; Nodes
+; =====
+;
+; NODE <node> <packer name> <packet password> [<flags>]
+; AREAFIXINFO <areafix password> <groups> <read-only groups> <add groups>
+; DEFAULTGROUP <group>
+; REMOTEAREAFIX <areafix name> <areafix password>
+; REMOTESYSOP <name>
+;
+; These are the nodes you interchange mail with. You can only send echomail
+; to nodes specified here, but netmail can also be sent to other nodes. The
+; groups decide what areas a node may subscribe to in the AreaFix. If the
+; area is in one of the read-only groups, the node will be added as
+; read-only. If a new area is added in one of the add groups, this node will
+; automatically be subscribed to it. The default group is the group used for
+; areas that are autoadded from this node. REMOTEAREAFIX and REMOTESYSOP are
+; used when CrashMail needs to send messages to the AreaFix or the sysop of
+; this node.
+;
+; The following flags can be set for a node:
+;
+; NOTIFY
+;
+;  When a SENDQUERY, SENDLIST, SENDUNLINKED, SENDINFO or SENDHELP with the
+;  argument ALL is used on the command-line, messages will be sent to all
+;  nodes with this flag set.
+;
+; PASSIVE
+;
+;  Echomail is never sent to this node. Used for the %PAUSE and %RESUME
+;  commands in the AreaFix.
+;
+; NOSEENBY
+;
+;  No SEEN-BY lines are included in messages sent to this node. Should
+;  normally not be used.
+;
+; TINYSEENBY
+;
+;  Only sender and destination is included in SEEN-BY lines in messages
+;  sent to this node. Should normally not be used.
+;
+; FORWARDREQ
+;
+;  This node is allowed to do forward-requests.
+;
+; PACKNETMAIL
+;
+;  Netmail to this node should be packed along with the echomail.
+;
+; SENDAREAFIX
+;
+;  AreaFix disconnect requests should be sent to this node when the feed
+;  unsubscribes from an area.
+;
+; SENDTEXT
+;
+;  Notification messages should be sent to the sysop of this node when the
+;  feed unsubscribes from an area.
+;
+; AUTOADD
+;
+;  New areas from this node should be auto-added to the configuration. If
+;  auto-add is not set, the areas will still be added but with an UNCONFIRMED
+;  line.
+
+NODE 2:200/100.0 "ZIP" "" PACKNETMAIL AUTOADD
+DEFAULTGROUP A
+
+NODE 2:201/128.0 "ZIP" "" PACKNETMAIL AUTOADD
+DEFAULTGROUP B
+
+NODE 2:200/207.5 "LHA" "secret" NOTIFY FORWARDREQ PACKNETMAIL AUTOADD
+AREAFIXINFO "secret" "" "" "" 
+REMOTESYSOP "Johannes Nilsson"
+                   
+; Remap
+;
+; REMAP <pattern> <new name> <destination pattern>
+;
+; CrashMail remaps all messages addressed to a name that matches this
+; pattern on one of the local AKAs to the new name on another node.
+; Use "*" as new name to keep the old name. A destination pattern can
+; be used for the new node.
+
+REMAP "Johannes Nilsson" "*" "2:200/207.5"
+
+; REMAPNODE <node pattern> <destination pattern>
+;
+; CrashMail remaps all messages to addresses that match the node pattern
+; to the desination pattern.
+
+;REMAPNODE 2:999/*.* 2:200/*.*
+
+; Robotnames
+; ==========
+;
+; ROBOTNAME <pattern> <command>
+;
+; CrashMail executes the specified command when a message is received for
+; an address that matches the pattern. The following %-codes can be used;
+;
+;  %r  Name of a file that contains a message in a text format similar to
+;      that used for e-mail messages on the internet.
+;  %m  Name of a file that contains the message as a *.msg file
+;  %f  From name
+;  %o  Originating node
+;  %t  To name
+;  %d  Destination node
+;  %s  Subject
+;  %x  Date and time of the message
+;   
+; CrashMail will react differently depending on what error the
+; executed command returned.
+;
+; 0     The message is not imported
+; 10    The message is imported
+; 20    CrashMail stops tossing
+
+;ROBOTNAME "James" "rx MAIL:Robots/James.rexx %r"
+;ROBOTNAME "Tomten" "rx MAIL:Robots/Tomten.rexx %r"
+;ROBOTNAME "Ghaana" "rx MAIL:Robots/MailGate.rexx %r"
+;ROBOTNAME "Raid" "Execute MAIL:Scripts/Raid %r"
+
+; AreaFix
+; =======
+;
+; AREAFIXHELP <filename>
+;
+; The file that is sent when a downlink issues a %HELP command.
+
+AREAFIXHELP "c:\\fido\\AreafixHelp.doc"
+
+; AREAFIXMAXLINES <max>
+;
+; The maximum number of lines in an AreaFix response. CrashMail splits the
+; response if it exceeds this number.
+;
+
+AREAFIXMAXLINES 50
+
+; AREAFIXNAME <name>
+;
+; A name that CrashMail's AreaFix should respond to.
+
+AREAFIXNAME "AreaFix"
+AREAFIXNAME "AreaMgr"
+AREAFIXNAME "CrashMail"
+
+; AREALIST <node> <file name> [GROUP <group>] [FORWARD] [DESC]
+;
+; This is a list of the areas that are available at a node. It should contain
+; lines with the format "<tagname> <description>". If DESC is specified,
+; descriptions are taken from this file when CrashMail auto-adds areas. If
+; FORWARD is specified, this file is used to determine what files are
+; available for forward-requests. GROUP specifies the group needed to be
+; allowed to forward-requests areas in this list.
+
+AREALIST 2:200/100.0 "c:\\fido\\lists\\R20Desc.lst" GROUP A FORWARD DESC
+
+; Routing
+; =======
+;
+; ROUTE <pattern> <destination pattern> <aka>
+;
+; Netmail messages with a destination that match the pattern are routed to
+; the destination pattern using the specified AKA. See descriptions of how
+; patterns work elsewhere.
+
+ROUTE "2:200/207.5" "2:200/207.5" 2:200/108.7
+ROUTE "2:200/*.*" "2:200/100.0" 2:200/108.7
+ROUTE "*:*/*.*" "2:201/128.0" 2:200/108.7
+
+; MSG
+; ===
+;
+; MSG_HIGHWATER
+;
+; Use 1.msg as highwater mark in *.msg areas.
+
+MSG_HIGHWATER
+
+; MSG_WRITEBACK
+;
+; Overwrite the old message with the new message when it is imported instead
+; of just changing the SENT flag. Use this to see the new SEEN-BY:s and PATH
+; in the messagebase.
+
+;MSG_WRITEBACK
+
+; JAM
+; ===
+;
+; JAM_HIGHWATER
+;
+; Use highwater marks to speed up scanning. The highwater mark is stored in
+; a file called <basename>.cmhw.
+
+JAM_HIGHWATER
+
+; JAM_LINK
+;
+; Do reply-linking based on MSGID and REPLY after import.
+
+JAM_LINK
+
+; JAM_QUICKLINK
+;
+; Just compare the CRC of MSGID/REPLY when linking and don't read the strings
+; from the messagebase. This makes linking quicker, but messages that don't
+; match may be linked by mistake.
+;
+
+JAM_QUICKLINK
+
+; JAM_MAXOPEN <max>
+;
+; This is the number of JAM messagebases that CrashMail keeps open at a time.
+; A higher number speeds up tossing, but since CrashMail keeps four files
+; open for each area, don't use a too high number if you only can have a
+; limited number of files open...
+
+JAM_MAXOPEN 5
+
+; Areas
+; =====
+; 
+; AREA/NETMAIL <tagname> <aka> [<messagebase> <path>]
+; IMPORT/EXPORT <node1> <node2> ...
+; BANNED <node1> <node2> ...
+; DESCRIPTION <desc>
+; GROUP <group>
+; KEEPNUM <num>
+; KEEPDAYS <num>
+; UNCONFIRMED
+; MANDATORY
+; DEFREADONLY
+; IGNOREDUPES
+; IGNORESEENBY
+;
+; Here you configure all areas that CrashMail knows. Area definitions begin
+; with AREA for echomail areas and NETMAIL for netmail areas.
+;
+; To see the supported messagebase formats in your version of CrashMail,
+; type "crashmail version". What path should be depends on the used
+; messagebase formats.
+;
+; Netmail messages addressed to the Aka or to one of the nodes specified on
+; an IMPORT line are imported in netmail areas. Echomail areas cannot have
+; an IMPORT line but instead has one or more EXPORT lines where the nodes
+; that this area should be sent to are listed. Each node on an export line
+; has the format "[<modifier>]<node>" where modifier may be !, @ or %.
+; ! means that the node is read-only, @ means that the node is write-only
+; and % means that the node is the feed for this area.
+;
+; Nodes in the BANNED line may not subscribe to this area with the AreaFix.
+; MANDATORY means that nodes may not unsubscribe from this area in the
+; AreaFix. DEFREADONLY means that nodes that subscribe to this area in the
+; AreaFix will be added as read-only.
+;
+; Areas with UNCONFIRMED are areas that have been auto-added by CrashMail
+; but not yet confirmed. Areas get this flag when the node didn't have the
+; flag AUTOADD set. CrashMail treats unconfirmed areas as if they didn't
+; exist at all.
+
+; KEEPNUM and KEEPDAYS are used by CrashMaint to decide how long messages
+; should be kept in the messagebase.
+;
+; An area with the tagname BAD is a special area that are used for messages
+; that for some reason are considered "bad" by CrashMail.
+;
+; Another special kind of areas are the default areas. When CrashMail adds
+; an area, it searches for a default area to use as a template. First it
+; looks for an area named DEFAULT_<groups> where <groups> contains the group
+; of the new area. If such an area doesn't exist, it looks for an area called
+; DEFAULT. If a default area was found, CrashMail copies this configuration
+; for this area to the new area. In the path of the default area, you can
+; use the following %-codes:
+;
+; %a  Name of the area
+; %l  Name of the area in lowercase letters
+; %8  Eight digit serial number
+;
+; You must use one of these %-codes or the new path will not be unique.
+
+NETMAIL "NETMAIL" 2:200/108.7 JAM "c:\\fido\\areas\\NETMAIL"
+
+AREA "BAD" 2:200/108.7 JAM "c:\\fido\\areas\\BAD"
+
+AREA "DEFAULT_A" 2:200/108.7 JAM "c:\\fido\\areas\\%8"
+
+AREA "R20_INTRESSE" 2:200/108.7 JAM "c:\\fido\\areas\\36124179"
+EXPORT %2:200/100.0
+DESCRIPTION "Intresseklubben"
+GROUP A
+
+AREA "R20_TRASHCAN" 2:200/108.7 JAM "c:\\fido\\areas\\3612417a"
+EXPORT %2:200/100.0
+DESCRIPTION "Soptunnan"
+GROUP A
+

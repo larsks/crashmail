@@ -1,0 +1,31 @@
+Nytt i version 0.2:
+
+ - CrashAreasBBS skriver inte längre netmailareor till areas.bbs. Det 
+   förvirrade GoldED ganska ordentligt...
+
+ - CrashMail spyr inte längre på rader i configen som bara innehåller 
+   ett par mellanslag och sedan ingenting
+	
+ - Det finns numera en låsningsmekanism som förhindrar att flera instanser
+   av CrashMail använder samma configfil samtidigt.
+	
+ - Ska numera skapa directories med rätt permissions
+ 
+Nytt i version 0.3:
+
+ - AreaFix
+ 
+ - Kan numera hantera fileattacher
+ 
+ - Change funkar
+ 
+ - Två nya argument till CrashMail: LOCK och UNLOCK
+ 
+ - Remap funkar
+
+ - Kan numera exportera texter >10000 bytes utan att krascha
+ 
+ - Kan logga till sysloggen under linux 
+
+ - Outboundhanteringen är klar
+ 

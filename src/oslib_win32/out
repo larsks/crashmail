@@ -1,0 +1,1 @@
+gcc -I "../" --ansi -Wall -c osdir.c -o osdir.o

@@ -1,0 +1,117 @@
+SHAREDOBJS = obj/jblist.o obj/jbstrcpy.o obj/mystrncpy.o obj/parseargs.o \
+             obj/path.o
+
+MBOBJS = obj/mb.o obj/mb_msg.o obj/mb_jam.o jamlib.a
+
+NLOBJS = obj/nl.o obj/nl_cmnl.o cmnllib.a
+
+CMOBJS = obj/crashmail.o obj/logwrite.o obj/dupe.o obj/stats.o \
+	 obj/misc.o obj/safedel.o obj/toss.o obj/pkt.o obj/handle.o \
+	 obj/node4d.o obj/config.o obj/memmessage.o obj/scan.o \
+	 obj/outbound.o obj/areafix.o
+
+CC = gcc --ansi -I ./ -Wall
+
+files : ../bin/crashmail.exe ../bin/crashstats.exe ../bin/crashareasbbs.exe \
+   	../bin/crashforward.exe ../bin/crashlist.exe ../bin/crashgetnode.exe
+
+../bin/crashmail.exe : $(CMOBJS) $(SHAREDOBJS) $(NLOBJS) $(MBOBJS) oslib.a
+	$(CC) -o ../bin/crashmail $(CMOBJS) $(SHAREDOBJS) $(NLOBJS) $(MBOBJS) oslib.a
+	
+../bin/crashstats.exe : tools/crashstats.c $(SHAREDOBJS) oslib.a
+	$(CC) -ansi tools/crashstats.c $(SHAREDOBJS) oslib.a -o ../bin/crashstats
+	
+../bin/crashareasbbs.exe : tools/crashareasbbs.c $(SHAREDOBJS) oslib.a
+	$(CC) -ansi tools/crashareasbbs.c $(SHAREDOBJS) oslib.a -o ../bin/crashareasbbs
+	
+../bin/crashforward.exe : tools/crashforward.c $(SHAREDOBJS) oslib.a
+	$(CC) -ansi tools/crashforward.c $(SHAREDOBJS) oslib.a -o ../bin/crashforward
+	
+../bin/crashlist.exe : tools/crashlist.c $(SHAREDOBJS) oslib.a
+	$(CC) -ansi tools/crashlist.c $(SHAREDOBJS) oslib.a -o ../bin/crashlist
+
+../bin/crashgetnode.exe : tools/crashgetnode.c $(SHAREDOBJS) cmnllib.a oslib.a
+	$(CC) -ansi tools/crashgetnode.c $(SHAREDOBJS) cmnllib.a oslib.a -o ../bin/crashgetnode
+ 
+# crashmail
+
+obj/crashmail.o : crashmail/crashmail.c
+	$(CC) -ansi -c crashmail/crashmail.c -o obj/crashmail.o 
+
+obj/logwrite.o : crashmail/logwrite.c
+	$(CC) -ansi -c crashmail/logwrite.c -o obj/logwrite.o
+
+obj/dupe.o : crashmail/dupe.c
+	$(CC) -ansi -c crashmail/dupe.c -o obj/dupe.o
+
+obj/stats.o : crashmail/stats.c
+	$(CC) -ansi -c crashmail/stats.c -o obj/stats.o
+
+obj/misc.o : crashmail/misc.c
+	$(CC) -ansi -c crashmail/misc.c -o obj/misc.o
+ 
+obj/safedel.o : crashmail/safedel.c
+	$(CC) -ansi -c crashmail/safedel.c -o obj/safedel.o
+
+obj/toss.o : crashmail/toss.c
+	$(CC) -ansi -c crashmail/toss.c -o obj/toss.o
+
+obj/scan.o : crashmail/scan.c
+	$(CC) -ansi -c crashmail/scan.c -o obj/scan.o
+
+obj/pkt.o : crashmail/pkt.c
+	$(CC) -ansi -c crashmail/pkt.c -o obj/pkt.o
+
+obj/memmessage.o : crashmail/memmessage.c
+	$(CC) -ansi -c crashmail/memmessage.c -o obj/memmessage.o
+
+obj/handle.o : crashmail/handle.c
+	$(CC) -ansi -c crashmail/handle.c -o obj/handle.o
+
+obj/node4d.o : crashmail/node4d.c
+	$(CC) -ansi -c crashmail/node4d.c -o obj/node4d.o
+
+obj/config.o : crashmail/config.c
+	$(CC) -ansi -c crashmail/config.c -o obj/config.o
+
+obj/outbound.o : crashmail/outbound.c
+	$(CC) -ansi -c crashmail/outbound.c -o obj/outbound.o
+
+obj/areafix.o : crashmail/areafix.c
+	$(CC) -ansi -c crashmail/areafix.c -o obj/areafix.o
+
+# shared
+	
+obj/jblist.o : shared/jblist.c
+	$(CC) -ansi -c shared/jblist.c -o obj/jblist.o
+
+obj/jbstrcpy.o : shared/jbstrcpy.c
+	$(CC) -ansi -c shared/jbstrcpy.c -o obj/jbstrcpy.o
+
+obj/mystrncpy.o : shared/mystrncpy.c
+	$(CC) -ansi -c shared/mystrncpy.c -o obj/mystrncpy.o
+
+obj/parseargs.o : shared/parseargs.c
+	$(CC) -ansi -c shared/parseargs.c -o obj/parseargs.o
+
+obj/path.o : shared/path.c
+	$(CC) -ansi -c shared/path.c -o obj/path.o
+
+# mb
+
+obj/mb.o : crashmail/mb.c
+	$(CC) -ansi -c crashmail/mb.c -o obj/mb.o 
+
+obj/mb_msg.o : crashmail/mb_msg.c
+	$(CC) -ansi -c crashmail/mb_msg.c -o obj/mb_msg.o
+
+obj/mb_jam.o : crashmail/mb_jam.c
+	$(CC) -ansi -c crashmail/mb_jam.c -o obj/mb_jam.o
+
+# nl
+
+obj/nl.o : crashmail/nl.c
+	$(CC) -ansi -c crashmail/nl.c -o obj/nl.o
+
+obj/nl_cmnl.o : crashmail/nl_cmnl.c
+	$(CC) -ansi -c crashmail/nl_cmnl.c -o obj/nl_cmnl.o

@@ -1,0 +1,10 @@
+CC      = gcc -I "../" --ansi -Wall
+OBJS    = cmnllib.o
+
+cmnllib.a : $(OBJS) 
+	ar -ru cmnllib.a $(OBJS)
+	copy cmnllib.a ..\
+
+cmnllib.o: cmnllib.c
+	$(CC) -c cmnllib.c -o cmnllib.o
+        
