@@ -65,6 +65,8 @@ void LogWrite(ulong level,ulong category,uchar *fmt,...)
    time_t t;
    struct tm *tp;
    uchar *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
+   uchar buf[500];
+   int i;
 
    if(level > config.cfg_LogLevel)
       return;
@@ -76,6 +78,18 @@ void LogWrite(ulong level,ulong category,uchar *fmt,...)
    {
       printf("\n");
       return;
+   }
+
+   if(handle_nesting > 1 && handle_nesting + strlen(fmt) < 499)
+   {
+      buf[0]=0;
+
+      for(i=1;i<handle_nesting;i++)
+         strcat(buf," ");
+
+      strcat(buf,fmt);
+
+      fmt=buf;
    }
 
 #ifdef OS_HAS_SYSLOG

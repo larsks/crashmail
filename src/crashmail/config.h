@@ -28,6 +28,8 @@
 #define CFG_INCLUDEFORWARD         (1L<<23)
 #define CFG_NOMAXOUTBOUNDZONE      (1L<<24)
 #define CFG_ALLOWKILLSENT          (1L<<25)
+#define CFG_FLOWCRLF               (1L<<26)
+#define CFG_NOEXPORTNETMAIL        (1L<<27)
 
 #ifdef MSGBASE_MSG
 #define CFG_MSG_HIGHWATER         (1L<<1)
@@ -71,7 +73,7 @@ struct Area
    bool changed;
    struct Aka  *Aka;
    uchar Flags;
-	uchar AreaType;
+   uchar AreaType;
    uchar Tagname[80];
    uchar Description[80];
    struct Messagebase *Messagebase;
@@ -94,6 +96,10 @@ struct Area
    ushort Last8Days[8];
    time_t FirstTime;
    time_t LastTime;
+
+   /* Other */
+
+   bool scanned;
 };
 
 struct Aka
@@ -129,15 +135,16 @@ struct BannedNode
 };
 
 #define NODE_AUTOADD       1
-#define NODE_PASSIVE       2
-#define NODE_TINYSEENBY    4
-#define NODE_NOSEENBY      8
-#define NODE_FORWARDREQ   16
-#define NODE_NOTIFY       32
-#define NODE_PACKNETMAIL  64
-#define NODE_SENDAREAFIX 128
-#define NODE_SENDTEXT    256
-
+#define NODE_PASSIVE        2
+#define NODE_TINYSEENBY     4
+#define NODE_NOSEENBY       8
+#define NODE_FORWARDREQ    16
+#define NODE_NOTIFY        32
+#define NODE_PACKNETMAIL   64
+#define NODE_SENDAREAFIX  128
+#define NODE_SENDTEXT     256
+#define NODE_PKTFROM	  512
+#define NODE_AFNEEDSPLUS 1024
 struct RemoteAFCommand
 {
    struct RemoteAFCommand *Next;
@@ -159,14 +166,15 @@ struct ConfigNode
    uchar DefaultGroup;
    ulong Flags;
    uchar SysopName[36];
-	uchar EchomailPri;
+   uchar EchomailPri;
+   struct Node4D PktFrom;
 	
    uchar RemoteAFName[36];
    uchar RemoteAFPw[72];
 
    struct jbList RemoteAFList;
 
-	uchar LastArcName[12];
+   uchar LastArcName[12];
 	
    /* Stats */
 
@@ -237,28 +245,6 @@ struct Change
    uchar DestPri;
 };
 
-struct Remap
-{
-   struct Remap *Next;
-   uchar Pattern[200];
-   uchar NewTo[36];
-   struct Node4DPat DestPat;
-};
-
-struct RemapNode
-{
-   struct RemapNode *Next;
-   struct Node4DPat NodePat;
-   struct Node4DPat DestPat;
-};
-
-struct Robot
-{
-   struct Robot *Next;
-   uchar Pattern[200];
-   uchar Command[200];
-};
-
 struct AreaFixName
 {
    struct AreaFixName *Next;
@@ -275,6 +261,32 @@ struct Arealist
    uchar AreaFile[80];
    ushort Flags;
    uchar Group;
+};
+
+#define COMMAND_KILL 		  1
+#define COMMAND_TWIT 		  2
+#define COMMAND_COPY 		  3
+#define COMMAND_EXECUTE	     4
+#define COMMAND_WRITELOG     5
+#define COMMAND_WRITEBAD     6
+#define COMMAND_BOUNCEMSG    7
+#define COMMAND_BOUNCEHEADER 8
+#define COMMAND_REMAPMSG     9
+
+struct Command
+{
+	struct Command *Next;
+	ushort Cmd;
+	uchar *string;
+	struct Node4D n4d;
+	struct Node4DPat n4ddestpat;
+};
+
+struct Filter
+{
+   struct Filter *Next;
+   uchar Filter[400];
+	struct jbList CommandList;
 };
 
 #define DUPE_IGNORE 0
@@ -299,6 +311,8 @@ struct Config
    uchar cfg_LogFile[100];
    uchar cfg_StatsFile[100];
    uchar cfg_DupeFile[100];
+   uchar cfg_BeforeToss[80];
+   uchar cfg_BeforePack[80];
    ulong cfg_LogLevel;
    ulong cfg_DupeSize;
    ulong cfg_MaxPktSize;
@@ -320,11 +334,9 @@ struct Config
    struct jbList FileAttachList;
    struct jbList BounceList;
    struct jbList ChangeList;
-   struct jbList RemapList;
-   struct jbList RemapNodeList;
-   struct jbList RobotList;
    struct jbList AreaFixList;
    struct jbList ArealistList;
+   struct jbList FilterList;
 
 #ifdef PLATFORM_AMIGA
    ulong cfg_amiga_LogBufferLines;

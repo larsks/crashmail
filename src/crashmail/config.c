@@ -33,11 +33,10 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
    struct ImportNode    *tmpinode;
    struct PatternNode   *tmppatternnode;
    struct Change        *tmpchange;
-   struct Remap         *tmpremap;
-   struct RemapNode     *tmpremapnode;
-   struct Robot         *tmprobot;
    struct AreaFixName   *tmpareafixname;
    struct Arealist      *tmparealist;
+   struct Filter        *tmpfilter, *LastFilter=NULL;
+	struct Command 		*tmpcommand;
 
    struct AddNode    *tmpaddnode;
    struct RemNode    *tmpremnode;
@@ -298,6 +297,31 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
             }
          }
       }
+      else if(stricmp(cfgword,"PKTFROM")==0)
+      {
+         if(!LastCNode)
+         {
+            strcpy(cfgerr,"No previous NODE line");
+            osClose(cfgfh);
+            return(FALSE);
+         }
+		
+			LastCNode->Flags|=NODE_PKTFROM;
+
+         if(!(jbstrcpy(buf2,cfgbuf,200,&jbcpos)))
+         {
+            strcpy(cfgerr,"Missing argument");
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+         if(!(Parse4D(buf2,&LastCNode->PktFrom)))
+         {
+            sprintf(cfgerr,"Invalid node number \"%s\"",buf2);
+            osClose(cfgfh);
+            return(FALSE);
+         }
+		}
       else if(stricmp(cfgword,"AREAFIXINFO")==0)
       {
          if(!LastCNode)
@@ -458,7 +482,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
          {
             if(!LastArea->Messagebase)
             {
-               sprintf(cfgerr,"Netmail area cannot be pass-through");
+               sprintf(cfgerr,"Local area cannot be pass-through");
                osClose(cfgfh);
                return(FALSE);
             }
@@ -801,7 +825,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
 
             if(!(Parse4DPat(buf2,&tmppatternnode->Pattern)))
             {
-               sprintf(cfgerr,"Invalid node patternt \"%s\"",buf2);
+               sprintf(cfgerr,"Invalid node pattern \"%s\"",buf2);
                osClose(cfgfh);
                return(FALSE);
             }
@@ -822,7 +846,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
 
             if(!(Parse4DPat(buf2,&tmppatternnode->Pattern)))
             {
-               sprintf(cfgerr,"Invalid node patternt \"%s\"",buf2);
+               sprintf(cfgerr,"Invalid node pattern \"%s\"",buf2);
                osClose(cfgfh);
                return(FALSE);
             }
@@ -853,6 +877,24 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
       else if(stricmp(cfgword,"SYSOP")==0)
       {
          if(!(jbstrcpy(cfg->cfg_Sysop,cfgbuf,35,&jbcpos)))
+         {
+            strcpy(cfgerr,"Missing argument");
+            osClose(cfgfh);
+            return(FALSE);
+         }
+      }
+      else if(stricmp(cfgword,"BEFORETOSS")==0)
+      {
+         if(!(jbstrcpy(cfg->cfg_BeforeToss,cfgbuf,79,&jbcpos)))
+         {
+            strcpy(cfgerr,"Missing argument");
+            osClose(cfgfh);
+            return(FALSE);
+         }
+      }
+      else if(stricmp(cfgword,"BEFOREPACK")==0)
+      {
+         if(!(jbstrcpy(cfg->cfg_BeforePack,cfgbuf,79,&jbcpos)))
          {
             strcpy(cfgerr,"Missing argument");
             osClose(cfgfh);
@@ -954,7 +996,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
             return(FALSE);
          }
 
-         cfg->cfg_DupeSize=atoi(buf2)*1024;
+         cfg->cfg_DupeSize=atoi(buf2);
       }
       else if(stricmp(cfgword,"DUPEMODE")==0)
       {
@@ -1257,126 +1299,6 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
             return(FALSE);
          }
       }
-      else if(stricmp(cfgword,"REMAP")==0)
-      {
-         if(!(tmpremap=(struct Remap *)osAllocCleared(sizeof(struct Remap))))
-         {
-            *seconderr=READCONFIG_NO_MEM;
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         jbAddNode(&cfg->RemapList,(struct jbNode *)tmpremap);
-
-         /* Type pattern */
-
-         if(!(jbstrcpy(tmpremap->Pattern,cfgbuf,200,&jbcpos)))
-         {
-            strcpy(cfgerr,"Missing argument");
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         if(!osCheckPattern(tmpremap->Pattern))
-         {
-            sprintf(cfgerr,"Invalid pattern \"%s\"",tmpremap->Pattern);
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         if(!(jbstrcpy(tmpremap->NewTo,cfgbuf,36,&jbcpos)))
-         {
-            strcpy(cfgerr,"Missing argument");
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         if(!(jbstrcpy(buf2,cfgbuf,200,&jbcpos)))
-         {
-            strcpy(cfgerr,"Missing argument");
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         if(!(Parse4DDestPat(buf2,&tmpremap->DestPat)))
-         {
-            sprintf(cfgerr,"Invalid destination pattern \"%s\"",buf2);
-            osClose(cfgfh);
-            return(FALSE);
-         }
-      }
-      else if(stricmp(cfgword,"REMAPNODE")==0)
-      {
-         if(!(tmpremapnode=(struct RemapNode *)osAllocCleared(sizeof(struct RemapNode))))
-         {
-            *seconderr=READCONFIG_NO_MEM;
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         jbAddNode(&cfg->RemapNodeList,(struct jbNode *)tmpremapnode);
-
-         if(!(jbstrcpy(buf2,cfgbuf,200,&jbcpos)))
-         {
-            strcpy(cfgerr,"Missing argument");
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         if(!(Parse4DPat(buf2,&tmpremapnode->NodePat)))
-         {
-            sprintf(cfgerr,"Invalid node pattern \"%s\"",buf2);
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         if(!(jbstrcpy(buf2,cfgbuf,200,&jbcpos)))
-         {
-            strcpy(cfgerr,"Missing argument");
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         if(!(Parse4DDestPat(buf2,&tmpremapnode->DestPat)))
-         {
-            sprintf(cfgerr,"Invalid destination pattern \"%s\"",buf2);
-            osClose(cfgfh);
-            return(FALSE);
-         }
-      }
-      else if(stricmp(cfgword,"ROBOTNAME")==0)
-      {
-         if(!(tmprobot=(struct Robot *)osAllocCleared(sizeof(struct Robot))))
-         {
-            *seconderr=READCONFIG_NO_MEM;
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         jbAddNode(&cfg->RobotList,(struct jbNode *)tmprobot);
-
-         if(!(jbstrcpy(tmprobot->Pattern,cfgbuf,200,&jbcpos)))
-         {
-            strcpy(cfgerr,"Missing argument");
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         if(!osCheckPattern(tmprobot->Pattern))
-         {
-            sprintf(cfgerr,"Invalid pattern \"%s\"",tmprobot->Pattern);
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-         if(!(jbstrcpy(tmprobot->Command,cfgbuf,200,&jbcpos)))
-         {
-            strcpy(cfgerr,"Missing argument");
-            osClose(cfgfh);
-            return(FALSE);
-         }
-
-      }
       else if(stricmp(cfgword,"AREALIST")==0)
       {
          if(!(tmparealist=(struct Arealist *)osAllocCleared(sizeof(struct Arealist))))
@@ -1457,6 +1379,154 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
             }
          }
       }
+      else if(stricmp(cfgword,"FILTER")==0)
+      {
+         if(!(tmpfilter=(struct Filter *)osAllocCleared(sizeof(struct Filter))))
+         {
+            *seconderr=READCONFIG_NO_MEM;
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+         jbAddNode(&cfg->FilterList,(struct jbNode *)tmpfilter);
+			jbNewList(&tmpfilter->CommandList);
+
+         LastFilter=tmpfilter;
+
+         if(!(jbstrcpyrest(tmpfilter->Filter,cfgbuf,400,&jbcpos)))
+         {
+            strcpy(cfgerr,"Missing argument");
+            osClose(cfgfh);
+            return(FALSE);
+         }
+      }
+      else if(stricmp(cfgword,"KILL")==0 || stricmp(cfgword,"TWIT")==0)
+      {
+         if(!LastFilter)
+         {
+            strcpy(cfgerr,"No previous FILTER line");
+            osClose(cfgfh);
+            return(FALSE);
+			}
+
+         if(!(tmpcommand=(struct Command *)osAllocCleared(sizeof(struct Command))))
+         {
+            *seconderr=READCONFIG_NO_MEM;
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+         jbAddNode(&LastFilter->CommandList,(struct jbNode *)tmpcommand);
+
+			if(stricmp(cfgword,"KILL")==0)
+				tmpcommand->Cmd=COMMAND_KILL;
+
+			if(stricmp(cfgword,"TWIT")==0)
+				tmpcommand->Cmd=COMMAND_TWIT;
+      }
+      else if(stricmp(cfgword,"COPY")==0     || stricmp(cfgword,"EXECUTE")==0   || stricmp(cfgword,"WRITELOG")==0 ||
+              stricmp(cfgword,"WRITEBAD")==0 || stricmp(cfgword,"BOUNCEMSG")==0 || stricmp(cfgword,"BOUNCEHEADER")==0)
+      {
+         if(!LastFilter)
+         {
+            strcpy(cfgerr,"No previous FILTER line");
+            osClose(cfgfh);
+            return(FALSE);
+			}
+
+         if(!(tmpcommand=(struct Command *)osAllocCleared(sizeof(struct Command))))
+         {
+            *seconderr=READCONFIG_NO_MEM;
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+         jbAddNode(&LastFilter->CommandList,(struct jbNode *)tmpcommand);
+
+			if(stricmp(cfgword,"COPY")==0)
+				tmpcommand->Cmd=COMMAND_COPY;
+
+			if(stricmp(cfgword,"EXECUTE")==0)
+				tmpcommand->Cmd=COMMAND_EXECUTE;
+
+			if(stricmp(cfgword,"WRITELOG")==0)
+				tmpcommand->Cmd=COMMAND_WRITELOG;
+
+			if(stricmp(cfgword,"WRITEBAD")==0)
+				tmpcommand->Cmd=COMMAND_WRITEBAD;
+
+			if(stricmp(cfgword,"BOUNCEMSG")==0)
+				tmpcommand->Cmd=COMMAND_BOUNCEMSG;
+
+			if(stricmp(cfgword,"BOUNCEHEADER")==0)
+				tmpcommand->Cmd=COMMAND_BOUNCEHEADER;
+
+         if(!(jbstrcpy(buf2,cfgbuf,200,&jbcpos)))
+         {
+            strcpy(cfgerr,"Missing argument");
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+         if(!(tmpcommand->string=(uchar *)osAlloc(strlen(buf2)+1)))
+         {
+            *seconderr=READCONFIG_NO_MEM;
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+			strcpy(tmpcommand->string,buf2);
+      }
+      else if(stricmp(cfgword,"REMAPMSG")==0)
+      {
+         if(!LastFilter)
+         {
+            strcpy(cfgerr,"No previous FILTER line");
+            osClose(cfgfh);
+            return(FALSE);
+			}
+
+         if(!(tmpcommand=(struct Command *)osAllocCleared(sizeof(struct Command))))
+         {
+            *seconderr=READCONFIG_NO_MEM;
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+         jbAddNode(&LastFilter->CommandList,(struct jbNode *)tmpcommand);
+
+         tmpcommand->Cmd=COMMAND_REMAPMSG;
+
+         if(!(jbstrcpy(buf2,cfgbuf,200,&jbcpos)))
+         {
+            strcpy(cfgerr,"Missing argument");
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+         if(!(tmpcommand->string=(uchar *)osAlloc(strlen(buf2)+1)))
+         {
+            *seconderr=READCONFIG_NO_MEM;
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+			strcpy(tmpcommand->string,buf2);
+
+         if(!(jbstrcpy(buf2,cfgbuf,200,&jbcpos)))
+         {
+            strcpy(cfgerr,"Missing argument");
+            osClose(cfgfh);
+            return(FALSE);
+         }
+
+         if(!(Parse4DDestPat(buf2,&tmpcommand->n4ddestpat)))
+         {
+            sprintf(cfgerr,"Invalid node pattern \"%s\"",buf2);
+            osClose(cfgfh);
+            return(FALSE);
+         }
+      }
       else if(stricmp(cfgword,"REMOTEAF")==0)
       {
          if(!LastCNode)
@@ -1480,6 +1550,18 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
             return(FALSE);
          }
 
+         while(jbstrcpy(buf2,cfgbuf,200,&jbcpos))
+         {
+            if(stricmp(buf2,"NEEDSPLUS")==0)
+               LastCNode->Flags|=NODE_AFNEEDSPLUS;
+
+            else
+            {
+               sprintf(cfgerr,"Unknown switch \"%s\"",buf2);
+               osClose(cfgfh);
+               return(FALSE);
+            }
+			}
       }
       else if(stricmp(cfgword,"REMOTESYSOP")==0)
       {
@@ -1525,6 +1607,14 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
       else if(stricmp(cfgword,"ALLOWKILLSENT")==0)
       {
          cfg->cfg_Flags|=CFG_ALLOWKILLSENT;
+      }
+      else if(stricmp(cfgword,"FLOWCRLF")==0)
+      {
+         cfg->cfg_Flags|=CFG_FLOWCRLF;
+      }
+      else if(stricmp(cfgword,"NOEXPORTNETMAIL")==0)
+      {
+         cfg->cfg_Flags|=CFG_NOEXPORTNETMAIL;
       }
       else if(stricmp(cfgword,"NOROUTE")==0)
       {
@@ -1693,7 +1783,8 @@ bool CheckConfig(struct Config *cfg,uchar *cfgerr)
    struct PatternNode *patternnode;
    struct Route *route;
    struct Change *change;
-   struct RemapNode *remapnode;
+   struct Filter *filter;
+   struct Command *command;
    uchar buf[50];
 
    if(cfg->cfg_TempDir[0]==0)      strcpy(cfg->cfg_TempDir,cfg->cfg_Inbound);
@@ -1750,40 +1841,60 @@ bool CheckConfig(struct Config *cfg,uchar *cfgerr)
             sprintf(cfgerr,"Nodelist needed for pattern \"%s\"",buf);
             return(FALSE);
          }
-
-      for(remapnode=(struct RemapNode *)cfg->RemapNodeList.First;remapnode;remapnode=remapnode->Next)
-      {
-         if(!Check4DPatNodelist(&remapnode->NodePat))
-         {
-            Print4DPat(&remapnode->NodePat,buf);
-            sprintf(cfgerr,"Nodelist needed for pattern \"%s\"",buf);
-            return(FALSE);
-         }
-
-         if(!Check4DPatNodelist(&remapnode->DestPat))
-         {
-            Print4DDestPat(&remapnode->DestPat,buf);
-            sprintf(cfgerr,"Nodelist needed for pattern \"%s\"",buf);
-            return(FALSE);
-         }
-      }
    }
 
    /* Check for areas with same path */
 
    for(a1=(struct Area *)cfg->AreaList.First;a1;a1=a1->Next)
 	{
-		if(a1->AreaType != AREATYPE_DEFAULT)
+		if(a1->AreaType != AREATYPE_DEFAULT && a1->Messagebase)
 		{
 	      for(a2=a1->Next;a2;a2=a2->Next)
-   	      if(stricmp(a1->Path,a2->Path)==0 && a1->Messagebase && a2->Messagebase)
+   	      if(a2->Messagebase && stricmp(a1->Path,a2->Path)==0)
       	   {
          	   sprintf(cfgerr,"The areas %s and %s both have the same path",a1->Tagname,a2->Tagname);
             	return(FALSE);
 	         }
 		}
 	}
-	
+
+   for(filter=(struct Filter *)cfg->FilterList.First;filter;filter=filter->Next)
+   {
+      if(!CheckFilter(filter->Filter,cfgerr))
+         return(FALSE);
+
+		for(command=(struct Command *)filter->CommandList.First;command;command=command->Next)
+		{
+         if(command->Cmd == COMMAND_COPY)
+         {
+            for(a1=(struct Area *)config.AreaList.First;a1;a1=a1->Next)
+               if(stricmp(a1->Tagname,command->string)==0) break;
+
+            if(!a1)
+      	   {
+               sprintf(cfgerr,"Filter: Area %s for COPY command not found",command->string);
+               return(FALSE);
+            }
+
+            if(a1->AreaType != AREATYPE_LOCAL)
+            {
+               sprintf(cfgerr,"Filter: Area %s for COPY command is not a local area",command->string);
+               return(FALSE);
+            }
+         }
+
+         if(command->Cmd == COMMAND_REMAPMSG)
+         {
+            if(!cfg->cfg_NodelistType && !Check4DPatNodelist(&command->n4ddestpat))
+            {
+               Print4DDestPat(&command->n4ddestpat,buf);
+               sprintf(cfgerr,"Filter: Nodelist needed for pattern \"%s\"",buf);
+               return(FALSE);
+            }
+         }
+      }
+   }
+
    return(TRUE);
 }
 
@@ -1794,7 +1905,7 @@ void InitConfig(struct Config *cfg)
    strcpy(cfg->cfg_Sysop,"Sysop");
 
    cfg->cfg_LogLevel=3;
-   cfg->cfg_DupeSize=200;
+   cfg->cfg_DupeSize=10000;
 
    cfg->cfg_DefaultZone=2;
 
@@ -1806,11 +1917,9 @@ void InitConfig(struct Config *cfg)
    jbNewList(&cfg->FileAttachList);
    jbNewList(&cfg->BounceList);
    jbNewList(&cfg->ChangeList);
-   jbNewList(&cfg->RemapList);
-   jbNewList(&cfg->RemapNodeList);
-   jbNewList(&cfg->RobotList);
    jbNewList(&cfg->AreaFixList);
    jbNewList(&cfg->ArealistList);
+   jbNewList(&cfg->FilterList);
 }
 
 void WriteSafely(osFile fh,uchar *str)
@@ -1839,7 +1948,7 @@ void WriteNode4D(osFile fh,struct Node4D *n4d)
 }
 
 uchar *nodekeywords[]={"DEFAULTGROUP","REMOTESYSOP","REMOTEAF",
-                       "AREAFIXINFO","NODE",NULL};
+                       "AREAFIXINFO","NODE","PKTFROM",NULL};
 
 uchar *areakeywords[]={"IGNORESEENBY","IGNOREDUPES","DEFREADONLY",
                        "MANDATORY","UNCONFIRMED","KEEPNUM","KEEPDAYS",
@@ -1899,6 +2008,13 @@ void WriteNode(struct ConfigNode *tmpnode,osFile osfh)
 
    osFPrintf(osfh,"\n");
 
+	if(tmpnode->Flags & NODE_PKTFROM)
+	{
+      osFPrintf(osfh,"PKTFROM ");
+	   WriteNode4D(osfh,&tmpnode->PktFrom);
+   	osFPrintf(osfh,"\n");
+	}
+
    if(tmpnode->AreafixPW[0] || tmpnode->Groups[0] || tmpnode->ReadOnlyGroups[0] || tmpnode->AddGroups[0])
    {
       osFPrintf(osfh,"AREAFIXINFO ");
@@ -1923,8 +2039,12 @@ void WriteNode(struct ConfigNode *tmpnode,osFile osfh)
       WriteSafely(osfh,tmpnode->RemoteAFName);
       osFPrintf(osfh," ");
       WriteSafely(osfh,tmpnode->RemoteAFPw);
+
+	   if(tmpnode->Flags & NODE_AFNEEDSPLUS)
+   	   osFPrintf(osfh," NEEDSPLUS");
+
       osFPrintf(osfh,"\n");
-   }
+}
 
    if(tmpnode->SysopName[0])
    {
@@ -2082,7 +2202,7 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
    if(!(oldfh=osOpen(cfg->filename,MODE_OLDFILE)))
    {
 		ulong err=osError();
-      sprintf(cfgerr,"Unable to read file %s (error: %s)",cfgtemp,osErrorMsg(err));
+      sprintf(cfgerr,"Unable to read file %s (error: %s)",cfg->filename,osErrorMsg(err));
       return(FALSE);
    }
 
@@ -2103,7 +2223,7 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
 
       copyres=jbstrcpy(cfgword,cfgbuf,30,&jbcpos);
 
-      if(stricmp(cfgword,"AREA")==0 || stricmp(cfgword,"NETMAIL")==0)
+      if(stricmp(cfgword,"AREA")==0 || stricmp(cfgword,"NETMAIL")==0 || stricmp(cfgword,"LOCALAREA")==0)
       {
          skiparea=FALSE;
 
@@ -2121,9 +2241,9 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
 				   osFPrintf(newfh,"\n");
                area->changed=FALSE;
             }
-				
+
 				/* Area has been removed */
-				
+
 				if(!area)
 				{
 					skiparea=TRUE;
@@ -2146,7 +2266,7 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
                {
                   skipnode=TRUE;
                   WriteNode(cnode,newfh);
-					   osFPrintf(newfh,"\n");
+   				   osFPrintf(newfh,"\n");
                   cnode->changed=FALSE;
                }
             }
@@ -2203,7 +2323,9 @@ void FreeConfig(struct Config *cfg)
    struct Area *area;
    struct Aka *aka;
    struct ConfigNode *cnode;
-
+	struct Filter *filter;
+	struct Command *command;
+	
    /* Config */
 
    for(area=(struct Area *)cfg->AreaList.First;area;area=area->Next)
@@ -2221,6 +2343,14 @@ void FreeConfig(struct Config *cfg)
    for(cnode=(struct ConfigNode *)cfg->CNodeList.First;cnode;cnode=cnode->Next)
       jbFreeList(&cnode->RemoteAFList);
 
+  	for(filter=(struct Filter *)cfg->FilterList.First;filter;filter=filter->Next)
+	{
+		for(command=(struct Command *)filter->CommandList.First;command;command=command->Next)
+			if(command->string) osFree(command->string);
+
+      jbFreeList(&filter->CommandList);
+	}
+
    jbFreeList(&cfg->AkaList);
    jbFreeList(&cfg->AreaList);
    jbFreeList(&cfg->CNodeList);
@@ -2230,9 +2360,7 @@ void FreeConfig(struct Config *cfg)
    jbFreeList(&cfg->FileAttachList);
    jbFreeList(&cfg->BounceList);
    jbFreeList(&cfg->ChangeList);
-   jbFreeList(&cfg->RemapList);
-   jbFreeList(&cfg->RemapNodeList);
-   jbFreeList(&cfg->RobotList);
    jbFreeList(&cfg->AreaFixList);
    jbFreeList(&cfg->ArealistList);
+   jbFreeList(&cfg->FilterList);
 }

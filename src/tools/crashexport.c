@@ -168,13 +168,19 @@ int main(int argc, char **argv)
 {
    osFile ifh,ofh;
    uchar sysopname[100],cfgword[30],buf[100];
-   ulong jbcpos;  
+   ulong jbcpos;
    time_t t;
 
    if(!osInit())
       exit(OS_EXIT_ERROR);
 
-   if(argc == 2 && strcmp(argv[1],"?")==0)
+   if(argc > 1 &&
+	  (strcmp(argv[1],"?")==0      ||
+		strcmp(argv[1],"-h")==0     ||
+		strcmp(argv[1],"--help")==0 ||
+		strcmp(argv[1],"help")==0 ||
+		strcmp(argv[1],"/h")==0     ||
+		strcmp(argv[1],"/?")==0 ))
    {
       printargs(args);
       osEnd();
@@ -212,7 +218,7 @@ int main(int argc, char **argv)
       printf("Unknown format \"%s\"\n",(uchar *)args[ARG_FORMAT].data);
       osEnd();
       exit(OS_EXIT_ERROR);
-   }   
+   }
 	
 	if(!(ifh=osOpen(args[ARG_PREFSFILE].data,MODE_OLDFILE)))
    {

@@ -18,28 +18,23 @@ CrashMail hasn't is support for JAM messagebases. (By the way, I have also
 written a tick file processor called CrashTick for the Amiga. If someone
 wants to port it, contect me and I'll give you the source.)
 
-For suggestions, bug reports and questions, don't hesitate to contact me:
+For suggestions, bug reports and questions, don't hesitate to contact me at:
 
- Johan Billing
-
- Fidonet: 2:205/454.77
- E-mail: billing@df.lth.se
-
-(Vi ankau povas skribi min en Esperanto!)
+ billing@df.lth.se
 
 =========
 Copyright
 =========
-JAMLIB is copyright (c) 1999 Björn Stenberg. JAMLIB is released under the 
-GNU Lesser General Public License, See src/jamlib/jamlib.doc for more 
+JAMLIB is copyright (c) 1999 Björn Stenberg. JAMLIB is released under the
+GNU Lesser General Public License, See src/jamlib/jamlib.doc for more
 information.
 
-Except where explicitly stated otherwise, all other parts of CrashMail are 
-copyright 1999 Johan Billing. Permission to use, copy and distribute CrashMail 
-is granted provided that this copyright notice is included. Permission to 
-modify CrashMail is granted. Distributing modified versions of CrashMail is 
-allowed provided that the documentation clearly states that it is a modified 
-version. Parts of CrashMail may be freely used in other projects as long as 
+Except where explicitly stated otherwise, all other parts of CrashMail are
+copyright 1999 Johan Billing. Permission to use, copy and distribute CrashMail
+is granted provided that this copyright notice is included. Permission to
+modify CrashMail is granted. Distributing modified versions of CrashMail is
+allowed provided that the documentation clearly states that it is a modified
+version. Parts of CrashMail may be freely used in other projects as long as
 the documentation mentions the original copyright holder.
 
 ================
@@ -64,9 +59,9 @@ Items that need to be discussed
 
 Platforms
 ---------
-This version of CrashMail can be compiled for Win32, Linux and OS/2. If you 
+This version of CrashMail can be compiled for Win32, Linux and OS/2. If you
 are interested in running CrashMail on another platform, please contact me if
-you are willing to do the work necessary to adapt CrashMail to your platform. 
+you are willing to do the work necessary to adapt CrashMail to your platform.
 The amount of work required mostly depends on whether your C-compiler supports 
 some common POSIX-functions which CrashMail uses.
 
@@ -125,6 +120,13 @@ SCANLIST <string>
 
  Scan all areas listed in the specified file.
 
+SCANDOTJAM <string>
+
+ Scan all areas listed in an echomail.jam/netmail.jam file. The main difference
+ between SCANDOTJAM and SCANLIST is that a *.jam file contains the paths to the
+ messagebases instead of tagnames. Areas are only scanned once even if listed
+ multiple times.
+
 RESCAN <string>
 RESCANNODE <string>
 RESCANMAX <string>
@@ -134,7 +136,7 @@ RESCANMAX <string>
 
 SETTINGS <string>
 
- Use this configuration file instead of the default. You can use the 
+ Use this configuration file instead of the default. You can use the
  environment variable CMCONFIGFILE to set the default configuration file.
 
 VERSION
@@ -143,21 +145,21 @@ VERSION
 
 LOCK
 
- Locks CrashMail's configuration file and then exits. CrashMail has a simple 
- locking mechanism to ensure that two instances of CrashMail never use the 
- same configuration file at the same time. You can use this if you want to 
- temporarily want to stop CrashMail from running, e.g. when updating the 
+ Locks CrashMail's configuration file and then exits. CrashMail has a simple
+ locking mechanism to ensure that two instances of CrashMail never use the
+ same configuration file at the same time. You can use this if you want to
+ temporarily want to stop CrashMail from running, e.g. when updating the
  nodelist.
 
 UNLOCK
- 
- Removes the lock on CrashMail's configuration file. Only use this when the 
- configuration file previously has been locked with LOCK, otherwise terrible 
+
+ Removes the lock on CrashMail's configuration file. Only use this when the
+ configuration file previously has been locked with LOCK, otherwise terrible
  things might happen.
 
 NOSECURITY
 
- Process all packets without security checks. This is intended to be used 
+ Process all packets without security checks. This is intended to be used
  mainly with TOSSDIR/TOSSFILE and with packets created by CrashWrite.
 
 Support programs
@@ -166,33 +168,33 @@ Support programs
 crashexport <crashmail.prefs> <output file> <format> [GROUP <groups>]
 
  This command reads a CrashMail configuration file and creates an arealist.
- If the GROUP keyword is used, only areas in the specified groups are 
+ If the GROUP keyword is used, only areas in the specified groups are
  included. CrashExport can create lists in these formats:
- 
+
  AREASBBS
- 
+
    A standard areas.bbs file that can be read by many programs
-	
+
  FORWARD
- 
+
    A list of areas that can be used for forward-requests on other nodes.
    The file is a pure ASCII file where each line contains the name of the
    area and its description.
-	
+
  FORWARDNODESC
- 
+
    Same as FORWARD but without area descriptions.
-	
+
  GOLDED
- 
-   Creates an area configuration file in GoldED format. 
+
+   Creates an area configuration file in GoldED format.
 
  TIMED
- 
-   Creates an area configuration file in timEd format. 
+
+   Creates an area configuration file in timEd format.
 
 crashstats <statsfile> [SORT <mode>] [LAST7] [NONODES] [NOAREAS]
- 
+
  This command displays the statistics file created by CrashMail. With the
  SORT keyword you can specify these sort modes:
 
@@ -209,9 +211,9 @@ crashstats <statsfile> [SORT <mode>] [LAST7] [NONODES] [NOAREAS]
 
 crashlist [<dir>]
 
- Builds an index for the nodelists in the specified directory (or in the 
+ Builds an index for the nodelists in the specified directory (or in the
  current directory if no directory is specified). To find out what
- nodelists to read, CrashList uses a file called cmnodelist.prefs in the 
+ nodelists to read, CrashList uses a file called cmnodelist.prefs in the
  nodelist directory. The format of this file is as follows:
 
  <nodelist name> [<default zone>]
@@ -241,20 +243,20 @@ crashgetnode <node> [<nodelist dir>]
 crashmaint [MAINT] [PACK] [VERBOSE] [SETTINGS <filename>] [PATTERN <pattern>]
 
  Deletes old messages according to KEEPNUM and KEEPDAYS in crashmail.prefs. The
- program can do two different operations on a messagebase, MAINT and PACK. The 
- meaning of  these two modes are different for different messagebase formats. 
+ program can do two different operations on a messagebase, MAINT and PACK. The
+ meaning of these two modes are different for different messagebase formats.
 
  *.msg
- 
+
   MAINT deletes messages and PACK renumbers the area.
-  
- JAM 
- 
+
+ JAM
+
   MAINT sets the Deleted flag for the messages. PACK removes all messages with
   the Deleted flag from the messagebase.
-  
- Both MAINT and PACK can be specified at the same time. You can specicy a 
- config file other than the default with the SETTINGS keyword (use the 
+
+ Both MAINT and PACK can be specified at the same time. You can specify a
+ config file other than the default with the SETTINGS keyword (use the
  environment variable CMCONFIGFILE to set the default configuration file).
  Using the PATTERN keyword, you can perform the operations on only some of your
  areas. VERBOSE gives you a lot of information which you don't really need.
@@ -265,12 +267,12 @@ crashwrite DIR <directory> ...
 
  CrashWrite reads a text file and creates a .pkt file that can be processed
  by CrashMail. This can be used to post announcements and other messages in
- areas. The best way to use CrashWrite is to let it generate packets in a 
- separate directory and then toss them with TOSSDIR NOSECURITY. 
- 
+ areas. The best way to use CrashWrite is to let it generate packets in a
+ separate directory and then toss them with TOSSDIR NOSECURITY.
+
  There are many keywords for CrashWrite. All keywords are optional except for
  DIRECTORY. If you do not enter a keyword, a default value will be used.
- 
+
  FROMNAME <string>
  FROMADDR <node>
  TONAME <string>
@@ -282,10 +284,10 @@ crashwrite DIR <directory> ...
 
  PKTFROMADDR <string>
  PKTTOADDR <string>
- 
+
   Use these if you want to set the origin and destination address of the packet
-  to something other than the origin and destination address of the message 
-  inside the packet. If you do not specify these keywords, FROMADDR and 
+  to something other than the origin and destination address of the message
+  inside the packet. If you do not specify these keywords, FROMADDR and
   TOADDR will be used for the packet as well.
 
  PASSWORD <string>
@@ -294,37 +296,44 @@ crashwrite DIR <directory> ...
   length of the password is eight characters.
 
  AREA <area>
- 
+
   The area the message should be posted in. If you do not enter an area, the
   message will be sent as a netmail.
 
  ORIGIN <origin>
- 
-  The origin line for the message. This keyword has no effect for netmail 
+
+  The origin line for the message. This keyword has no effect for netmail
   messages.
 
  DIR <dir>
- 
+
   The directory where the packet should be placed.
-  
+
  TEXT <filename>
- 
+
   The name of a text file that should be included as the message text.
 
  NOMSGID
- 
-  Prevents CrashWrite from adding a MSGID line. 
 
- FILEATTACH                                 
- 
+  Prevents CrashWrite from adding a MSGID line.
+
+ FILEATTACH
+
   Sets the file-attach flag for netmails. The filename should be put in the
   subject line.
+
+crashlistout <directory> [<zone>] [<pattern>] VERBOSE
+
+ This command lists the contents of a outbound directory. Use zone to specify
+ which zone the directory is for (the default is 2). It is possible to only
+ list files for nodes that match a specified pattern. If you use the VERBOSE
+ switch, crashlistout will also list the contents of any *.req and flow files.
 
 
 Paths
 -----
 You should always use absolute paths in crashmail.prefs, otherwise CrashMail
-will fail to unpack incoming bundles. If you used relative paths, CrashMail
+will fail to unpack incoming bundles. If you use relative paths, CrashMail
 will also use relative paths in flow files which might confuse your mailer.
 
 Outbound
@@ -374,10 +383,14 @@ first message of the area (1.msg) and in JAM areas it is stored in the
 
 Nodelists
 ---------
-Currently CrashMail can only use its own nodelist format called "CMNL". The 
-format consists of a rather simple index which is created by the program
-CrashList. See the descriptions of CrashList and CrashGetNode for more 
-information.
+CrashMail can use two nodelist formats:
+
+1) Its own nodelist format ("CMNL"). The format consists of a rather simple
+index which is created by the program CrashList. See the descriptions of
+CrashList and CrashGetNode for more information.
+
+2) A nodelist in the Version7+ format ("V7+") used by BinkleyTerm and other
+programs.
 
 Patterns
 --------

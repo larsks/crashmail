@@ -15,7 +15,11 @@
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-*/	 
+
+    Changes made by Johan Billing 2003-10-22
+
+    - Fixed comparison between signed and unsigned variable in JAM_Crc32()
+*/
 
 #include "jam.h"
 
@@ -54,10 +58,16 @@ ulong crc32tab[] = { /* CRC polynomial 0xedb88320 */
 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
+/***********************************************************************
+**
+**  JAM_Crc32 - Calculates CRC-32
+**
+***********************************************************************/
+
 ulong JAM_Crc32(uchar *Buffer_PC, ulong Length_I)
 {
    ulong Crc_I;
-   int c;
+   ulong c;
 
    Crc_I=0xffffffff;
 

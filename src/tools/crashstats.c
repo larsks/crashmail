@@ -350,7 +350,13 @@ int main(int argc, char **argv)
    if(!osInit())
       exit(OS_EXIT_ERROR);
 
-   if(argc == 2 && strcmp(argv[1],"?")==0)
+   if(argc > 1 &&
+	  (strcmp(argv[1],"?")==0      ||
+		strcmp(argv[1],"-h")==0     ||
+		strcmp(argv[1],"--help")==0 ||
+		strcmp(argv[1],"help")==0 ||
+		strcmp(argv[1],"/h")==0     ||
+		strcmp(argv[1],"/?")==0 ))
    {
       printargs(args);
       osEnd();

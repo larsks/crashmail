@@ -14,7 +14,7 @@ bool msg_GetHighLowMsg(struct msg_Area *area);
 bool msg_WriteHighWater(struct msg_Area *area);
 bool msg_WriteMSG(struct MemMessage *mm,uchar *file);
 ulong msg_ReadCR(uchar *buf, ulong maxlen, osFile fh);
-bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemMessage *mm));
+bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemMessage *mm),bool isrescanning);
 
 struct jbList msg_AreaList;
 
@@ -30,7 +30,7 @@ struct msg_Area *msg_getarea(struct Area *area)
    for(ma=(struct msg_Area *)msg_AreaList.First;ma;ma=ma->Next)
       if(ma->area == area) return(ma);
 
-   /* This is the first time we use this area */ 
+   /* This is the first time we use this area */
 
    if(!(ma=osAllocCleared(sizeof(struct msg_Area))))
    {
@@ -102,16 +102,16 @@ bool msg_rescanfunc(struct Area *area,ulong max,bool (*handlefunc)(struct MemMes
    if(max !=0 && ma->HighMsg-start+1 > max)
       start=ma->HighMsg-max+1;
 
-   while(start <= ma->HighMsg)
+   while(start <= ma->HighMsg && !ctrlc)
    {
-      if(!msg_ExportMSGNum(area,start,handlefunc))
-         return(FALSE);
-
-      if(ctrlc)
+      if(!msg_ExportMSGNum(area,start,handlefunc,TRUE))
          return(FALSE);
 
       start++;
    }
+
+   if(ctrlc)
+      return(FALSE);
 
    return(TRUE);
 }
@@ -144,30 +144,28 @@ bool msg_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
          }
       }
    }
-  
+
    if(ma->HighWater) start=ma->HighWater+1;
    else              start=ma->LowMsg;
 
    if(start<ma->LowMsg)
       start=ma->LowMsg;
 
-   while(start <= ma->HighMsg)
+   while(start <= ma->HighMsg && !ctrlc)
    {
-      if(!msg_ExportMSGNum(area,start,handlefunc))
-         return(FALSE);
-
-      if(ctrlc)
+      if(!msg_ExportMSGNum(area,start,handlefunc,FALSE))
          return(FALSE);
 
       start++;
    }
 
-   ma->HighWater=start-1;
+   if(ctrlc)
+      return(FALSE);
 
    return(TRUE);
 }
 
-bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemMessage *mm))
+bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemMessage *mm),bool isrescanning)
 {
    ulong rlen;
    uchar buf[200],buf2[50];
@@ -176,7 +174,11 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    struct StoredMsg Msg;
    struct MemMessage *mm;
 	ushort oldattr;
-	
+   struct msg_Area *ma;
+
+   if(!(ma=msg_getarea(area)))
+      return(FALSE);
+
    if(!(mm=mmAlloc()))
       return(FALSE);
 
@@ -195,7 +197,6 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
       osClose(fh);
       return(TRUE);
    }
-
 
 	if(!isrescanning)
 	{
@@ -290,6 +291,9 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
 
    mm->msgnum=num;
 
+   if(isrescanning) mm->Flags |= MMFLAG_RESCANNED;
+   else             mm->Flags |= MMFLAG_EXPORTED;
+
    if(!(*handlefunc)(mm))
    {
       mmFree(mm);
@@ -306,13 +310,15 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
 		if((config.cfg_Flags & CFG_ALLOWKILLSENT) && (oldattr & FLAG_KILLSENT) && (area->AreaType == AREATYPE_NETMAIL))
 		{
 			/* Delete message with KILLSENT flag */
-			
+
 			LogWrite(2,TOSSINGINFO,"Deleting message with KILLSENT flag");
 		   osDelete(buf);
 		}
 		else
 		{
-		   Msg.Attr|=FLAG_SENT;
+         ma->HighWater=num;
+
+         Msg.Attr|=FLAG_SENT;
 
    	   if(config.cfg_msg_Flags & CFG_MSG_WRITEBACK)
       	{
@@ -364,7 +370,7 @@ bool msg_GetHighLowMsg(struct msg_Area *area)
 			ulong err=osError();
          LogWrite(1,SYSTEMERR,"Unable to create directory");
 			LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
-				
+
          return(FALSE);
       }
    }
@@ -439,15 +445,15 @@ bool msg_WriteHighWater(struct msg_Area *area)
 
    if(!osWrite(fh,&Msg,sizeof(struct StoredMsg)))
 		{ ioerror=TRUE; ioerrornum=osError(); }
-	
+
    if(!osWrite(fh,"",1))
 		{ ioerror=TRUE; ioerrornum=osError(); }
-	
+
    osClose(fh);
 
    if(ioerror)
       return(FALSE);
-	
+
    return(TRUE);
 }
 
@@ -512,7 +518,7 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
 	{
       if(!osWrite(fh,chunk->Data,chunk->Length))
 			{ ioerror=TRUE; ioerrornum=osError(); }
-	}	
+	}
 
    /* Write seen-by */
 
@@ -543,7 +549,7 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
          {
 				if(!osWrite(fh,"\x01PATH: ",7))
 					{ ioerror=TRUE; ioerrornum=osError(); }
-				
+
             if(!osWrite(fh,path->Path[c],(ulong)strlen(path->Path[c])))
 					{ ioerror=TRUE; ioerrornum=osError(); }
 

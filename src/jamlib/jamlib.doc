@@ -6,9 +6,9 @@
 
                      modifications by Johan Billing
 
-                             Version 1.3
+                            version 1.3.1
 
-                              2001-05-22
+                             2003-10-26
 
 
 GENERAL
@@ -16,25 +16,64 @@ GENERAL
 
 History
 -------
-JAMLIB 1.0 was originally released by Björn Stenberg 1996-03-06. Since 
-the original license did not permit modification of the library, 
-Johan Billing contacted Björn Stenberg and asked him to change the 
+JAMLIB 1.0 was originally released by Björn Stenberg 1996-03-06. Since
+the original license did not permit modification of the library,
+Johan Billing contacted Björn Stenberg and asked him to change the
 license. Björn Stenberg agreed to change the license to the GNU Lesser
 General Public License 1999-12-21 (see the accompanying file LICENSE).
 
-  After that, some minor additions and bug fixes were made by Johan 
+  After that, some minor additions and bug fixes were made by Johan
 Billing and JAMLIB 1.1 was released under the new license.
+
+Changes in 1.3.1:
+
+ * Backported the following bugfixes and improvements from JAMLIB 1.4.7 while
+   retaining the platform-independence and high portability of the early
+   versions of JAMLIB.
+
+   - JAMLIB now uses calloc() instead of malloc() followed by memset()
+
+   - JAM_OpenMB() and JAM_CreateMB() will set (*NewArea_PPS) to NULL if
+     calloc() failed
+
+   - JAM_CreateMB() no longer attempts indefinitely to lock the newly created
+     messagebase. If the first attempt fails, it will return an error.
+
+   - jam_Lock() now sets Base_PS->Errno under Linux
+
+   - JAM_NewSubPacket() and JAM_PutSubField() would give memory leaks under
+     conditions of low memory conditions. Fixed.
+
+   - JAM_ReadMsgHeader() would give memory leaks on failure. Fixed.
+
+   - Added JAM_DeleteMessage()
+
+   Big thanks to Sir Raorn (and others?) for finding and fixing these bugs!
+
+ * JAM_CreateMB() would never unlock or close the newly created messagebase
+   upon failure. Fixed.
+
+ * Improved handling of ActiveMsgs counter. JAM_AddMessage() now only
+   increases ActiveMsgs if the added message does not have MSG_DELETED set.
+   JAM_ChangeMsgHeader() decreases ActiveMsgs if MSG_DELETED is set and the
+   message wasn't already deleted. JAM_DeleteMessage() now only decreases
+   ActiveMsgs if the message wasn't already deleted.
+
+ * Updated the documentation to reflect the need to free() memory after
+   JAM_CloseMB() and failed calls to JAM_OpenMB() and JAM_CreateMB().
+
+ * Eliminated compiler warnings
 
 Changes in 1.3:
 
- * JAM_AddMessage() would fail when trying to add an empty message 
+ * JAM_AddMessage() would fail when trying to add an empty message
    to the messagebase under Linux. Fixed.
 
 Changes in 1.2:
 
- * Since JAM_GetSubField() is not reentrant and cannot be used in 
+ * Since JAM_GetSubField() is not reentrant and cannot be used in
    multi-threaded applications, JAM_GetSubField_R() was added as a
-   replacement for cases where a reentrant function is needed.   
+   replacement for cases where a reentrant function is needed.
 
 Changes in 1.1:
 
@@ -52,7 +91,7 @@ Changes in 1.1:
 
  * Changed JAM_OpenMB so that files are opened in binary mode. This is
    necessary to use JAMLIB under Windows.
- 
+
  * Improved JAM_ReadMsgHeader() to give the error JAM_NO_MESSAGE if
    the message no longer exists in the messagebase and JAM_CORRUPT_MSG
    if the subfields of the message have been corrupted.
@@ -65,7 +104,7 @@ Changes in 1.1:
    errno == EPASTEOF.
 
  * Added an #ifdef so that ushort and ulong are no longer defined in
-   jam.h when compiling under Linux. These are normally already defined 
+   jam.h when compiling under Linux. These are normally already defined
    in the standard header files.
 
 
@@ -131,11 +170,11 @@ these routines.
 
 Credits
 -------
-All original code except for the CRC32 routine was written by Björn 
-Stenberg. The CRC32 code was rewritten by Johan Billing for JAMLIB 1.1 
-to replace the original CRC32 code whose origin and copyright was unclear. 
-The jam.h header file is a compilation of the best from the various header 
-files in the JAMAPI package with some of additions by Björn Stenberg as well. 
+All original code except for the CRC32 routine was written by Björn
+Stenberg. The CRC32 code was rewritten by Johan Billing for JAMLIB 1.1
+to replace the original CRC32 code whose origin and copyright was unclear.
+The jam.h header file is a compilation of the best from the various header
+files in the JAMAPI package with some of additions by Björn Stenberg as well.
 Additions and modifications by Johan Billing.
 
   The JAM message base proposal is:
@@ -148,12 +187,11 @@ Additions and modifications by Johan Billing.
 Contact Information
 -------------------
 For questions about JAMLIB, please contact:
-  
+
    Johan Billing
-  
-   Fidonet: 2:205/454.77
+
    E-mail: billing@df.lth.se
-  
+
   If you wish to contact Björn Stenberg, his current e-mail address (as of
 1999-12-21) is bjorn@haxx.nu.
 
@@ -245,7 +283,8 @@ Parameters
                         JAM-specific extension.
 
         NewBase_PPS     A pointer to a message base handle where the new
-                        message base handle will be written
+                        message base handle will be written. On error you
+                        must free() this memory if (*NewBase_PPS) not NULL.
 
 Returns
         0               if successful
@@ -274,7 +313,8 @@ Description
         Unlocks (if locked) and closes the currently open message base.
 
 Parameters
-        Base_PS         The message base to close
+        Base_PS         The message base to close. Note, that you must
+                        free() this memory by yourself.
 
 Returns
         0               if successful
@@ -315,7 +355,8 @@ Parameters
                         should not be set to 0.
 
         NewBase_PPS     A pointer to a message base handle where the new
-                        message base handle will be written
+                        message base handle will be written. On error you
+                        must free() this memory if (*NewBase_PPS) not NULL.
 
 Returns
         0               if successful
@@ -672,9 +713,9 @@ Returns
         0               if successful
         JAM_IO_ERROR    if an I/O error occured. see JAM_Errno()
         JAM_NO_MEMORY   if a memory allocation failed
-		  JAM_NO_MESSAGE	if message has been removed
-		  JAM_CORRUPT_MSG if message subfields are corrupted
-		  
+        JAM_NO_MESSAGE  if message has been removed
+        JAM_CORRUPT_MSG if message subfields are corrupted
+
 Example
         {
           s_JamMsgHeader  Header_S;
@@ -944,6 +985,34 @@ Returns
 
 
 
+===================================================
+JAM_DeleteMessage - Delete message from messagebase
+===================================================
+
+Syntax
+        int JAM_DeleteMessage( s_JamBase*        Base_PS,
+                               ulong             MsgNo_I );
+
+
+Description
+        Deletes message from messagebase by setting HdrOffset and UserCRC
+        in index to 0xFFFFFFFF. ActiveMsgs in base header also updated.
+
+Parameters
+        Base_PS         The message base to use
+
+        MsgNo_I         The absolute message number. Message #0 is the
+                        first in the message base.
+
+Returns
+        0               if successful
+        JAM_IO_ERROR    if an I/O error occured. see JAM_Errno()
+        JAM_NOT_LOCKED  if the message base is not locked
+
+Example
+        none
+
+
 
 --------------------------------------------------------------------------
 
@@ -1039,10 +1108,10 @@ Syntax
 Description
         Returns a pointer to the first/next subfield struct in the subfield
         packet.
-		  
+
         WARNING: This function is not reentrant and should not be used in
         multi-threaded applications unless you know what you are doing.
-		  
+
         Use JAM_GetSubfield_R instead when a reentrant function is needed.
 
 Parameter
@@ -1089,7 +1158,7 @@ Description
         This function is a reentrant replacement for JAM_GetSubfield.
 
 Parameter
-        SubPack_PS      The subfield packet to use. 
+        SubPack_PS      The subfield packet to use.
 
         Count_PI        Pointer to a variable that contains the number of
                         the subfield to retrieve. The variable should be
@@ -1108,12 +1177,12 @@ Example
           s_JamMsgHeader  Header_S;
           ulong           Count_I;
           int             Result_I;
-	
+
           Result_I = JAM_ReadMsgHeader( 0, &Header_S, &SubPack_PS );
           if ( Result_I )
             printf("JAM_ReadMsgHeader returned %d.\n", Result_I );
 
-          Count_I = 0;     
+          Count_I = 0;
 
           while( ( Subfield_PS = JAM_GetSubfield_R( SubPack_PS , &Count_I ) ) )
             printf("Subfield id %d\n", Subfield_PS->LoID );
@@ -1285,9 +1354,9 @@ Syntax
                          ulong  Length_I );
 
 Description
-        Calculates the Crc32 value for a block of data. All ASCII 
-		  characters are converted to lowercase before calculating
-		  the CRC (the input data is unchanged).
+        Calculates the Crc32 value for a block of data. All ASCII
+        characters are converted to lowercase before calculating
+        the CRC (the input data is unchanged).
 
 Parameters
         Buffer_PC       A pointer to the first byte of the data block
@@ -1340,5 +1409,7 @@ Examples
               perror("JAM i/o error");
           }
         }
+
+
 
 

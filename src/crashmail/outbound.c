@@ -8,7 +8,7 @@ bool LockBasename(uchar *basename)
 {
 	uchar buf[200];
 	osFile fp;
-	
+
 	strcpy(buf,basename);
 	strcat(buf,".bsy");
 
@@ -46,35 +46,35 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
    uchar *ospathchars;
    ulong num,c;
    uchar buf[50];
-      
+
    ospathchars=OS_PATH_CHARS;
-   
+
    for(tmproute=(struct Route *)config.RouteList.First;tmproute;tmproute=tmproute->Next)
       if(Compare4DPat(&tmproute->Pattern,n4d)==0) break;
 
    firstaka=(struct Aka *)config.AkaList.First;
 
    samedomain=FALSE;
-   
+
    if(!tmproute)
       samedomain=TRUE;
-      
+
    else if(tmproute->Aka->Domain[0]==0 || firstaka->Domain[0]==0 || stricmp(tmproute->Aka->Domain,firstaka->Domain)==0)
       samedomain=TRUE;
 
-   if(samedomain)      
+   if(samedomain)
    {
       /* Main domain */
-      
+
       strcpy(basename,config.cfg_Outbound);
-      
+
       if(basename[0])
       {
          if(strchr(ospathchars,basename[strlen(basename)-1]))
             basename[strlen(basename)-1]=0; /* Strip / */
       }
-      
-      if(n4d->Zone != firstaka->Node.Zone)      
+
+      if(n4d->Zone != firstaka->Node.Zone)
       {
          /* Not in main zone */
 
@@ -82,18 +82,18 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
 
 			if(!(config.cfg_Flags & CFG_NOMAXOUTBOUNDZONE))
 			{
-         	if(num > 0xfff) 
+         	if(num > 0xfff)
 					num=0xfff;
 			}
-			
+
          sprintf(buf,".%03lx",num);
-         strcat(basename,buf);         
+         strcat(basename,buf);
       }
    }
    else
    {
       /* Other domain */
-      
+
       strcpy(basename,config.cfg_Outbound);
 
       if(basename[0])
@@ -104,12 +104,12 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
 
       *GetFilePart(basename)=0; /* Use domain as last component in path */
       strcat(basename,tmproute->Aka->Domain);
-      
+
       num=n4d->Zone;
 
 		if(!(config.cfg_Flags & CFG_NOMAXOUTBOUNDZONE))
 		{
-         if(num > 0xfff) 
+         if(num > 0xfff)
 				num=0xfff;
 		}
 
@@ -124,7 +124,7 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
 
    c=strlen(basename);
    basename[c++]=ospathchars[0];
-   basename[c++]=0;   
+   basename[c++]=0;
 
    /* Add net/node */
 
@@ -142,7 +142,7 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
 
       c=strlen(basename);
       basename[c++]=ospathchars[0];
-      basename[c++]=0;   
+      basename[c++]=0;
 
       /* Add point */
 
@@ -157,16 +157,16 @@ void WriteIndex(void)
 	osFile fh;
 	uchar buf[200];
 	struct ConfigNode *cnode;
-	
+
 	MakeFullPath(config.cfg_PacketDir,"cmindex",buf,200);
 
 	/* Get basenum */
-	
+
 	if(!(fh=osOpen(buf,MODE_NEWFILE)))
 		return;
-		
+
 	for(cnode=(struct ConfigNode *)config.CNodeList.First;cnode;cnode=cnode->Next)
-		if(cnode->LastArcName[0]) 
+		if(cnode->LastArcName[0])
 		{
 			Print4D(&cnode->Node,buf);
 			osFPrintf(fh,"%s %s\n",buf,cnode->LastArcName);
@@ -182,14 +182,14 @@ void ReadIndex(void)
 	ulong jbcpos;
 	struct ConfigNode *cnode,*c1,*c2;
 	struct Node4D n4d;
-	
+
 	MakeFullPath(config.cfg_PacketDir,"cmindex",buf,200);
 
 	/* Get basenum */
-	
+
 	if(!(fh=osOpen(buf,MODE_OLDFILE)))
 		return;
-		
+
 	while(osFGets(fh,buf,200))
 	{
 		striptrail(buf);
@@ -197,7 +197,7 @@ void ReadIndex(void)
 		jbcpos=0;
 
 		jbstrcpy(buf2,buf,200,&jbcpos);
-			
+
 		if(Parse4D(buf2,&n4d))
 		{
 			jbstrcpy(buf2,buf,200,&jbcpos);
@@ -206,11 +206,11 @@ void ReadIndex(void)
 				if(Compare4D(&cnode->Node,&n4d)==0) mystrncpy(cnode->LastArcName,buf2,13);
 		}
 	}
-	
+
 	osClose(fh);
 
 	/* Check for duplicates */
-	
+
    for(c1=(struct ConfigNode *)config.CNodeList.First;c1;c1=c1->Next)
       for(c2=c1->Next;c2;c2=c2->Next)
          if(c1->LastArcName[0] && hextodec(c1->LastArcName) == hextodec(c2->LastArcName))
@@ -224,7 +224,7 @@ void ReadIndex(void)
 					c2->Node.Net,
 					c2->Node.Node,
 					c2->Node.Point);
-					
+
 				LogWrite(1,TOSSINGINFO,"Cleared bundle name for %u:%u/%u.%u",
 					c2->Node.Zone,
 					c2->Node.Net,
@@ -241,7 +241,7 @@ bool ExistsBasenum(ulong num)
 	uchar name[20];
 	struct osFileEntry *fe;
 	struct ConfigNode *cnode;
-		
+
 	sprintf(name,"%08lx.",num);
 
 	for(fe=(struct osFileEntry *)ArcList.First;fe;fe=fe->Next)
@@ -249,7 +249,7 @@ bool ExistsBasenum(ulong num)
 
 	for(cnode=(struct ConfigNode *)config.CNodeList.First;cnode;cnode=cnode->Next)
 		if(cnode->LastArcName[0] && hextodec(cnode->LastArcName) == num) return(TRUE);
-		
+
 	return(FALSE);
 }
 
@@ -269,8 +269,8 @@ bool ExistsBundle(ulong basenum,ulong num)
 
 void MakeArcName(struct ConfigNode *cnode,uchar *dest)
 {
-	struct osFileEntry *fe,*fe2,*foundfe;
-	uchar arc[20],buf[200],ext[10];
+	struct osFileEntry *fe,*foundfe;
+	uchar ext[10];
 	ulong basenum;
 	long suffix,newsuffix,day,i;
 	uchar *daynames[]={"su","mo","tu","we","th","fr","sa"};
@@ -279,24 +279,38 @@ void MakeArcName(struct ConfigNode *cnode,uchar *dest)
 
 	time(&t);
 	tp=localtime(&t);
-	
+
 	day=tp->tm_wday;
 
-	/* Get basenum */
+	/* Get basenum and suffix of latest bundle */
 
-	if(!cnode->LastArcName[0])
+   suffix=-1;
+
+   if(!cnode->LastArcName[0])
 	{
 		basenum=time(NULL);
-		
+
 		while(ExistsBasenum(basenum))
 			basenum++;
-	}
+   }
 	else
 	{
 		basenum=hextodec(cnode->LastArcName);
-	}
-				
-	/* Get latest in list*/
+
+      strncpy(ext,&cnode->LastArcName[strlen(cnode->LastArcName)-3],3);
+      ext[2]=0;
+
+		for(i=0;i<7;i++)
+		{
+         if(stricmp(ext,daynames[i])==0)
+			{
+				suffix=i*10;
+				suffix+=cnode->LastArcName[strlen(cnode->LastArcName)-1]-'0';
+			}
+		}
+   }
+
+	/* Does LastArcName still exist in directory? */
 
 	foundfe=NULL;
 
@@ -305,45 +319,31 @@ void MakeArcName(struct ConfigNode *cnode,uchar *dest)
 	   for(fe=(struct osFileEntry *)ArcList.First;fe;fe=fe->Next)
    	   if(stricmp(cnode->LastArcName,fe->Name)==0) foundfe=fe;
 	}
-	
-	/* Get extension of latest */
-	
-	suffix=-1;
-	
-   if(foundfe)
-	{
-   	strncpy(ext,&foundfe->Name[strlen(foundfe->Name)-3],3);
-      ext[2]=0;
-
-		for(i=0;i<7;i++)
-		{
-         if(stricmp(ext,daynames[i])==0) 
-			{
-				suffix=i*10;
-				suffix+=foundfe->Name[strlen(foundfe->Name)-1]-'0';
-			}
-		}
-	}
 
 	if(suffix == -1)
 	{
-		if((config.cfg_Flags & CFG_WEEKDAYNAMING))
+      if((config.cfg_Flags & CFG_WEEKDAYNAMING))
 			newsuffix=day*10;
-			
+
 		else
 			newsuffix=0;
 	}
 	else
 	{
-		/* There was an old bundle */
-
 		newsuffix=suffix;
 
-		if(foundfe->Size == 0)
-			newsuffix=-1;
+      if(!foundfe)
+      {
+         newsuffix=-1;
+      }
+      else
+      {
+         if(foundfe->Size == 0)
+	   		newsuffix=-1;
 
-		if(foundfe->Size > config.cfg_MaxBundleSize)
-			newsuffix=-1;
+   		if(foundfe->Size > config.cfg_MaxBundleSize)
+	   		newsuffix=-1;
+      }
 
 		if((config.cfg_Flags & CFG_WEEKDAYNAMING) && suffix/10 != day)
 			newsuffix=-1;
@@ -352,40 +352,48 @@ void MakeArcName(struct ConfigNode *cnode,uchar *dest)
 		{
 			newsuffix=suffix+1;
 			if(newsuffix == 70) newsuffix=0;
-			
-			if((config.cfg_Flags & CFG_WEEKDAYNAMING) && newsuffix/10 != day) 
+
+         if((config.cfg_Flags & CFG_WEEKDAYNAMING) && newsuffix/10 != day)
 				newsuffix=day*10;
-				
+
 			if(ExistsBundle(basenum,newsuffix))
 				newsuffix=suffix;
 		}
 	}
 
-	/* Delete zero length bundles for this node */
-	
-   fe=(struct osFileEntry *)ArcList.First;
-	sprintf(arc,"%08lx.",basenum);
-	
-	while(fe)
-	{
-		fe2=fe->Next;
-		
-      if(strnicmp(arc,fe->Name,9)==0 && fe->Size == 0)
-      {
-			MakeFullPath(config.cfg_PacketDir,fe->Name,buf,200);
-			osDelete(buf);
-			jbFreeNode(&ArcList,(struct jbNode *)fe);
-		}
-
-		fe=fe2;
-	}
-
 	sprintf(dest,"%08lx.%s%ld",basenum,daynames[newsuffix/10],newsuffix%10);
-	
+
 	if(stricmp(cnode->LastArcName,dest)!=0)
 	{
 		mystrncpy(cnode->LastArcName,dest,13);
 		WriteIndex();
+	}
+}
+
+void DeleteZero(uchar *dir,struct jbList *arclist)
+{
+   struct osFileEntry *fe,*fe2;
+   uchar buf[200];
+
+	/* Delete zero length bundles for this node */
+
+   fe=(struct osFileEntry *)arclist->First;
+
+	while(fe)
+	{
+		fe2=fe->Next;
+
+      if(fe->Size == 0)
+      {
+         MakeFullPath(dir,fe->Name,buf,200);
+
+         LogWrite(2,TOSSINGINFO,"Deleting zero length bundle %s",buf);
+
+         osDelete(buf);
+			jbFreeNode(&ArcList,(struct jbNode *)fe);
+		}
+
+		fe=fe2;
 	}
 }
 
@@ -397,12 +405,13 @@ void HandleOrphan(uchar *name)
    bool mode;
    ulong jbcpos;
    struct Node4D n4d;
-   
+	uchar basename[200];
+
    if(!(fh=osOpen(name,MODE_OLDFILE)))
    {
 		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open orphan file \"%s\"",name);
-		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return;
    }
 
@@ -412,12 +421,12 @@ void HandleOrphan(uchar *name)
       osClose(fh);
       return;
    }
- 
-   osClose(fh);   
+
+   osClose(fh);
 
    jbcpos=0;
 
-   jbstrcpy(buf2,buf,100,&jbcpos);            
+   jbstrcpy(buf2,buf,100,&jbcpos);
 
    if(stricmp(buf2,"Normal")==0)
       type=PKTS_NORMAL;
@@ -436,15 +445,15 @@ void HandleOrphan(uchar *name)
       LogWrite(1,SYSTEMERR,"Unknown flavour \"%s\" in \"%s\"",buf2,name);
       return;
    }
-   
+
    jbstrcpy(buf2,buf,100,&jbcpos);
 
    if(!Parse4D(buf2,&n4d))
    {
       LogWrite(1,SYSTEMERR,"Invalid node \"%s\" in \"%s\"",buf2,name);
-      return;  
+      return;
    }
-   
+
    mode=FLOW_NONE;
 
    jbstrcpy(buf2,buf,100,&jbcpos);
@@ -458,30 +467,42 @@ void HandleOrphan(uchar *name)
    mystrncpy(buf,name,200);
    buf[strlen(buf)-7]=0; /* Remove .orphan */
 
-   if(AddFlow(buf,&n4d,type,mode))
+   MakeBaseName(&n4d,basename);
+
+	if(!LockBasename(basename))
+	{
+		printf("Cannot add to %s, node is busy...\n",GetFilePart(basename));
+      return;
+	}
+
+   if(doAddFlow(buf,basename,type,mode))
    	osDelete(name); /* Orphan file no longer needed */
+
+	UnlockBasename(basename);
 }
 
 void MakeOrphan(uchar *file,struct Node4D *n4d,char type,long mode)
 {
    uchar buf[200];
    osFile fh;
-   
+
    strcpy(buf,file);
    strcat(buf,".orphan");
-   
+
    if(!(fh=osOpen(buf,MODE_NEWFILE)))
    {
 		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open \"%s\", cannot make .orphan file",buf);
-		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return;
    }
-   
-   sprintf(buf,"%s %d:%d/%d.%d\n",prinames[(int)type],n4d->Zone,n4d->Net,n4d->Node,n4d->Point);
+
+   sprintf(buf,"%s %d:%d/%d.%d",prinames[(int)type],n4d->Zone,n4d->Net,n4d->Node,n4d->Point);
    if(mode==FLOW_TRUNC) strcat(buf," Truncate");
-   if(mode==FLOW_DELETE) strcat(buf," Delete");
-   
+   else if(mode==FLOW_DELETE) strcat(buf," Delete");
+
+   strcat(buf,"\n");
+
    osPuts(fh,buf);
    osClose(fh);
 }
@@ -492,7 +513,7 @@ bool doAddFlow(uchar *filename,uchar *basename,uchar type,long mode)
 {
    uchar buf[200],letter,*prefix;
    osFile fh;
-   
+
    switch(type)
    {
       case PKTS_NORMAL:
@@ -513,10 +534,10 @@ bool doAddFlow(uchar *filename,uchar *basename,uchar type,long mode)
    {
 		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open \"%s\"",buf);
-		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
    }
-   
+
    while(osFGets(fh,buf,200))
    {
       striptrail(buf);
@@ -543,7 +564,9 @@ bool doAddFlow(uchar *filename,uchar *basename,uchar type,long mode)
    if(mode == FLOW_DELETE)
       prefix="^";
 
-   osFPrintf(fh,"%s%s\n",prefix,filename);
+   if(config.cfg_Flags & CFG_FLOWCRLF) osFPrintf(fh,"%s%s\r\n",prefix,filename);
+   else                         osFPrintf(fh,"%s%s\n",prefix,filename);
+
    osClose(fh);
 
    return(TRUE);
@@ -553,16 +576,16 @@ bool doAddFlow(uchar *filename,uchar *basename,uchar type,long mode)
 bool AddFlow(uchar *filename,struct Node4D *n4d,uchar type,long mode)
 {
 	uchar basename[200];
-	
+
    MakeBaseName(n4d,basename);
-	
+
 	if(!LockBasename(basename))
 	{
 		printf("Cannot add to %s, node is busy...\n",GetFilePart(basename));
 		MakeOrphan(filename,n4d,type,mode);
 		return(FALSE);
-	}	
-   
+	}
+
 	if(!doAddFlow(filename,basename,type,mode))
 		MakeOrphan(filename,n4d,type,mode);
 
@@ -574,7 +597,7 @@ bool AddFlow(uchar *filename,struct Node4D *n4d,uchar type,long mode)
 bool MakePktTmp(uchar *name)
 {
 	uchar buf[200];
-	
+
 	MakeFullPath(config.cfg_PacketDir,GetFilePart(name),buf,200);
    strcpy(&buf[strlen(buf)-6],"pkttmp"); /* Change suffix */
 
@@ -583,7 +606,7 @@ bool MakePktTmp(uchar *name)
    	LogWrite(1,SYSTEMERR,"Failed to move file \"%s\" to \"%s\"",name,buf);
 		return(FALSE);
 	}
-	
+
 	return(TRUE);
 }
 
@@ -593,7 +616,7 @@ void UpdateFile(uchar *name)
 
 	if(!(newfe=osGetFileEntry(name)))
 		return;
-		
+
 	for(fe=(struct osFileEntry *)ArcList.First;fe;fe=fe->Next)
 		if(stricmp(fe->Name,name)==0) break;
 
@@ -602,7 +625,7 @@ void UpdateFile(uchar *name)
 		fe->Date=newfe->Date;
 		fe->Size=newfe->Size;
 		osFree(newfe);
-	}		
+	}
 	else
 	{
 		jbAddNode(&ArcList,(struct jbNode *)newfe);
@@ -620,7 +643,7 @@ bool PackFile(char *file)
    char type;
 	uchar letter;
 	osFile ifh,ofh;
-  	    
+
    /* Parse filename */
 
    mystrncpy(buf,GetFilePart(file),200);
@@ -651,7 +674,7 @@ bool PackFile(char *file)
 
    else
    {
-      LogWrite(1,TOSSINGERR,"Unknown flavour \"%s\" for  \"%s\"",buf2,file); 
+      LogWrite(1,TOSSINGERR,"Unknown flavour \"%s\" for  \"%s\"",buf2,file);
       return(FALSE);
    }
 
@@ -666,7 +689,7 @@ bool PackFile(char *file)
 
    jbstrcpy(buf2,buf,100,&jbcpos);
    n4d.Point=atol(buf2);
-        
+
    /* Make basename for this node */
 
    MakeBaseName(&n4d,basename);
@@ -682,7 +705,7 @@ bool PackFile(char *file)
    if(type == PKTS_ECHOMAIL)
    {
 	   struct ConfigNode *cnode;
-		
+
 		for(cnode=(struct ConfigNode *)config.CNodeList.First;cnode;cnode=cnode->Next)
 			if(Compare4D(&cnode->Node,&n4d)==0) break;
 
@@ -703,22 +726,36 @@ bool PackFile(char *file)
 				cnode->Node.Net,
 				cnode->Node.Node,
 				cnode->Node.Point,
-				cnode->Packer->Name);				
+				cnode->Packer->Name);
+
+         osRename(file,pktname);
+
+         if(config.cfg_BeforePack[0])
+         {
+            ExpandPacker(config.cfg_BeforePack,buf,200,arcname,pktname);
+            res=osExecute(buf);
+
+            if(res != 0)
+            {
+	            osRename(pktname,file);
+               LogWrite(1,SYSTEMERR,"BEFOREPACK command failed: %lu",res);
+	   			UnlockBasename(basename);
+   				return(FALSE);
+            }
+         }
 
          ExpandPacker(cnode->Packer->Packer,buf,200,arcname,pktname);
-
-         osRename(file,pktname);   
          res=osExecute(buf);
-         
+
          if(res == 0)
          {
 				UpdateFile(arcname);
 
             osDelete(pktname);
 
-            if(!doAddFlow(arcname,basename,cnode->EchomailPri,FLOW_TRUNC))
-               MakeOrphan(arcname,&n4d,cnode->EchomailPri,FLOW_TRUNC);
-         }   
+            if(!doAddFlow(arcname,basename,cnode->EchomailPri,FLOW_DELETE))
+               MakeOrphan(arcname,&n4d,cnode->EchomailPri,FLOW_DELETE);
+         }
          else
          {
 	         osRename(pktname,file);
@@ -730,7 +767,7 @@ bool PackFile(char *file)
       else
       {
          /* Send unpacked echomail */
-         
+
          MakeFullPath(config.cfg_PacketDir,GetFilePart(file),pktname,200);
          GetFilePart(pktname)[8]=0;
          strcat(pktname,".pkt");
@@ -752,7 +789,7 @@ bool PackFile(char *file)
          {
             if(!doAddFlow(pktname,basename,cnode->EchomailPri,FLOW_DELETE))
                MakeOrphan(pktname,&n4d,cnode->EchomailPri,FLOW_DELETE);
-         }      
+         }
       }
    }
    else
@@ -866,7 +903,7 @@ bool ArchiveOutbound(void)
    {
 		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
-		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
    }
 
@@ -888,23 +925,27 @@ bool ArchiveOutbound(void)
    {
 		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
-		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
    }
 
-	/* Read index */
-	
+   /* Delete old zero-length files */
+
+   DeleteZero(config.cfg_PacketDir,&ArcList);
+
+   /* Read index */
+
 	ReadIndex();
-	
+
 	/* Old packets */
 
    LogWrite(3,ACTIONINFO,"Scanning for old packets");
-	
+
    if(!(osReadDir(config.cfg_PacketDir,&PktList,IsPktTmp)))
    {
 		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
-		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       jbFreeList(&ArcList);
       return(FALSE);
    }
@@ -914,13 +955,13 @@ bool ArchiveOutbound(void)
    for(fe=(struct osFileEntry *)PktList.First;fe;fe=fe->Next)
    {
       LogWrite(1,SYSTEMINFO,"Found old packet file \"%s\", retrying...",fe->Name);
-		
+
       MakeFullPath(config.cfg_PacketDir,fe->Name,buf,200);
       PackFile(buf);
    }
 
    jbFreeList(&PktList);
-	
+
 	/* New packets */
 
    LogWrite(3,ACTIONINFO,"Scanning for new files to pack");
@@ -929,11 +970,11 @@ bool ArchiveOutbound(void)
    {
 		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketCreate);
-		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
+		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       jbFreeList(&ArcList);
       return(FALSE);
    }
-	
+
    SortFEList(&PktList);
 
    for(fe=(struct osFileEntry *)PktList.First;fe;fe=fe->Next)

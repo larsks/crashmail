@@ -71,7 +71,7 @@ void LogTossResults(void)
 
    printf("\n");
 
-   LogWrite(1,TOSSINGINFO,"   Total ->     Read messages: %6lu     Written messages: %6lu",toss_total,toss_written);
+   LogWrite(1,TOSSINGINFO,"   Total ->     Read messages: %6lu     Written messages: %6lu",toss_read,toss_written);
    LogWrite(1,TOSSINGINFO,"Imported -> Imported messages: %6lu      Routed netmails: %6lu",toss_import,toss_route);
    LogWrite(1,TOSSINGINFO,"     Bad ->      Bad messages: %6lu   Duplicate messages: %6lu",toss_bad,toss_dupes);
 
@@ -112,7 +112,6 @@ bool TossBundle(uchar *file,struct osFileEntry *fe)
    if(arcres == -1)
    {
       LogWrite(1,SYSTEMERR,"Unable to find temp directory \"%s\"",config.cfg_TempDir);
-      exitprg=TRUE;
       return(FALSE);
    }
 
@@ -137,7 +136,7 @@ bool TossBundle(uchar *file,struct osFileEntry *fe)
       return(FALSE);
    }
 
-   for(pktfe=(struct osFileEntry *)FEList.First;pktfe;pktfe=pktfe->Next)
+   for(pktfe=(struct osFileEntry *)FEList.First;pktfe && !ctrlc;pktfe=pktfe->Next)
    {
       MakeFullPath(config.cfg_TempDir,pktfe->Name,buf,200);
 
@@ -161,6 +160,9 @@ bool TossBundle(uchar *file,struct osFileEntry *fe)
 
    jbFreeList(&FEList);
 
+   if(ctrlc)
+      return(FALSE);
+
    return(TRUE);
 }
 
@@ -172,10 +174,6 @@ bool TossDir(uchar *dir)
    uchar buf[200];
 
    LogWrite(3,ACTIONINFO,"Tossing files in %s...",dir);
-
-   istossing=TRUE;
-   isscanning=FALSE;
-   isrescanning=FALSE;
 
    if(!BeforeScanToss())
       return(FALSE);
@@ -232,7 +230,7 @@ bool TossDir(uchar *dir)
 
    /* Process pkt files */
 
-   for(fe=(struct osFileEntry *)PktFEList.First;fe;fe=fe->Next)
+   for(fe=(struct osFileEntry *)PktFEList.First;fe && !ctrlc;fe=fe->Next)
    {
       MakeFullPath(dir,fe->Name,buf,200);
 
@@ -247,7 +245,7 @@ bool TossDir(uchar *dir)
       SafeDelete(buf);
    }
 
-   for(fe=(struct osFileEntry *)ArcFEList.First;fe;fe=fe->Next)
+   for(fe=(struct osFileEntry *)ArcFEList.First;fe && !ctrlc;fe=fe->Next)
    {
       MakeFullPath(dir,fe->Name,buf,200);
 
@@ -265,6 +263,12 @@ bool TossDir(uchar *dir)
    jbFreeList(&PktFEList);
    jbFreeList(&ArcFEList);
 
+   if(ctrlc)
+   {
+      AfterScanToss(FALSE);
+      return(FALSE);
+   }
+
    LogTossResults();
    AfterScanToss(TRUE);
 
@@ -276,10 +280,6 @@ bool TossFile(uchar *file)
    struct osFileEntry *fe;
 
    LogWrite(3,ACTIONINFO,"Tossing file %s...",file);
-
-   istossing=TRUE;
-   isscanning=FALSE;
-   isrescanning=FALSE;
 
    if(!(fe=osGetFileEntry(file)))
    {

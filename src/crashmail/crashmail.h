@@ -13,6 +13,7 @@
 #include <shared/jbstrcpy.h>
 #include <shared/path.h>
 #include <shared/node4d.h>
+#include <shared/expr.h>
 
 #include <oslib/os.h>
 #include <oslib/osmem.h>
@@ -22,7 +23,7 @@
 #include <oslib/osmisc.h>
 
 #include <shared/fidonet.h>
-#include <shared/storedmsg.h>        
+#include <shared/storedmsg.h>
 
 #include "node4dpat.h"
 #include "nl.h"
@@ -41,24 +42,24 @@
 #include "handle.h"
 #include "outbound.h"
 #include "areafix.h"
+#include "filter.h"
 
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 62
+#define VERSION_MINOR 7
 
-#define VERSION "0.62"
+#define VERSION "0.7"
 
-#define TID_VERSION "0.62"
+#define TID_VERSION "0.7"
 
 extern struct jbList PktList;
 extern struct jbList DeleteList;
 
 extern bool nomem;
 extern bool ioerror;
-extern bool exitprg;
 
 extern ulong ioerrornum;
 
-extern ulong toss_total;
+extern ulong toss_read;
 extern ulong toss_bad;
 extern ulong toss_route;
 extern ulong toss_import;
@@ -68,11 +69,9 @@ extern ulong toss_dupes;
 extern ulong scan_total;
 extern ulong rescan_total;
 
-extern bool istossing;
-extern bool isscanning;
-extern bool isrescanning;
-
 extern bool no_security;
+
+extern int handle_nesting;
 
 extern struct ConfigNode *RescanNode;
 
@@ -84,6 +83,7 @@ extern struct Messagebase AvailMessagebases[];
 extern struct Config config;
 
 extern bool ctrlc;
+extern bool nodelistopen;
 
 bool BeforeScanToss(void);
 void AfterScanToss(bool success);

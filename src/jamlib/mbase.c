@@ -17,15 +17,31 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
     Changes made by Johan Billing 2000-04-16:
-	 
+
     - Added support for Win32 and Linux
     - Changed JAM_OpenMB to open files in binary mode
     - Changed source to use feof() instead of errno == EPASTEOF
     - Changed source to use structrw to read and write structures
     - Fixed broken JAM_FindUser()
     - #includes string.h and stdlib.h instead of memory.h
- 
-*/	 
+
+    Backported changes from JAMLIB 1.4.7 made by Johan Billing 2003-10-26
+
+    - Now uses calloc instead of malloc/memset
+    - (*NewArea_PPS) will be set to zero even if calloc() failed in
+      JAM_OpenMB() and JAM_CreateMB()
+    - JAM_CreateMB() no longer attempts to forever to lock the newly created
+      messagebase. If the first attempt fails, it will return an error.
+    - jam_Lock() now sets Base_PS->Errno under Linux
+
+    Other changes made by Johan Billing 2003-10-26
+
+    - Fixed comparison between signed and unsigned variable in JAM_GetMBSize()
+
+    - JAM_CreateMB() would not unlock and close the newly created messagebase
+      upon failure.
+
+*/
 
 /***********************************************************************
 **
@@ -93,16 +109,18 @@ int JAM_OpenMB( uchar* Basename_PC, s_JamBase** NewArea_PPS )
     if ( !NewArea_PPS )
 	return JAM_BAD_PARAM;
 
-    Base_PS = (s_JamBase*) malloc( sizeof( s_JamBase ) );
+    *NewArea_PPS = NULL;
+
+    Base_PS = (s_JamBase*) calloc( 1, sizeof( s_JamBase ) );
     if (!Base_PS)
 	return JAM_NO_MEMORY;
 
-    memset( Base_PS, 0, sizeof( s_JamBase ) );
     *NewArea_PPS = Base_PS;
 
     Status_I = jam_Open( Base_PS, Basename_PC, "r+b" );
-    if ( Status_I )
+    if ( Status_I ) {
 	return Status_I;
+    }
 
     return 0;
 }
@@ -123,11 +141,12 @@ int JAM_CreateMB( uchar* 	Basename_PC,
     if ( !NewArea_PPS || !BaseMsg_I )
 	return JAM_BAD_PARAM;
 
-    Base_PS = (s_JamBase*) malloc( sizeof( s_JamBase ) );
+    *NewArea_PPS = NULL;
+
+    Base_PS = (s_JamBase*) calloc( 1, sizeof( s_JamBase ) );
     if (!Base_PS)
 	return JAM_NO_MEMORY;
 
-    memset( Base_PS, 0, sizeof( s_JamBase ) );
     *NewArea_PPS = Base_PS;
 
     Status_I = jam_Open( Base_PS, Basename_PC, "w+b" );
@@ -140,12 +159,19 @@ int JAM_CreateMB( uchar* 	Basename_PC,
     Base_S.PasswordCRC = 0xffffffff;
     Base_S.BaseMsgNum  = BaseMsg_I;
     memset( &Base_S.RSRVD, 0, sizeof( Base_S.RSRVD ) );
-    
-    JAM_LockMB( Base_PS, -1 );
+
+    Status_I = JAM_LockMB( Base_PS, 0 ); /* If the new base cannot be locked directly, something is seriously wrong */
+    if ( Status_I ) {
+        JAM_CloseMB(Base_PS);
+	return Status_I;
+    }
 
     Status_I = JAM_WriteMBHeader( Base_PS, &Base_S );
-    if ( Status_I )
+    if ( Status_I ) {
+        JAM_UnlockMB( Base_PS );
+        JAM_CloseMB(Base_PS);
 	return Status_I;
+    }
 
     JAM_UnlockMB( Base_PS );
 
@@ -222,7 +248,7 @@ int JAM_RemoveMB( s_JamBase* Base_PS, uchar* Basename_PC )
 ***********************************************************************/
 int JAM_GetMBSize( s_JamBase* Base_PS, ulong* Messages_PI )
 {
-    ulong Offset_I;
+    long Offset_I;
 
     /* go to end of index file */
     if ( fseek( Base_PS->IdxFile_PS, 0, SEEK_END ) ) {
@@ -438,7 +464,7 @@ int jam_Lock( s_JamBase* Base_PS, int DoLock_I )
     return 0;
 #elif defined(__WIN32__)
     int      Handle_I,Status_I;
-  
+
     fseek(Base_PS->HdrFile_PS,0,SEEK_SET); /* Lock from start of file */
 
     Handle_I = fileno( Base_PS->HdrFile_PS );
@@ -452,7 +478,7 @@ int jam_Lock( s_JamBase* Base_PS, int DoLock_I )
     else
         Status_I = _locking(Handle_I,_LK_UNLOCK,1);
 
-    if ( Status_I ) 
+    if ( Status_I )
        return JAM_LOCK_FAILED;
 
     if ( DoLock_I )
@@ -464,7 +490,7 @@ int jam_Lock( s_JamBase* Base_PS, int DoLock_I )
 #elif defined(__LINUX__)
     int      Handle_I,Status_I;
     struct flock fl;
-    
+
     fseek(Base_PS->HdrFile_PS,0,SEEK_SET); /* Lock from start of file */
 
     Handle_I = fileno( Base_PS->HdrFile_PS );
@@ -474,17 +500,19 @@ int jam_Lock( s_JamBase* Base_PS, int DoLock_I )
     }
 
     if(DoLock_I) fl.l_type=F_WRLCK;
-    else         fl.l_type=F_UNLCK;  
+    else         fl.l_type=F_UNLCK;
 
     fl.l_whence=SEEK_SET;
     fl.l_start=0;
     fl.l_len=1;
     fl.l_pid=getpid();
-    
+
     Status_I=fcntl(Handle_I,F_SETLK,&fl);
 
-    if ( Status_I )
+    if ( Status_I ) {
+        Base_PS->Errno_I = errno;
         return JAM_LOCK_FAILED;
+    }
 
     if ( DoLock_I )
 	Base_PS->Locked_I = 1;

@@ -41,9 +41,9 @@ int osChDirExecute(uchar *dir,uchar *cmd)
 
 int osExecute(uchar *cmd)
 {
-	int res;
+   int res;
 	
-	res=system(cmd);
+   res=system(cmd);
 
    return WEXITSTATUS(res);
 }

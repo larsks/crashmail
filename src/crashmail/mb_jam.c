@@ -69,16 +69,20 @@ s_JamBase *jam_openbase(struct jam_Area *area)
 
       thisbase->lastuse=0;
       JAM_CloseMB(thisbase->Base_PS);
+      free(thisbase->Base_PS);
    }
 
    /* Open area */
 
    if(JAM_OpenMB(area->area->Path,&thisbase->Base_PS))
    {
+      if(thisbase->Base_PS) free(thisbase->Base_PS);
+
       LogWrite(2,SYSTEMINFO,"Creating JAM messagebase \"%s\"",area->area->Path);
 
       if(JAM_CreateMB(area->area->Path,1,&thisbase->Base_PS))
       {
+         if(thisbase->Base_PS) free(thisbase->Base_PS);
          LogWrite(1,SYSTEMERR,"Failed to create JAM messagebase \"%s\"",area->area->Path);
          return(NULL);
       }
@@ -109,7 +113,7 @@ struct jam_Area *jam_getarea(struct Area *area)
          return(ja);
       }
 
-   /* This is the first time we use this area */ 
+   /* This is the first time we use this area */
 
    if(!(ja=osAllocCleared(sizeof(struct jam_Area))))
    {
@@ -230,7 +234,10 @@ bool jam_afterfunc(bool success)
 
    for(c=0;c<config.cfg_jam_MaxOpen;c++)
       if(jam_openbases[c].lastuse)
+      {
          JAM_CloseMB(jam_openbases[c].Base_PS);
+         free(jam_openbases[c].Base_PS);
+      }
 
    osFree(jam_openbases);
    jbFreeList(&jam_AreaList);
@@ -299,13 +306,11 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
    struct jam_Area *ja;
    s_JamSubPacket*	SubPacket_PS;
    s_JamMsgHeader	Header_S;
-   uchar buf[100],domain[20],newflags[100],flag[10];
+   uchar buf[100],newflags[100],flag[10];
    ulong c,f,jbcpos,linebegin,linelen;
    uchar *msgtext;
    ulong msgsize,msgpos;
    int res;
-   bool hasorigin;
-   struct Node4D n4d;
 
    /* Get an area to write to */
 
@@ -366,15 +371,22 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
    if(mm->Subject[0])
       jam_addfield(SubPacket_PS,JAMSFLD_SUBJECT,mm->Subject);
 
-   /* Addresses in netmail */
-
    if(mm->Area[0] == 0)
    {
+      /* Addresses in netmail */
+
       Print4D(&mm->OrigNode,buf);
       jam_addfield(SubPacket_PS,JAMSFLD_OADDRESS,buf);
 
       Print4D(&mm->DestNode,buf);
       jam_addfield(SubPacket_PS,JAMSFLD_DADDRESS,buf);
+   }
+   else
+   {
+      /* Addresses in echomail */
+
+      Print4D(&mm->Origin4D,buf);
+      jam_addfield(SubPacket_PS,JAMSFLD_OADDRESS,buf);
    }
 
    /* Header attributes */
@@ -435,8 +447,6 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
 
    /* Separate kludges from text */
 
-   hasorigin=FALSE;
-
    for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
       for(c=0;c<chunk->Length;)
       {
@@ -444,7 +454,7 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
 			
          while(chunk->Data[c]!=13 && c<chunk->Length)
 			{ 
-				if(chunk->Data[c]!=10) 
+				if(chunk->Data[c]!=10)
 					msgtext[msgpos++]=chunk->Data[c];
 					
 				c++;
@@ -530,23 +540,6 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
                jam_addfield(SubPacket_PS,JAMSFLD_FTSKLUDGE,buf);
 					msgpos=linebegin;
             }
-            else
-            {
-               if(!hasorigin && linelen>11 && strncmp(&msgtext[linebegin]," * Origin: ",11)==0)
-               {
-	               mystrncpy(buf,&msgtext[linebegin+11],MIN(100,linelen-11));
-                  stripleadtrail(buf);
-
-                  if(ExtractAddress(buf,&n4d,domain))
-                  {
-                     hasorigin=TRUE;
-
-                     if(n4d.Zone == 0) n4d.Zone=mm->PktOrig.Zone;
-                     Print4D(&n4d,buf);
-                     jam_addfield(SubPacket_PS,JAMSFLD_OADDRESS,buf);
-                  }
-               }
-            }
          }
       }
 
@@ -613,7 +606,7 @@ bool jam_importfunc(struct MemMessage *mm,struct Area *area)
 
    res=JAM_AddMessage(ja->Base_PS,&Header_S,SubPacket_PS,msgtext,msgpos);
 
-   JAM_UnlockMB(ja->Base_PS); 
+   JAM_UnlockMB(ja->Base_PS);
    JAM_DelSubPacket(SubPacket_PS);
    if(msgsize) osFree(msgtext);
 
@@ -632,16 +625,16 @@ void jam_makekludge(struct MemMessage *mm,uchar *pre,uchar *data,ulong len)
 
 	if(!(buf=osAlloc(strlen(pre)+len+10))) /* A few bytes extra */
 		return;
-	
+
    strcpy(buf,pre);
    if(len && data) mystrncpy(&buf[strlen(buf)],data,len+1);
    strcat(buf,"\x0d");
    mmAddLine(mm,buf);
-	
+
 	osFree(buf);
 }
 
-bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemMessage *mm))
+bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemMessage *mm),bool isrescanning)
 {
    struct MemMessage *mm;
    struct jam_Area *ja;
@@ -654,20 +647,14 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    struct Node4D n4d;
    bool hasaddr;
    uchar flagsbuf[200],filesubject[200];
-	ushort oldattr;
-	
+   ushort oldattr;
+
    /* Open the area */
 
    if(!(ja=jam_getarea(area)))
       return(FALSE);
 
    /* Read message header */
-
-   if(!(SubPacket_PS = JAM_NewSubPacket()))
-   {
-      nomem=TRUE;
-      return(FALSE);
-   }
 
    res=JAM_ReadMsgHeader(ja->Base_PS,num-ja->BaseNum,&Header_S,&SubPacket_PS);
 
@@ -713,7 +700,7 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
 
    if(Header_S.TxtLen)
    {
-      if(!(msgtext=osAlloc(Header_S.TxtLen)))
+      if(!(msgtext=osAlloc(Header_S.TxtLen+1))) /* One extra byte for the terminating zero */
       {
          nomem=TRUE;
          JAM_DelSubPacket(SubPacket_PS);
@@ -728,6 +715,8 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
          JAM_DelSubPacket(SubPacket_PS);
          return(FALSE);
       }
+
+      msgtext[Header_S.TxtLen]=0;
    }
 
    /* Allocate message structure */
@@ -940,7 +929,47 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    /* Message text */
 
    if(msgtext)
-      mmAddBuf(&mm->TextChunks,msgtext,Header_S.TxtLen);
+   {
+      /* Extract origin address */
+
+      if(mm->Area[0])
+      {
+         ulong textpos,d;
+         uchar originbuf[200];
+         struct Node4D n4d;
+
+         textpos=0;
+
+         while(msgtext[textpos])
+         {
+            d=textpos;
+
+            while(msgtext[d] != 13 && msgtext[d] != 0)
+               d++;
+
+            if(msgtext[d] == 13)
+               d++;
+
+            if(d-textpos > 11 && strncmp(&msgtext[textpos]," * Origin: ",11)==0)
+            {
+               mystrncpy(originbuf,&msgtext[textpos],MIN(d-textpos,200));
+
+               if(ExtractAddress(originbuf,&n4d))
+         			Copy4D(&mm->Origin4D,&n4d);
+            }
+
+            textpos=d;
+         }
+      }
+
+      if(!(mmAddBuf(&mm->TextChunks,msgtext,Header_S.TxtLen)))
+      {
+         JAM_DelSubPacket(SubPacket_PS);
+         osFree(msgtext);
+         mmFree(mm);
+         return(FALSE);
+      }
+   }
 
    /* Free JAM message */
 
@@ -948,6 +977,9 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    JAM_DelSubPacket(SubPacket_PS);
 
    /* Message reading done */
+
+   if(isrescanning) mm->Flags |= MMFLAG_RESCANNED;
+   else             mm->Flags |= MMFLAG_EXPORTED;
 
    if(!(*handlefunc)(mm))
    {
@@ -966,7 +998,7 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
 			if((oldattr & FLAG_KILLSENT) && (area->AreaType == AREATYPE_NETMAIL))
 			{
 				/* Delete message with KILLSENT flag */
-			
+
 				LogWrite(2,TOSSINGINFO,"Deleting message with KILLSENT flag");
 		   	Header_S.Attribute |= MSG_DELETED;
 			}
@@ -977,13 +1009,23 @@ bool jam_ExportJAMNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
       Header_S.DateProcessed = time(NULL);
       Header_S.DateProcessed -= jam_utcoffset;
 
-	   if(JAM_LockMB(ja->Base_PS,10))
+      /* jam_openbases might have been changed in handlefunc */
+
+      if(!(ja=jam_getarea(area)))
+      {
+         mmFree(mm);
+         return(FALSE);
+      }
+
+      if(JAM_LockMB(ja->Base_PS,10))
    	{
       	LogWrite(1,SYSTEMERR,"Timeout when trying to lock JAM messagebase \"%s\"",area->Path);
+         mmFree(mm);
          return(FALSE);
 	   }
 
-   	JAM_ChangeMsgHeader(ja->Base_PS,num-ja->BaseNum,&Header_S);
+      if(JAM_ChangeMsgHeader(ja->Base_PS,num-ja->BaseNum,&Header_S))
+         LogWrite(1,TOSSINGERR,"Failed to update header of message #%lu in JAM messagebase \"%s\"",num,area->Path);
 
       JAM_UnlockMB(ja->Base_PS);
    }
@@ -1003,7 +1045,7 @@ bool jam_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
 	{
 		if(nomem)
 	      return(FALSE);
-			
+
 		return(TRUE); /* Area did not exist and could not be created. Go on anyway. */
 	}
 	
@@ -1018,16 +1060,16 @@ bool jam_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
 
    end   = ja->BaseNum + ja->OldNum;
 
-   while(start < end)
+   while(start < end && !ctrlc)
    {
-      if(!jam_ExportJAMNum(area,start,handlefunc))
-         return(FALSE);
-
-      if(ctrlc)
+      if(!jam_ExportJAMNum(area,start,handlefunc,FALSE))
          return(FALSE);
 
       start++;
    }
+
+   if(ctrlc)
+      return(FALSE);
 
    ja->HighWater=end-1;
 
@@ -1049,16 +1091,16 @@ bool jam_rescanfunc(struct Area *area,ulong max,bool (*handlefunc)(struct MemMes
    if(max !=0 && ja->OldNum > max)
       start=ja->BaseNum+ja->OldNum-max;
 
-   while(start < ja->BaseNum + ja->OldNum)
+   while(start < ja->BaseNum + ja->OldNum && !ctrlc)
    {
-      if(!jam_ExportJAMNum(area,start,handlefunc))
-         return(FALSE);
-
-      if(ctrlc)
+      if(!jam_ExportJAMNum(area,start,handlefunc,TRUE))
          return(FALSE);
 
       start++;
    }
+
+   if(ctrlc)
+      return(FALSE);
 
    return(TRUE);
 }
@@ -1140,7 +1182,7 @@ int jam_CompareMsgIdReply(s_JamBase *Base_PS,struct Msg *msgs,ulong msgidmsg,ulo
 }
 
 /*  dest is a reply to num */
-void jam_setreply(struct Msg *msgs,ulong base,ulong num,ulong dest)
+void jam_setreply(struct Msg *msgs,ulong nummsgs,ulong base,ulong num,ulong dest)
 {
    int n,times;
 
@@ -1153,25 +1195,39 @@ void jam_setreply(struct Msg *msgs,ulong base,ulong num,ulong dest)
    {
       msgs[num].Reply1st=dest+base;
    }
-   else 
+   else
    {
       n=msgs[num].Reply1st-base;
       if(n == dest) return;
 
-		times=0;
+      if (n < 0 || n >= nummsgs)
+      {
+         /* Oops! Base seems to be b0rken */
+         printf("Warning: message #%ld is linked to something outside the base\n", num + base);
+         return;
+      }
+
+      times=0;
 
       while(msgs[n].ReplyNext)
       {
 			times++;
-			
+
 			if(times > 1000) /* Something appears to have gone wrong */
-			{			
+			{
 		      printf("Warning: >1000 replies to message %ld or circular reply links\n",num+base);
 				return;
 			}
-			
+
          n=msgs[n].ReplyNext-base;
          if(n == dest) return;
+
+         if (n < 0 || n >= nummsgs)
+         {
+            /* Oops! Base seems to be b0rken */
+            printf("Warning: message #%ld is linked to something outside the base\n", num + base);
+            return;
+         }
       }
 
       msgs[n].ReplyNext=dest+base;
@@ -1243,16 +1299,16 @@ int jam_linkmb(struct Area *area,ulong oldnum)
 
          for(d=0;d<nummsgs;d++)
             if(jam_CompareMsgIdReply(ja->Base_PS,msgs,d,c))
-               jam_setreply(msgs,ja->BaseNum,d,c);
+               jam_setreply(msgs,nummsgs,ja->BaseNum,d,c);
       }
 
       if(msgs[c].MsgIdCRC != -1)
       {
-	      /* See if there are any replies to this message */ 
+	      /* See if there are any replies to this message */
 
          for(d=0;d<nummsgs;d++)
-            if(jam_CompareMsgIdReply(ja->Base_PS,msgs,c,d)) 
-               jam_setreply(msgs,ja->BaseNum,c,d);
+            if(jam_CompareMsgIdReply(ja->Base_PS,msgs,c,d))
+               jam_setreply(msgs,nummsgs,ja->BaseNum,c,d);
       }
    }
 

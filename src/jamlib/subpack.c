@@ -17,15 +17,24 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
     Changes made by Johan Billing 2000-04-16:
-	 
+
     - Fixed broken JAM_GetSubfield()
     - #includes stdlib.h instead of malloc.h and memory.h
 
     Changes made by Johan Billing 2000-09-17:
-	 
+
     - Added JAM_GetSubfield_R()
 
-*/	 
+    Backported changes from JAMLIB 1.4.7 made by Johan Billing 2003-10-22
+
+    - JAM_NewSubPacket() and JAM_PutSubField() would give memory leaks under
+      low memory conditions. Fixed.
+
+    Other changes made by Johan Billing 2003-10-22
+
+    - Fixed comparison between signed and unsigned variable in
+      JAM_DelSubPacket() and JAM_GetSubField()
+*/
 
 /***********************************************************************
 **
@@ -58,32 +67,31 @@ s_JamSubPacket* JAM_NewSubPacket( void )
     Sub_PS->NumFields = 0;
 
     /* allocate pointer array */
-    Sub_PS->Fields    = (s_JamSubfield**) malloc( Sub_PS->NumAlloc *
+    Sub_PS->Fields    = (s_JamSubfield**) calloc( Sub_PS->NumAlloc,
 						  sizeof( s_JamSubfield* ) );
-    if ( !Sub_PS->Fields )
+    if ( !Sub_PS->Fields ) {
+        free (Sub_PS);
 	return NULL;
-
-    /* clear pointer array */
-    memset( Sub_PS->Fields, 0, Sub_PS->NumAlloc * sizeof( s_JamSubfield* ) );
+    }
 
     return Sub_PS;
 }
 
 /***********************************************************************
 **
-**  JAM_FreeSubPacket - Free the data associated with a subfield packet
+**  JAM_DelSubPacket - Free the data associated with a subfield packet
 **
 ***********************************************************************/
 int JAM_DelSubPacket( s_JamSubPacket* SubPack_PS )
 {
-    int i;
+    ulong i;
 
     if (!SubPack_PS)
 	return JAM_BAD_PARAM;
-    
+
     for ( i=0; i < SubPack_PS->NumFields; i++ ) {
 	s_JamSubfield* Field_PS = SubPack_PS->Fields[i];
-	
+
 	if ( Field_PS->Buffer )
 	    free( Field_PS->Buffer );
 	free( Field_PS );
@@ -103,7 +111,7 @@ int JAM_DelSubPacket( s_JamSubPacket* SubPack_PS )
 s_JamSubfield* JAM_GetSubfield( s_JamSubPacket* SubPack_PS )
 {
     static s_JamSubPacket* LastPack_PS = NULL;
-    static int             NextIndex_I = 0;
+    static ulong           NextIndex_I = 0;
 
     if ( SubPack_PS ) {
 	LastPack_PS = SubPack_PS;
@@ -166,8 +174,10 @@ int JAM_PutSubfield( s_JamSubPacket* SubPack_PS, s_JamSubfield* Field_PS )
     /* allocate a new buffer */
     if ( Field_PS->DatLen ) {
 	NewBuf_PC = (uchar*) malloc( Field_PS->DatLen );
-	if ( !NewBuf_PC )
+	if ( !NewBuf_PC )  {
+	    free (NewField_PS);
 	    return JAM_NO_MEMORY;
+	}
 	memcpy( NewBuf_PC, Field_PS->Buffer, Field_PS->DatLen );
     }
     else
