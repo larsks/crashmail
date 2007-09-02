@@ -2,12 +2,12 @@ Source: crashmail
 Section: mail
 Priority: extra
 Maintainer: Peter Karlsson <peterk@debian.org>
-Standards-Version: 3.6.1
-Build-Depends: debhelper (>= 2.0.0)
+Standards-Version: 3.7.2
+Build-Depends: debhelper (>= 5.0.0)
 
 Package: crashmail
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: zip, unzip, lha, goldedplus | jamnntpd
 Description: JAM and *.MSG capable Fidonet tosser
  CrashMail II is basically a more portable version of

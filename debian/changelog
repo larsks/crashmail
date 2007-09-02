@@ -1,3 +1,11 @@
+crashmail (0.71-2) unstable; urgency=low
+
+  * Added support for installing unstripped binaries.
+   (Closes: Bug#436670)
+  * Updated policy and debhelper usage.
+
+ -- Peter Karlsson <peterk@debian.org>  Sun, 02 Sep 2007 20:45:00 +0100
+
 crashmail (0.71-1) unstable; urgency=low
 
   * New upstream release.

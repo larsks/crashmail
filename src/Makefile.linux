@@ -38,7 +38,12 @@ DEFS = $(PLATFORMDEF) $(MBDEFS) $(NLDEFS)
 
 CC = gcc $(DEFS) -I $(INCDIR) -Wall
 RM = rm -f
+# Edited for Debian - make it possible to install unstripped binaries
+ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
 STRIP = strip
+else
+STRIP = true
+endif
 
 # Objects
 
