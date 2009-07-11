@@ -1,14 +1,18 @@
 Source: crashmail
 Section: mail
 Priority: extra
-Maintainer: Peter Karlsson <peterk@debian.org>
-Standards-Version: 3.7.2
+Maintainer: Peter Krefting <peterk@debian.org>
+Standards-Version: 3.8.2
 Build-Depends: debhelper (>= 5.0.0)
+Homepage: https://alioth.debian.org/projects/crashmail/
+Vcs-Browser: http://git.debian.org/?p=crashmail/crashmail.git
+Vcs-Git: git://git.debian.org/crashmail/crashmail.git
 
 Package: crashmail
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Suggests: zip, unzip, lha, goldedplus | jamnntpd
+Homepage: https://alioth.debian.org/projects/crashmail/
 Description: JAM and *.MSG capable Fidonet tosser
  CrashMail II is basically a more portable version of
  CrashMail, a tosser for Amiga computers. Users of the old

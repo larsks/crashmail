@@ -1,11 +1,12 @@
-Obtained from: http://www.billingware.org/crashmail.html
-Packaged for Debian by: Peter Karlsson <2:204/254.222> <peterk@debian.org>
+Originally obtained from: http://www.billingware.org/crashmail.html
+Currently hosted at: https://alioth.debian.org/projects/crashmail/
+Packaged for Debian by: Peter Krefting <2:203/0.222> <peterk@debian.org>
 Upstream author: Johan Billing <2:201/128.77> <billing@df.lth.se>
 
-JAMLIB is copyright 1999 Björn Stenberg. JAMLIB is released under the
+JAMLIB is copyright 1999 BjÃ¶rn Stenberg. JAMLIB is released under the
 GNU Lesser General Public License. On Debian systems, the complete text of
 the GNU Lesser General Public License can be found in the
-/usr/share/common-licenses/LGPL file.
+/usr/share/common-licenses/LGPL-2.1 file.
 
 Except where explicitly stated otherwise, all other parts of CrashMail are
 copyright 1999 Johan Billing. Permission to use, copy and distribute

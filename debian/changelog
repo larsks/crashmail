@@ -1,3 +1,10 @@
+crashmail (0.71-3) unstable; urgency=low
+
+  * Fix errors on 64-bit architectures.
+   (Closes: Bug#511223)
+
+ -- Peter Krefting <peterk@debian.org>  Sun, 02 Sep 2007 20:45:00 +0100
+
 crashmail (0.71-2) unstable; urgency=low
 
   * Added support for installing unstripped binaries.
