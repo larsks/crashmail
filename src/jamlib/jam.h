@@ -39,13 +39,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #ifndef linux
-typedef unsigned short ushort;   /* must be 16 bits wide */
-typedef unsigned long  ulong;    /* must be 32 bits wide */
+typedef uint16_t ushort;   /* must be 16 bits wide */
+typedef uint32_t ulong;    /* must be 32 bits wide */
 #endif
 
-typedef unsigned char  uchar;    /* must be  8 bits wide */
+typedef uint8_t  uchar;    /* must be  8 bits wide */
 
 /*
 **  Error codes

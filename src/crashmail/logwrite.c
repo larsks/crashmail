@@ -96,12 +96,12 @@ void LogWrite(ulong level,ulong category,uchar *fmt,...)
 	if(usesyslog)
 	{
 	   va_start(args, fmt);
-
 		vprintf(fmt,args);
 	   printf("\n");
+	   va_end(args);
 
+	   va_start(args, fmt);
 		vsyslog(syslogpri[category],fmt,args);
-
 	   va_end(args);
 
 		return;
@@ -109,9 +109,9 @@ void LogWrite(ulong level,ulong category,uchar *fmt,...)
 #endif
 
    va_start(args, fmt);
-
    vprintf(fmt,args);
    printf("\n");
+   va_end(args);
 
    time(&t);
    tp=localtime(&t);
@@ -125,6 +125,7 @@ void LogWrite(ulong level,ulong category,uchar *fmt,...)
       tp->tm_min,
       tp->tm_sec);
 
+   va_start(args, fmt);
    osVFPrintf(logfh,fmt,args);
    osFPrintf(logfh,"\n");
 
