@@ -619,7 +619,7 @@ bool AreaFix(struct MemMessage *mm)
                                  {
 												uchar buf2[100];
 
-                                    LogWrite(3,AREAFIX,"AreaFix: %s requested from %lu:%lu/%lu.%lu",areaname,arealist->Node->Node.Zone,arealist->Node->Node.Net,arealist->Node->Node.Node,arealist->Node->Node.Point);
+                                    LogWrite(3,AREAFIX,"AreaFix: %s requested from %u:%u/%u.%u",areaname,arealist->Node->Node.Zone,arealist->Node->Node.Net,arealist->Node->Node.Node,arealist->Node->Node.Point);
 
                                     sprintf(buf2,"Request sent to %u:%u/%u.%u",arealist->Node->Node.Zone,arealist->Node->Node.Net,arealist->Node->Node.Node,arealist->Node->Node.Point);
 												AddCommandReply(afr,buf,buf2);
@@ -737,7 +737,7 @@ void SendRemoveMessages(struct Area *area)
    {
       if(tn->ConfigNode->Flags & NODE_SENDAREAFIX)
       {
-         LogWrite(5,AREAFIX,"AreaFix: Sending message to AreaFix at %ld:%ld/%ld.%ld",
+         LogWrite(5,AREAFIX,"AreaFix: Sending message to AreaFix at %d:%d/%d.%d",
             tn->ConfigNode->Node.Zone,
             tn->ConfigNode->Node.Net,
             tn->ConfigNode->Node.Node,
@@ -780,7 +780,7 @@ void SendRemoveMessages(struct Area *area)
 
       if((tn->ConfigNode->Flags & NODE_SENDTEXT) && !(tn->Flags & TOSSNODE_FEED))
       {
-         LogWrite(5,AREAFIX,"AreaFix: Notifying sysop at %ld:%ld/%ld.%ld",
+         LogWrite(5,AREAFIX,"AreaFix: Notifying sysop at %d:%d/%d.%d",
             tn->ConfigNode->Node.Zone,
             tn->ConfigNode->Node.Net,
             tn->ConfigNode->Node.Node,
@@ -1081,7 +1081,7 @@ void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNod
    switch(type)
    {
       case SENDLIST_QUERY:
-         LogWrite(4,AREAFIX,"AreaFix: Sending query to %lu:%lu/%lu.%lu",
+         LogWrite(4,AREAFIX,"AreaFix: Sending query to %u:%u/%u.%u",
             cnode->Node.Zone,
             cnode->Node.Net,
             cnode->Node.Node,
@@ -1090,7 +1090,7 @@ void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNod
          break;
 
       case SENDLIST_UNLINKED:
-         LogWrite(4,AREAFIX,"AreaFix: Sending list of unlinked areas to %lu:%lu/%lu.%lu",
+         LogWrite(4,AREAFIX,"AreaFix: Sending list of unlinked areas to %u:%u/%u.%u",
             cnode->Node.Zone,
             cnode->Node.Net,
             cnode->Node.Node,
@@ -1099,7 +1099,7 @@ void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNod
          break;
 
       case SENDLIST_FULL:
-         LogWrite(4,AREAFIX,"AreaFix: Sending list of areas to %lu:%lu/%lu.%lu",
+         LogWrite(4,AREAFIX,"AreaFix: Sending list of areas to %u:%u/%u.%u",
             cnode->Node.Zone,
             cnode->Node.Net,
             cnode->Node.Node,
@@ -1116,7 +1116,7 @@ void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNod
    switch(type)
    {
       case SENDLIST_QUERY:
-         afAddLine(afr,"This is a list of all connected areas at %lu:%lu/%lu.%lu:",
+         afAddLine(afr,"This is a list of all connected areas at %u:%u/%u.%u:",
             from4d->Zone,
             from4d->Net,
             from4d->Node,
@@ -1124,7 +1124,7 @@ void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNod
          break;
 
       case SENDLIST_FULL:
-         afAddLine(afr,"This is a list of all available areas at %lu:%lu/%lu.%lu:",
+         afAddLine(afr,"This is a list of all available areas at %u:%u/%u.%u:",
             from4d->Zone,
             from4d->Net,
             from4d->Node,
@@ -1132,7 +1132,7 @@ void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNod
          break;
 
       case SENDLIST_UNLINKED:
-         afAddLine(afr,"This is a list of all unlinked areas at %lu:%lu/%lu.%lu:",
+         afAddLine(afr,"This is a list of all unlinked areas at %u:%u/%u.%u:",
             from4d->Zone,
             from4d->Net,
             from4d->Node,
@@ -1298,7 +1298,7 @@ void rawSendHelp(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
    osFile fh;
 	struct afReply *afr;
 	
-   LogWrite(4,AREAFIX,"AreaFix: Sending help file to %lu:%lu/%lu.%lu",
+   LogWrite(4,AREAFIX,"AreaFix: Sending help file to %u:%u/%u.%u",
       cnode->Node.Zone,
       cnode->Node.Net,
       cnode->Node.Node,
@@ -1336,7 +1336,7 @@ void rawSendInfo(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
    int c;
 	struct afReply *afr;
 	
-   LogWrite(4,AREAFIX,"AreaFix: Sending configuration info to %lu:%lu/%lu.%lu",
+   LogWrite(4,AREAFIX,"AreaFix: Sending configuration info to %u:%u/%u.%u",
       cnode->Node.Zone,
       cnode->Node.Net,
       cnode->Node.Node,
@@ -1345,7 +1345,7 @@ void rawSendInfo(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
    if(!(afr=afInitReply(config.cfg_Sysop,from4d,toname,&cnode->Node,"AreaFix configuration info")))
 		return;
 
-   afAddLine(afr,"Configuration for %lu:%lu/%lu.%lu:",
+   afAddLine(afr,"Configuration for %u:%u/%u.%u:",
       cnode->Node.Zone,
       cnode->Node.Net,
       cnode->Node.Node,
@@ -1659,7 +1659,7 @@ void DoSendAFList(short type,struct ConfigNode *cnode)
 
    if(!tmproute)
    {
-      LogWrite(1,TOSSINGERR,"No route found for %ld:%ld/%ld.%ld",
+      LogWrite(1,TOSSINGERR,"No route found for %d:%d/%d.%d",
          cnode->Node.Zone,
          cnode->Node.Net,
          cnode->Node.Node,

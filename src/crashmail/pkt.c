@@ -270,7 +270,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
 
       mystrncpy(domain,&PktHeader[PKTHEADER45_ORIGDOMAIN],9);
 
-      LogWrite(1,ACTIONINFO,"Tossing %s (%luK) from %ld:%ld/%ld.%ld@%s %s",
+      LogWrite(1,ACTIONINFO,"Tossing %s (%luK) from %d:%d/%d.%d@%s %s",
                                                               fe->Name,
                                                               (fe->Size+512)/1024,
                                                               PktOrig.Zone,
@@ -289,7 +289,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
       if(month > 11)
          month=12;
 
-      LogWrite(1,ACTIONINFO,"Tossing %s (%luK) from %ld:%ld/%ld.%ld (%02ld-%s-%02ld %02ld:%02ld:%02ld) %s",
+      LogWrite(1,ACTIONINFO,"Tossing %s (%luK) from %d:%d/%d.%d (%02d-%s-%02d %02d:%02d:%02d) %s",
          fe->Name,
          (fe->Size+512)/1024,
          PktOrig.Zone,

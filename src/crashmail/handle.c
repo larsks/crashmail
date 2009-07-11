@@ -577,7 +577,7 @@ bool HandleEchomail(struct MemMessage *mm)
 
       if(!temptnode)
       {
-         LogWrite(1,TOSSINGERR,"%lu:%lu/%lu.%lu doesn't receive %s",
+         LogWrite(1,TOSSINGERR,"%u:%u/%u.%u doesn't receive %s",
             mm->PktOrig.Zone,
             mm->PktOrig.Net,
             mm->PktOrig.Node,
@@ -594,7 +594,7 @@ bool HandleEchomail(struct MemMessage *mm)
 
       if(temptnode->Flags & TOSSNODE_READONLY)
       {
-         LogWrite(1,TOSSINGERR,"%lu:%lu/%lu.%lu is not allowed to write in %s",
+         LogWrite(1,TOSSINGERR,"%u:%u/%u.%u is not allowed to write in %s",
             mm->PktOrig.Zone,
             mm->PktOrig.Net,
             mm->PktOrig.Node,
@@ -1328,7 +1328,7 @@ bool HandleNetmail(struct MemMessage *mm)
 
       if(!tmproute)
       {
-         LogWrite(1,TOSSINGERR,"No routing configured for %lu:%lu/%lu.%lu - message lost",
+         LogWrite(1,TOSSINGERR,"No routing configured for %u:%u/%u.%u - message lost",
             mm->DestNode.Zone,
             mm->DestNode.Net,
             mm->DestNode.Node,
@@ -1367,7 +1367,7 @@ bool HandleNetmail(struct MemMessage *mm)
 
 	   if(mm->Type != oldtype)
    	{
-      	LogWrite(4,TOSSINGINFO,"Changed priority for netmail to %lu:%lu/%lu.%lu from %s to %s",
+      	LogWrite(4,TOSSINGINFO,"Changed priority for netmail to %u:%u/%u.%u from %s to %s",
 				Dest4D.Zone,Dest4D.Net,Dest4D.Node,Dest4D.Point,
          	prinames[oldtype],prinames[mm->Type]);
 		}
@@ -1378,7 +1378,7 @@ bool HandleNetmail(struct MemMessage *mm)
 			{
 				Dest4D.Point=0;
 
-				LogWrite(4,TOSSINGINFO,"Cannot send %s to a point, sending to %lu:%lu/%lu.%lu instead",
+				LogWrite(4,TOSSINGINFO,"Cannot send %s to a point, sending to %u:%u/%u.%u instead",
 					prinames[mm->Type],Dest4D.Zone,Dest4D.Net,Dest4D.Node,Dest4D.Point);
 		   }
 		}
@@ -1389,7 +1389,7 @@ bool HandleNetmail(struct MemMessage *mm)
       {
          if(IsLoopMail(mm))
          {
-            LogWrite(1,TOSSINGERR,"Possible loopmail detected: Received from %lu:%lu/%lu.%lu, to %lu:%lu/%lu.%lu",
+            LogWrite(1,TOSSINGERR,"Possible loopmail detected: Received from %u:%u/%u.%u, to %u:%u/%u.%u",
                   mm->PktOrig.Zone,
                   mm->PktOrig.Net,
                   mm->PktOrig.Node,
@@ -1559,7 +1559,7 @@ bool HandleNetmail(struct MemMessage *mm)
 
             if(!patternnode)
             {
-               LogWrite(3,TOSSINGERR,"Refused to route file-attach from %lu:%lu/%lu.%lu to %lu:%lu/%lu.%lu",mm->OrigNode.Zone,mm->OrigNode.Net,mm->OrigNode.Node,mm->OrigNode.Point,
+               LogWrite(3,TOSSINGERR,"Refused to route file-attach from %u:%u/%u.%u to %u:%u/%u.%u",mm->OrigNode.Zone,mm->OrigNode.Net,mm->OrigNode.Node,mm->OrigNode.Point,
                                                                                          mm->DestNode.Zone,mm->DestNode.Net,mm->DestNode.Node,mm->DestNode.Point);
 
 
@@ -1592,7 +1592,7 @@ bool HandleNetmail(struct MemMessage *mm)
 				if(mm->Subject[0] != 0) strcat(mm->Subject," ");
          	strcat(mm->Subject,GetFilePart(buf));
 
-            LogWrite(4,TOSSINGINFO,"Routing file %s to %lu:%lu/%lu.%lu",GetFilePart(buf),Dest4D.Zone,Dest4D.Net,Dest4D.Node,Dest4D.Point);
+            LogWrite(4,TOSSINGINFO,"Routing file %s to %u:%u/%u.%u",GetFilePart(buf),Dest4D.Zone,Dest4D.Net,Dest4D.Node,Dest4D.Point);
 
             if((mm->Flags & MMFLAG_EXPORTED))
             {
@@ -1646,7 +1646,7 @@ bool HandleNetmail(struct MemMessage *mm)
 
       if(mm->Type == PKTS_NORMAL)
       {
-         LogWrite(5,TOSSINGINFO,"Routing message to %lu:%lu/%lu.%lu via %lu:%lu/%lu.%lu",
+         LogWrite(5,TOSSINGINFO,"Routing message to %u:%u/%u.%u via %u:%u/%u.%u",
             mm->DestNode.Zone,
             mm->DestNode.Net,
             mm->DestNode.Node,
@@ -1658,7 +1658,7 @@ bool HandleNetmail(struct MemMessage *mm)
 		}
       else
       {
-         LogWrite(5,TOSSINGINFO,"Sending message directly to %lu:%lu/%lu.%lu",
+         LogWrite(5,TOSSINGINFO,"Sending message directly to %u:%u/%u.%u",
             Dest4D.Zone,
             Dest4D.Net,
             Dest4D.Node,

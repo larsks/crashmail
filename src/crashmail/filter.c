@@ -753,14 +753,14 @@ bool Filter_Remap(struct MemMessage *mm,uchar *namepat,struct Node4DPat *destpat
    if(tmproute)
       Copy4D(&my4d,&tmproute->Aka->Node);
 
-   LogWrite(4,SYSTEMINFO,"Filter: Remapping message to %s at %lu:%lu/%lu.%lu",
+   LogWrite(4,SYSTEMINFO,"Filter: Remapping message to %s at %u:%u/%u.%u",
       newto,
       newdest4d.Zone,
       newdest4d.Net,
       newdest4d.Node,
       newdest4d.Point);
 
-   LogWrite(4,SYSTEMINFO,"Filter: Message originally to %s at %lu:%lu/%lu.%lu",
+   LogWrite(4,SYSTEMINFO,"Filter: Message originally to %s at %u:%u/%u.%u",
       oldto,
       olddest4d.Zone,
       olddest4d.Net,

@@ -351,7 +351,7 @@ bool Rescan(uchar *areaname,uchar *node,ulong max)
 
    if(!cnode)
    {
-      LogWrite(1,USERERR,"Unknown node %lu:%lu/%lu.%lu",n4d.Zone,n4d.Net,n4d.Node,n4d.Point);
+      LogWrite(1,USERERR,"Unknown node %u:%u/%u.%u",n4d.Zone,n4d.Net,n4d.Node,n4d.Point);
       return(FALSE);
    }
 
@@ -428,7 +428,7 @@ bool SendAFList(uchar *node,short type)
       }
       else
       {
-         LogWrite(1,USERERR,"Unknown node %lu:%lu/%lu.%lu",n4d.Zone,n4d.Net,n4d.Node,n4d.Point);
+         LogWrite(1,USERERR,"Unknown node %u:%u/%u.%u",n4d.Zone,n4d.Net,n4d.Node,n4d.Point);
          return(FALSE);
       }
    }
