@@ -1,6 +1,7 @@
 #include <stddef.h>
+#include <stdint.h>
 
-typedef unsigned short UINT16; /* Unsigned 16-bit integer */
+typedef uint16_t UINT16; /* Unsigned 16-bit integer */
 
 #define OS_EXIT_ERROR   10
 #define OS_EXIT_OK      0
