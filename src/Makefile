@@ -10,6 +10,7 @@ help:
 	@echo make cleanos2 ......... Remove object files under OS/2
 		
 linux :
+	mkdir -p obj
 	make -C cmnllib -f Makefile.linux
 	make -C jamlib -f Makefile.linux
 	make -C oslib_linux 
