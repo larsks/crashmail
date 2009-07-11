@@ -127,7 +127,7 @@ bool OpenDupeDB(void)
    {
 		ulong err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open dupe file %s in read/write mode",config.cfg_DupeFile);
-      LogWrite(1,SYSTEMERR,"Error: %s",config.cfg_DupeFile,osErrorMsg(err));
+      LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
    }
 
