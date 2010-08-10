@@ -41,7 +41,7 @@
 #include <ctype.h>
 #include <stdint.h>
 
-#ifndef linux
+#ifndef __GLIBC__
 typedef uint16_t ushort;   /* must be 16 bits wide */
 typedef uint32_t ulong;    /* must be 32 bits wide */
 #endif
