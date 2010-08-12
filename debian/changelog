@@ -1,9 +1,16 @@
+crashmail (0.71-4) unstable; urgency=low
+
+  * Fix build problems on kFreeBSD.
+   (Closes: Bug#592481)
+
+ -- Peter Krefting <peterk@debian.org>  Thu, 12 Aug 2010 07:45:00 +0100
+
 crashmail (0.71-3) unstable; urgency=low
 
   * Fix errors on 64-bit architectures.
    (Closes: Bug#511223)
 
- -- Peter Krefting <peterk@debian.org>  Sun, 02 Sep 2007 20:45:00 +0100
+ -- Peter Krefting <peterk@debian.org>  Sat, 11 Jul 2009 20:45:00 +0100
 
 crashmail (0.71-2) unstable; urgency=low
 
