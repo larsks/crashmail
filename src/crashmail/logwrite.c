@@ -113,6 +113,8 @@ void LogWrite(ulong level,ulong category,uchar *fmt,...)
    vprintf(fmt,args);
    printf("\n");
 
+   va_end(args);
+
    time(&t);
    tp=localtime(&t);
 
@@ -124,6 +126,8 @@ void LogWrite(ulong level,ulong category,uchar *fmt,...)
       tp->tm_hour,
       tp->tm_min,
       tp->tm_sec);
+
+   va_start(args, fmt);
 
    osVFPrintf(logfh,fmt,args);
    osFPrintf(logfh,"\n");
