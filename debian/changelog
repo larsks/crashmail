@@ -1,3 +1,10 @@
+crashmail (0.71-5~1) UNRELEASED; urgency=low
+
+  * Start development for v0.71-5
+  * New Maintainer. (Closes: #693229)
+
+ -- Robert James Clay <jame@rocasa.us>  Sun, 06 Jan 2013 22:09:27 -0500
+
 crashmail (0.71-4) unstable; urgency=low
 
   * Fix build problems on kFreeBSD.
