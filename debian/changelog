@@ -1,9 +1,12 @@
 crashmail (0.71-5~1) UNRELEASED; urgency=low
 
-  * Start development for v0.71-5
   * New Maintainer. (Closes: #693229)
+  * Add build-arch and build-indep targets to debian/rules.
+  * Changes to debian/control:
+    - Update Standards-Version to v3.9.3, no changes required.
+    - Replaced Suggested non-free lha package with unar package.
 
- -- Robert James Clay <jame@rocasa.us>  Sun, 06 Jan 2013 22:09:27 -0500
+ -- Robert James Clay <jame@rocasa.us>  Mon, 07 Jan 2013 19:13:02 -0500
 
 crashmail (0.71-4) unstable; urgency=low
 
