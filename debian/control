@@ -1,7 +1,7 @@
 Source: crashmail
 Section: mail
 Priority: extra
-Maintainer: Peter Krefting <peterk@debian.org>
+Maintainer: Robert James Clay <jame@rocasa.us>
 Standards-Version: 3.9.3
 Build-Depends: debhelper (>= 5.0.0)
 Homepage: https://alioth.debian.org/projects/crashmail/
