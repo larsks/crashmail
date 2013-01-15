@@ -33,10 +33,6 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-	# Add here commands to install the package into debian/crashmail.
-	$(MAKE) install DESTDIR=`pwd`/debian/crashmail
-
-
 # Build architecture-independent files here.
 binary-indep: build install
 # We have nothing to do by default.

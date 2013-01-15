@@ -5,3 +5,4 @@ bin/crashgetnode usr/bin
 bin/crashmaint usr/bin
 bin/crashwrite usr/bin
 bin/crashexport usr/bin
+doc/AreafixHelp.txt usr/share/crashmail
