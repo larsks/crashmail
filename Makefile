@@ -2,7 +2,6 @@
 
 DESTDIR =
 BINDIR = $(DESTDIR)/usr/bin
-DOCDIR = $(DESTDIR)/usr/share/doc/crashmail
 DATADIR = $(DESTDIR)/usr/share/crashmail
 
 all:
@@ -18,9 +17,6 @@ install:
 	install bin/crashmaint $(BINDIR)
 	install bin/crashwrite $(BINDIR)
 	install bin/crashexport $(BINDIR)
-	install -d $(DOCDIR)
-	install -d $(DOCDIR)/examples
-	install -m 644 doc/example.prefs $(DOCDIR)/examples
 	install -d $(DATADIR)
 	install -m 644 doc/AreafixHelp.txt $(DATADIR)
 
