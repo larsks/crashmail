@@ -1,0 +1,7 @@
+bin/crashmail usr/bin
+bin/crashstats usr/bin
+bin/crashlist usr/bin
+bin/crashgetnode usr/bin
+bin/crashmaint usr/bin
+bin/crashwrite usr/bin
+bin/crashexport usr/bin
