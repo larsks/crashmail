@@ -46,7 +46,7 @@ binary-arch: build install
 	dh_testdir
 	dh_testroot
 	dh_installdocs
-	dh_installman
+	dh_installman man/*
 	dh_installchangelogs doc/History.txt
 	dh_link
 	dh_strip

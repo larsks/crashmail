@@ -3,7 +3,6 @@
 DESTDIR =
 BINDIR = $(DESTDIR)/usr/bin
 DOCDIR = $(DESTDIR)/usr/share/doc/crashmail
-MANDIR = $(DESTDIR)/usr/share/man/man1
 DATADIR = $(DESTDIR)/usr/share/crashmail
 
 all:
@@ -19,8 +18,6 @@ install:
 	install bin/crashmaint $(BINDIR)
 	install bin/crashwrite $(BINDIR)
 	install bin/crashexport $(BINDIR)
-	install -d $(MANDIR)
-	cp -a man/* $(MANDIR)/
 	install -d $(DOCDIR)
 	install -m 644 doc/ReadMe.txt $(DOCDIR)
 	install -m 644 doc/filter.txt $(DOCDIR)
