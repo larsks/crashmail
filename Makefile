@@ -19,8 +19,6 @@ install:
 	install bin/crashwrite $(BINDIR)
 	install bin/crashexport $(BINDIR)
 	install -d $(DOCDIR)
-	install -m 644 doc/ReadMe.txt $(DOCDIR)
-	install -m 644 doc/filter.txt $(DOCDIR)
 	install -d $(DOCDIR)/examples
 	install -m 644 doc/example.prefs $(DOCDIR)/examples
 	install -d $(DATADIR)
