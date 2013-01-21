@@ -1,22 +1,29 @@
-crashmail (0.71-5~2) UNRELEASED; urgency=low
+crashmail (0.71-5~3) UNRELEASED; urgency=low
 
   * New Maintainer. (Closes: #693229)
   * Move installation of doc/AreafixHelp.txt to debian/install.
   * Moved installation of doc files from the old top level Makefile to the
     dh_installdocs command line by adding them to a debian/crashmail.docs file.
+  * Add usage of the CPPFLAGS,CFLAGS,and LDFLAGS variables to necessary src/
+    directory Makefile.linux files.
   * Changes to debian/control:
+    - Add 'dpkg-dev (>= 1.16.1~)' to Build-Depends. 
     - Update Standards-Version to v3.9.3, no changes required.
-    - Replaced the Suggested non-free lha package with the unar package.
+    - Replace the Suggested non-free lha package with the unar package.
   * Changes to debian/rules:
     - Add build-arch and build-indep targets.
+    - Update CPPFLAGS, CFLAGS, and LDFLAGS using dpkg-buildflags.
     - Moved installation of man pages from the old top level Makefile to the
       dh_installman command line.
     - Moved installation of example files from the old top level Makefile to a
       dh_installexamples command line.
     - Moved installation of executables from the old top level Makefile to a
       dh_install command line and a debian/crashmail.install file.
+    - Move the make build & clean lines from the old top level Makefile to their
+      corresponding debian/rules build and clean targets.
+    - Move the bin directory lines from the old top level Makefile.
 
- -- Robert James Clay <jame@rocasa.us>  Mon, 14 Jan 2013 21:54:02 -0500
+ -- Robert James Clay <jame@rocasa.us>  Mon, 21 Jan 2013 18:39:11 -0500
 
 crashmail (0.71-4) unstable; urgency=low
 
