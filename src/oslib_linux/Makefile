@@ -1,6 +1,6 @@
 INCDIR = ../
 
-CC = gcc -Wall -I $(INCDIR) -DPLATFORM_LINUX
+CC = gcc $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Wall -I $(INCDIR) -DPLATFORM_LINUX
 AR = ar -ru
 RM = rm -f
 
