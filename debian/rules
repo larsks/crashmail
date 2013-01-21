@@ -13,6 +13,7 @@ build-stamp:
 
 	
 	# Add here commands to compile the package.
+	mkdir bin
 	$(MAKE) -C src linux
 
 	touch build-stamp
@@ -20,6 +21,7 @@ build-stamp:
 clean:
 	dh_testdir
 	dh_testroot
+	rm -rf bin
 	rm -f build-stamp
 
 	# Add here commands to clean up after the build process.
