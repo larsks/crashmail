@@ -2,7 +2,7 @@ Source: crashmail
 Section: mail
 Priority: extra
 Maintainer: Robert James Clay <jame@rocasa.us>
-Standards-Version: 3.9.3
+Standards-Version: 3.9.4
 Build-Depends: debhelper (>= 5.0.0), dpkg-dev (>= 1.16.1~)
 Homepage: https://alioth.debian.org/projects/crashmail/
 Vcs-Browser: http://git.debian.org/?p=crashmail/crashmail.git
