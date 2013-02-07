@@ -35,5 +35,7 @@ clean_tmpfile () {
 clean_crashmail_env () {
 	rm -rf nodelist areas spool
 	rm -f dupes
+	rm -f crashmail.prefs crashmail.prefs.bak
+	rm -f crashmail.log
 }
 
