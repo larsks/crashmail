@@ -59,12 +59,22 @@ EXE = bin/crashmail \
       bin/crashexport \
       bin/crashlistout
 
+MAN = \
+      man/crashmaint.1 \
+      man/crashstats.1 \
+      man/crashgetnode.1 \
+      man/crashlist.1 \
+      man/crashexport.1 \
+      man/crashwrite.1 \
+      man/crashmail.1
+
 all: $(EXE)
 
 install: all
 	$(INSTALL) -d -m 755 $(DESTDIR)$(bindir)
 	$(INSTALL) -d -m 755 $(DESTDIR)$(mandir)/man1
 	$(INSTALL) -m 755 $(EXE) $(DESTDIR)$(bindir)
+	$(INSTALL) -m 644 $(MAN) $(DESTDIR)$(mandir)/man1
 
 bin:
 	mkdir bin
