@@ -10,9 +10,8 @@ before () {
 }
 
 after () {
-	rm -rf nodelist
-	rm -rf areas
-	rm -f dupes
+	clean_crashmail_env
+	clean_tmpfile
 }
 
 

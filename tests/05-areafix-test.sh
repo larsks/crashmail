@@ -9,6 +9,11 @@ before () {
 	setup_tmpfile
 }
 
+after () {
+	clean_crashmail_env
+	clean_tmpfile
+}
+
 it_generates_area_list () {
 	echo %LIST |
 	../tools/crashwrite dir spool/inbound \

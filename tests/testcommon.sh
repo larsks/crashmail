@@ -26,6 +26,14 @@ setup_crashmail_env () {
 
 setup_tmpfile () {
 	tmpfile=$(mktemp outputXXXXXX)
-	trap "rm -f $tmpfile" EXIT
+}
+
+clean_tmpfile () {
+	rm -f $tmpfile
+}
+
+clean_crashmail_env () {
+	rm -rf nodelist areas spool
+	rm -f dupes
 }
 
