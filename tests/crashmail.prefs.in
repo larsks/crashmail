@@ -17,14 +17,21 @@ STATSFILE "crashmail.stats"
 GROUPNAME A "TestGroup"
 
 PACKER "ZIP" "zip -j %a %f" "unzip -j -o %a" "PK"
-
+AREAFIXNAME "areafix"
+AREAFIXHELP "../doc/AreafixHelp.txt"
 
 AKA 99:99/1
 DOMAIN "testdomain"
 
 NODE 99:99/99 "ZIP" ""
 DEFAULTGROUP A
+AREAFIXINFO "TESTPASS" "A" "" ""
 
+NODE 99:99/88 "ZIP" ""
+DEFAULTGROUP A
+AREAFIXINFO "TESTPASS" "A" "" ""
+
+ROUTE "*:*/*" NODE 99:99/1
 BOUNCE "1:*/*.*" "2:*/*.*" "3:*/*.*" "4:*/*.*" "5:*/*.*" "6:*/*.*"
 
 MSG_HIGHWATER
@@ -34,7 +41,7 @@ JAM_QUICKLINK
 
 NETMAIL "NETMAIL" 99:99/1 MSG "areas/netmail"
 AREA "BAD" 99:99/1 MSG "areas/bad"
-AREA "TESTAREA" 99:99/1 MSG "areas/testarea"
+AREA "TESTAREA" 99:99/1.0 MSG "areas/testarea"
+EXPORT 99:99/99.0
 GROUP A
-EXPORT 99:99/99
 

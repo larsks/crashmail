@@ -2,16 +2,18 @@
 
 describe "crashwrite tool"
 
+. ./testcommon.sh
+
 before () {
-	mkdir -p packets
+	setup_crashmail_env
 }
 
 after () {
-	rm -rf packets
+	clean_crashmail_env
 }
 
 it_generates_a_packet () {
-	../tools/crashwrite DIR packets \
+	../tools/crashwrite DIR spool/temp \
 		FROMNAME "Test Sysop" \
 		FROMADDR "99:99/1" \
 		TONAME "Test User" \
