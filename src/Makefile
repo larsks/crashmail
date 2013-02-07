@@ -61,7 +61,8 @@ bin:
 	mkdir bin
 
 $(EXE): bin $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
-	$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+	@echo Linking $@.
+	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
 
 .PHONY: jamlib/jamlib.a
 jamlib/jamlib.a:
