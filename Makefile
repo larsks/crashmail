@@ -96,27 +96,27 @@ tools/crashstats: tools/crashstats.o $(SHAREDOBJS) $(OSLIB)
 
 tools/crashlist: tools/crashlist.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+	@$(CC) -o $@ $^
 
 tools/crashgetnode: tools/crashgetnode.o $(SHAREDOBJS) $(CMNLLIB) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+	@$(CC) -o $@ $^
 
 tools/crashmaint: tools/crashmaint.o $(SHAREDOBJS) $(OSLIB) $(JAMLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+	@$(CC) -o $@ $^
 
 tools/crashwrite: tools/crashwrite.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+	@$(CC) -o $@ $^
 
 tools/crashexport: tools/crashexport.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+	@$(CC) -o $@ $^
 
 tools/crashlistout: tools/crashlistout.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+	@$(CC) -o $@ $^
 
 .PHONY: jamlib/jamlib.a
 jamlib/jamlib.a:
