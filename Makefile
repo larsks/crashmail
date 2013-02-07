@@ -96,7 +96,7 @@ crashmail/crashmail: $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
 
 tools/crashstats: tools/crashstats.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	$(CC) -o $@ $^
+	@$(CC) -o $@ $^
 
 tools/crashlist: tools/crashlist.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
