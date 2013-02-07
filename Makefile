@@ -80,6 +80,9 @@ MAN = \
 
 all: $(EXE)
 
+tests: all
+	$(MAKE) -C tests
+
 install: all
 	$(INSTALL) -d -m 755 $(DESTDIR)$(bindir)
 	$(INSTALL) -d -m 755 $(DESTDIR)$(mandir)/man1

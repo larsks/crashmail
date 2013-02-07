@@ -6,6 +6,10 @@ before () {
 	mkdir -p packets
 }
 
+after () {
+	rm -rf packets
+}
+
 it_generates_a_packet () {
 	../tools/crashwrite DIR packets \
 		FROMNAME "Test Sysop" \
