@@ -1,5 +1,9 @@
 include Makefile.inc
 
+prefix = /usr
+bindir = $(prefix)/bin
+mandir = $(prefix)/share/man
+
 NLDEFS = -DNODELIST_CMNL -DNODELIST_V7P
 MBDEFS_MSG = -DMSGBASE_MSG
 MBDEFS_JAM = -DMSGBASE_JAM
@@ -56,6 +60,11 @@ EXE = bin/crashmail \
       bin/crashlistout
 
 all: $(EXE)
+
+install: all
+	$(INSTALL) -d -m 755 $(DESTDIR)$(bindir)
+	$(INSTALL) -d -m 755 $(DESTDIR)$(mandir)/man1
+	$(INSTALL) -m 755 $(EXE) $(DESTDIR)$(bindir)
 
 bin:
 	mkdir bin
