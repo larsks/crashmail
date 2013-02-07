@@ -1,48 +1,83 @@
-# type either "make linux" or "make win32" to compile
+include Makefile.inc
 
-help:
-	@echo You can use this Makefile in the following ways:
-	@echo make linux ............ Make Linux binaries
-	@echo make win32 ............ Make Win32 binaries
-	@echo make os2 .............. Make OS/2 binaries
-	@echo make cleanlinux ....... Remove object files under Linux
-	@echo make cleanwin32 ....... Remove object files under Win32
-	@echo make cleanos2 ......... Remove object files under OS/2
-		
-linux :
-	make -C cmnllib -f Makefile.linux
-	make -C jamlib -f Makefile.linux
-	make -C oslib_linux 
-	make -f Makefile.linux
-	
-win32 :
-	make -C cmnllib -f Makefile.win32
-	make -C jamlib -f Makefile.win32
-	make -C oslib_win32 
-	make -f Makefile.win32
+NLDEFS = -DNODELIST_CMNL -DNODELIST_V7P
+MBDEFS_MSG = -DMSGBASE_MSG
+MBDEFS_JAM = -DMSGBASE_JAM
+MBDEFS = $(MBDEFS_MSG) $(MBDEFS_JAM)
 
-os2 :
-	make -C cmnllib -f Makefile.os2
-	make -C jamlib -f Makefile.os2
-	make -C oslib_os2 
-	make -f Makefile.os2
+CPPFLAGS += $(MBDEFS) $(NLDEFS)
 
-cleanlinux : 
-	make -C cmnllib -f Makefile.linux clean
-	make -C jamlib -f Makefile.linux clean
-	make -C oslib_linux clean
-	make -f Makefile.linux clean
-	
-cleanwin32 : 
-	make -C cmnllib -f Makefile.win32 clean
-	make -C jamlib -f Makefile.win32 clean
-	make -C oslib_win32 clean
-	make -f Makefile.win32 clean
+NLOBJS = \
+       crashmail/nl_cmnl.o \
+       crashmail/nl_v7p.o \
 
-cleanos2 : 
-	make -C cmnllib -f Makefile.os2 clean
-	make -C jamlib -f Makefile.os2 clean
-	make -C oslib_os2 clean
-	make -f Makefile.os2 clean
+SHAREDOBJS = \
+	shared/expr.o \
+	shared/jblist.o \
+	shared/jbstrcpy.o \
+	shared/mystrncpy.o \
+	shared/node4d.o \
+	shared/parseargs.o \
+	shared/path.o
 
+OBJS = $(SHAREDOBJS) $(NLOBJS) \
+       crashmail/areafix.o \
+       crashmail/config.o \
+       crashmail/crashmail.o \
+       crashmail/dupe.o \
+       crashmail/filter.o \
+       crashmail/handle.o \
+       crashmail/logwrite.o \
+       crashmail/mb.o \
+       crashmail/mb_jam.o \
+       crashmail/mb_msg.o \
+       crashmail/memmessage.o \
+       crashmail/misc.o \
+       crashmail/nl.o \
+       crashmail/node4dpat.o \
+       crashmail/outbound.o \
+       crashmail/pkt.o \
+       crashmail/safedel.o \
+       crashmail/scan.o \
+       crashmail/stats.o \
+       crashmail/toss.o
+
+JAMLIB = jamlib/jamlib.a 
+CMNLLIB = cmnllib/cmnllib.a
+OSLIB = oslib_linux/oslib.a
+
+EXE = bin/crashmail \
+      bin/crashlist \
+      bin/crashstats \
+      bin/crashgetnode \
+      bin/crashmaint \
+      bin/crashwrite \
+      bin/crashexport \
+      bin/crashlistout
+
+all: $(EXE)
+
+bin:
+	mkdir bin
+
+$(EXE): bin $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+	$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+
+.PHONY: jamlib/jamlib.a
+jamlib/jamlib.a:
+	$(MAKE) -C jamlib
+
+.PHONY: cmnllib/cmnllib.a
+cmnllib/cmnllib.a:
+	$(MAKE) -C cmnllib
+
+.PHONY: oslib_linux/oslib.a
+oslib_linux/oslib.a:
+	$(MAKE) -C oslib_linux
+
+clean:
+	rm -f $(OBJS)
+	$(MAKE) -C jamlib clean
+	$(MAKE) -C cmnllib clean
+	$(MAKE) -C oslib_linux clean
 
