@@ -6,7 +6,7 @@ before () {
 	rm -f spool/inbound/*
 	rm -f spool/outbound/*
 	rm -rf areas
-	mkdir -p areas/netmail areas/testarea
+	mkdir -p areas/netmail areas/testarea areas/bad
 
 	mkdir -p nodelist
 	cat > nodelist/testlist.txt <<-EOF
@@ -59,5 +59,19 @@ it_tosses_echos_successfully () {
 	../crashmail/crashmail settings crashmail.prefs toss
 
 	test -f areas/testarea/2.msg
+}
+
+it_handles_bad_packets_successfully () {
+	echo This is a test netmail message. |
+	../tools/crashwrite dir spool/inbound \
+		fromname "Test User" fromaddr 99:99/88 \
+		toname "Test Sysop" toaddr 99:99/1 \
+		subject "Test netmail message" \
+		area testarea \
+		text /dev/stdin
+
+	../crashmail/crashmail settings crashmail.prefs toss
+
+	test -f areas/bad/2.msg
 }
 

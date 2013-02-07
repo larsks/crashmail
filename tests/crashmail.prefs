@@ -33,7 +33,7 @@ JAM_LINK
 JAM_QUICKLINK
 
 NETMAIL "NETMAIL" 99:99/1 MSG "areas/netmail"
-
+AREA "BAD" 99:99/1 MSG "areas/bad"
 AREA "TESTAREA" 99:99/1 MSG "areas/testarea"
 GROUP A
 EXPORT 99:99/99
