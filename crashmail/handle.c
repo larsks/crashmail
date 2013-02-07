@@ -8,8 +8,6 @@ bool HandleMessage(struct MemMessage *mm)
 {
    bool res;
 
-   LogWrite(6,DEBUG,"Is in HandleMessage()");
-
    handle_nesting++;
 
    if(mm->Area[0]==0) res=HandleNetmail(mm);
