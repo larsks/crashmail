@@ -80,6 +80,10 @@ MAN = \
 
 all: $(EXE)
 
+.PHONY: tests
+tests: all
+	$(MAKE) -C tests
+
 install: all
 	$(INSTALL) -d -m 755 $(DESTDIR)$(bindir)
 	$(INSTALL) -d -m 755 $(DESTDIR)$(mandir)/man1
@@ -92,7 +96,7 @@ crashmail/crashmail: $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
 
 tools/crashstats: tools/crashstats.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	$(CC) -o $@ $^
+	@$(CC) -o $@ $^
 
 tools/crashlist: tools/crashlist.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.

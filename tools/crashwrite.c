@@ -269,7 +269,7 @@ int main(int argc, char **argv)
       t=time(NULL);
       pktnum = (t<<8) + serial;
 		serial++;
-      sprintf(pktname,"%08lx.pkt",pktnum);
+      sprintf(pktname,"%08x.pkt",pktnum);
       MakeFullPath(args[ARG_DIR].data,pktname,fullname,200);
    } while(osExists(fullname));
 

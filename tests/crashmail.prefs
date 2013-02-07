@@ -1,0 +1,40 @@
+SYSOP "Test Sysop"
+LOGFILE "crashmail.log"
+LOGLEVEL 6
+DUPEFILE "dupes" 200
+DUPEMODE BAD
+LOOPMODE LOG+BAD
+DEFAULTZONE 1
+NODELIST nodelist CMNL
+INBOUND "spool/inbound"
+OUTBOUND "spool/outbound"
+TEMPDIR "spool/temp"
+CREATEPKTDIR "spool/temp"
+PACKETDIR "spool/packets"
+
+STATSFILE "crashmail.stats"
+
+GROUPNAME A "TestGroup"
+
+PACKER "ZIP" "zip -j %a %f" "unzip -j -o %a" "PK"
+
+
+AKA 99:99/1
+DOMAIN "testdomain"
+
+NODE 99:99/99 "ZIP" ""
+DEFAULTGROUP A
+
+BOUNCE "1:*/*.*" "2:*/*.*" "3:*/*.*" "4:*/*.*" "5:*/*.*" "6:*/*.*"
+
+MSG_HIGHWATER
+JAM_HIGHWATER
+JAM_LINK
+JAM_QUICKLINK
+
+NETMAIL "NETMAIL" 99:99/1 MSG "areas/netmail"
+
+AREA "TESTAREA" 99:99/1 MSG "areas/testarea"
+GROUP A
+EXPORT 99:99/99
+

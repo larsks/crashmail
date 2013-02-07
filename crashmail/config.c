@@ -1944,7 +1944,7 @@ void WriteSafely(osFile fh,uchar *str)
 
 void WriteNode4D(osFile fh,struct Node4D *n4d)
 {
-   osFPrintf(fh,"%lu:%lu/%lu.%lu",n4d->Zone,n4d->Net,n4d->Node,n4d->Point);
+   osFPrintf(fh,"%u:%u/%u.%u",n4d->Zone,n4d->Net,n4d->Node,n4d->Point);
 }
 
 uchar *nodekeywords[]={"DEFAULTGROUP","REMOTESYSOP","REMOTEAF",
