@@ -1,5 +1,7 @@
 #!/bin/sh
 
+describe "crashstats"
+
 it_generates_alpha_sorted_stats () {
 	test -f crashmail.stats
 	../tools/crashstats crashmail.stats sort a

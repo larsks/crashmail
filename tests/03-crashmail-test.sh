@@ -2,25 +2,11 @@
 
 describe "crashmail"
 
+. ./testcommon.sh
+
 before () {
-	rm -f spool/inbound/*
-	rm -f spool/outbound/*
-	rm -rf areas
-	mkdir -p areas/netmail areas/testarea areas/bad
-
-	mkdir -p nodelist
-	cat > nodelist/testlist.txt <<-EOF
-	Zone,99,Test_Zone,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	Host,99,Test_Net,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	,99,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	EOF
-
-	cat > nodelist/cmnodelist.prefs <<-EOF
-	testlist.txt
-	EOF
-
-	../tools/crashlist nodelist
+	setup_crashmail_env
+	setup_tmpfile
 }
 
 after () {
@@ -31,7 +17,9 @@ after () {
 
 
 it_runs_successfully () {
-	../crashmail/crashmail settings crashmail.prefs
+	../crashmail/crashmail settings crashmail.prefs | tee $tmpfile
+	grep '^CrashMail II .* started successfully' $tmpfile
+	grep '^CrashMail end' $tmpfile
 }
 
 it_tosses_netmail_successfully () {
@@ -64,7 +52,7 @@ it_tosses_echos_successfully () {
 it_handles_bad_packets_successfully () {
 	echo This is a test netmail message. |
 	../tools/crashwrite dir spool/inbound \
-		fromname "Test User" fromaddr 99:99/88 \
+		fromname "Test User" fromaddr 99:99/77 \
 		toname "Test Sysop" toaddr 99:99/1 \
 		subject "Test netmail message" \
 		area testarea \
