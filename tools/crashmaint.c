@@ -31,6 +31,8 @@
 uchar *ver="$VER: CrashMaint "VERSION" ("__COMMODORE_DATE__")";
 #endif
 
+static size_t ptrsize = sizeof(void *);
+
 struct Area
 {
    struct Area *Next;
@@ -135,7 +137,7 @@ bool Sort(struct jbList *list)
    for(msg=(struct Msg *)list->First;msg;msg=msg->Next)
       *work++=msg;
 
-   qsort(buf,nc,4,Compare);
+   qsort(buf,nc,ptrsize,Compare);
 
    jbNewList(list);
 

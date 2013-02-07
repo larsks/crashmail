@@ -1,5 +1,7 @@
 #include "crashmail.h"
 
+static size_t ptrsize = sizeof(void *);
+
 void SendRemoteAreafix(void);
 struct Arealist *FindForward(uchar *tagname,uchar *flags);
 void RemoteAreafixAdd(uchar *area,struct ConfigNode *node);
@@ -940,7 +942,7 @@ void SortSortList(void)
    for(ss=(struct StatsNode *)SortList.First;ss;ss=ss->Next)
       *work++=ss;
 
-   qsort(buf,nc,4,CompareAreas);
+   qsort(buf,nc,ptrsize,CompareAreas);
 
    jbNewList(&SortList);
 
