@@ -80,6 +80,7 @@ MAN = \
 
 all: $(EXE)
 
+.PHONY: tests
 tests: all
 	$(MAKE) -C tests
 
