@@ -9,7 +9,10 @@ typedef unsigned short UINT16; /* Unsigned 16-bit integer */
 #define OS_PATH_CHARS "/"
 #define OS_CURRENT_DIR "."
 
-#define OS_CONFIG_NAME "crashmail.prefs"
+#ifndef OS_CONFIG_NAME
+#define OS_CONFIG_NAME "/etc/ftn/crashmail.prefs"
+#endif
+
 #define OS_CONFIG_VAR "CMCONFIGFILE"
 
 #define OS_HAS_SYSLOG
