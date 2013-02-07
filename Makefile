@@ -24,6 +24,16 @@ SHAREDOBJS = \
 	shared/parseargs.o \
 	shared/path.o
 
+TOOLOBJS = \
+	   tools/crashexport.o \
+	   tools/crashgetnode.o \
+	   tools/crashlist.o \
+	   tools/crashlist.o \
+	   tools/crashlistout.o \
+	   tools/crashmaint.o \
+	   tools/crashstats.o \
+	   tools/crashwrite.o
+
 OBJS = $(SHAREDOBJS) $(NLOBJS) \
        crashmail/areafix.o \
        crashmail/config.o \
@@ -50,14 +60,14 @@ JAMLIB = jamlib/jamlib.a
 CMNLLIB = cmnllib/cmnllib.a
 OSLIB = oslib_linux/oslib.a
 
-EXE = bin/crashmail \
-      bin/crashlist \
-      bin/crashstats \
-      bin/crashgetnode \
-      bin/crashmaint \
-      bin/crashwrite \
-      bin/crashexport \
-      bin/crashlistout
+EXE = crashmail/crashmail \
+      tools/crashlist \
+      tools/crashstats \
+      tools/crashgetnode \
+      tools/crashmaint \
+      tools/crashwrite \
+      tools/crashexport \
+      tools/crashlistout
 
 MAN = \
       man/crashmaint.1 \
@@ -76,10 +86,35 @@ install: all
 	$(INSTALL) -m 755 $(EXE) $(DESTDIR)$(bindir)
 	$(INSTALL) -m 644 $(MAN) $(DESTDIR)$(mandir)/man1
 
-bin:
-	mkdir bin
+crashmail/crashmail: $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+	@echo Linking $@.
+	@$(CC) -o $@ $^ $(JAMLIB) $(CMNLLIB) $(OSLIB)
 
-$(EXE): bin $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+tools/crashstats: tools/crashstats.o $(SHAREDOBJS) $(OSLIB)
+	@echo Linking $@.
+	$(CC) -o $@ $^
+
+tools/crashlist: tools/crashlist.o $(SHAREDOBJS) $(OSLIB)
+	@echo Linking $@.
+	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+
+tools/crashgetnode: tools/crashgetnode.o $(SHAREDOBJS) $(CMNLLIB) $(OSLIB)
+	@echo Linking $@.
+	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+
+tools/crashmaint: tools/crashmaint.o $(SHAREDOBJS) $(OSLIB) $(JAMLIB)
+	@echo Linking $@.
+	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+
+tools/crashwrite: tools/crashwrite.o $(SHAREDOBJS) $(OSLIB)
+	@echo Linking $@.
+	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+
+tools/crashexport: tools/crashexport.o $(SHAREDOBJS) $(OSLIB)
+	@echo Linking $@.
+	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
+
+tools/crashlistout: tools/crashlistout.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
 	@$(CC) -o $@ $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
 
@@ -96,7 +131,7 @@ oslib_linux/oslib.a:
 	$(MAKE) -C oslib_linux
 
 clean:
-	rm -f $(OBJS)
+	rm -f $(OBJS) $(TOOLOBJS) $(EXE)
 	$(MAKE) -C jamlib clean
 	$(MAKE) -C cmnllib clean
 	$(MAKE) -C oslib_linux clean

@@ -1,2 +1,10 @@
 *.o
 *.a
+crashmail/crashmail
+tools/crashexport
+tools/crashgetnode
+tools/crashlist
+tools/crashlistout
+tools/crashmaint
+tools/crashstats
+tools/crashwrite
