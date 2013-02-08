@@ -9,7 +9,7 @@ If you run into any problems with this code, plase report them to
 the [project bugtracker][bugs].
 
 Compiling
----------
+=========
 
 To compile CrashMail II, run `make`:
 
@@ -23,6 +23,36 @@ You will need [Roundup][] to run the tests.
 
 [bugs]: https://github.com/larsks/crashmail/issues
 [roundup]: http://bmizerany.github.com/roundup/
+
+Pointlists
+==========
+
+The man page for `crashlist` says:
+
+> Pointlists should be in BinkleyTerm format and should be specified after the
+> real nodelists.
+
+I wasn't sure what exactly a BinkleyTerm format pointlist should look
+like.  Looking through the code, the following seems to work.  Given a
+nodelist that looks like this:
+
+    Zone,99,Test_Zone,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+    Host,99,Test_Net,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+    ,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+    ,99,Test_Host_2,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+
+Then your pointlist should look like this:
+
+    Zone,99,Test_Zone,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+    Host,99,Test_Net,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+    ,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+    Point,1,Test_Point_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+
+That is, your pointlist must contain the zone, net, and node that are
+superior to your point. There is currently no support for the `Boss`
+directive seen in some other software:
+
+    Boss,1:99/1
 
 Author
 ======
