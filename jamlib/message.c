@@ -66,7 +66,7 @@
 **
 ***********************************************************************/
 int JAM_ReadMsgHeader( s_JamBase* 	Base_PS,
-                       ulong 		MsgNo_I,
+                       uint32_t 		MsgNo_I,
 		       s_JamMsgHeader*	Header_PS,
 		       s_JamSubPacket** SubfieldPack_PPS )
 {
@@ -178,8 +178,8 @@ int JAM_ReadMsgHeader( s_JamBase* 	Base_PS,
 **
 ***********************************************************************/
 int JAM_ReadMsgText( s_JamBase* Base_PS,
-		     ulong 	Offset_I,
-		     ulong 	Length_I,
+		     uint32_t 	Offset_I,
+		     uint32_t 	Length_I,
 		     uchar* 	Buffer_PC )
 {
     if ( !Base_PS || !Buffer_PC )
@@ -207,7 +207,7 @@ int JAM_ReadMsgText( s_JamBase* Base_PS,
 **
 ***********************************************************************/
 int JAM_ChangeMsgHeader( s_JamBase* 	 Base_PS,
-			 ulong 	    	 MsgNo_I,
+			 uint32_t 	    	 MsgNo_I,
 			 s_JamMsgHeader* Header_PS )
 {
     s_JamBaseHeader 	BaseHeader_S;
@@ -284,13 +284,13 @@ int JAM_AddMessage( s_JamBase* 		Base_PS,
 		    s_JamMsgHeader*	Header_PS,
 		    s_JamSubPacket*	SubPack_PS,
 		    uchar*		Text_PC,
-		    ulong		TextLen_I )
+		    uint32_t		TextLen_I )
 {
     s_JamBaseHeader 	BaseHeader_S;
     s_JamIndex 		Index_S;
     long 		Offset_I;
     int			Status_I;
-    ulong  		TotLen_I;
+    uint32_t  		TotLen_I;
 
    if ( !Base_PS )
 		return JAM_BAD_PARAM;
@@ -503,13 +503,13 @@ int JAM_AddEmptyMessage( s_JamBase* 		Base_PS)
  **
  ***********************************************************************/
 int JAM_DeleteMessage( s_JamBase*	 Base_PS,
-		       ulong		 MsgNo_I )
+		       uint32_t		 MsgNo_I )
 {
     s_JamBaseHeader	BaseHeader_S;
     s_JamMsgHeader	Header_S;
     s_JamIndex		Index_S;
     int			Status_I;
-    ulong               OldAttribute_I;
+    uint32_t               OldAttribute_I;
 
     if ( !Base_PS )
 	return JAM_BAD_PARAM;

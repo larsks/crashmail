@@ -27,19 +27,19 @@
 #include "jam.h"
 #include "structrw.h"
 
-ushort jamgetuword(uchar *buf,ulong offset)
+uint16_t jamgetuword(uchar *buf,uint32_t offset)
 {
-   return (ushort) buf[offset]+
+   return (uint16_t) buf[offset]+
                    buf[offset+1]*256;
 }
 
-void jamputuword(uchar *buf,ulong offset,ushort num)
+void jamputuword(uchar *buf,uint32_t offset,uint16_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
 }
 
-void jamputulong(uchar *buf,ulong offset,ulong num)
+void jamputuint32_t(uchar *buf,uint32_t offset,uint32_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=(num / 256) % 256;
@@ -47,9 +47,9 @@ void jamputulong(uchar *buf,ulong offset,ulong num)
    buf[offset+3]=(num / 256 / 256 / 256) % 256;
 }
 
-ulong jamgetulong(uchar *buf,ulong offset)
+uint32_t jamgetuint32_t(uchar *buf,uint32_t offset)
 {
-   return (ulong) buf[offset]+
+   return (uint32_t) buf[offset]+
                   buf[offset+1]*256+
                   buf[offset+2]*256*256+
                   buf[offset+3]*256*256*256;
@@ -64,11 +64,11 @@ int freadjambaseheader(FILE *fp,s_JamBaseHeader *s_JamBaseHeader)
 
    memcpy(s_JamBaseHeader->Signature,&buf[JAMBASEHEADER_SIGNATURE],4);
 
-   s_JamBaseHeader->DateCreated = jamgetulong(buf,JAMBASEHEADER_DATECREATED);
-   s_JamBaseHeader->ModCounter  = jamgetulong(buf,JAMBASEHEADER_MODCOUNTER);
-   s_JamBaseHeader->ActiveMsgs  = jamgetulong(buf,JAMBASEHEADER_ACTIVEMSGS);
-   s_JamBaseHeader->PasswordCRC = jamgetulong(buf,JAMBASEHEADER_PASSWORDCRC);
-   s_JamBaseHeader->BaseMsgNum  = jamgetulong(buf,JAMBASEHEADER_BASEMSGNUM);
+   s_JamBaseHeader->DateCreated = jamgetuint32_t(buf,JAMBASEHEADER_DATECREATED);
+   s_JamBaseHeader->ModCounter  = jamgetuint32_t(buf,JAMBASEHEADER_MODCOUNTER);
+   s_JamBaseHeader->ActiveMsgs  = jamgetuint32_t(buf,JAMBASEHEADER_ACTIVEMSGS);
+   s_JamBaseHeader->PasswordCRC = jamgetuint32_t(buf,JAMBASEHEADER_PASSWORDCRC);
+   s_JamBaseHeader->BaseMsgNum  = jamgetuint32_t(buf,JAMBASEHEADER_BASEMSGNUM);
 
    memcpy(s_JamBaseHeader->RSRVD,&buf[JAMBASEHEADER_RSRVD],1000);
 
@@ -81,11 +81,11 @@ int fwritejambaseheader(FILE *fp,s_JamBaseHeader *s_JamBaseHeader)
 
    memcpy(&buf[JAMBASEHEADER_SIGNATURE],s_JamBaseHeader->Signature,4);
 
-   jamputulong(buf,JAMBASEHEADER_DATECREATED, s_JamBaseHeader->DateCreated);
-   jamputulong(buf,JAMBASEHEADER_MODCOUNTER,  s_JamBaseHeader->ModCounter);
-   jamputulong(buf,JAMBASEHEADER_ACTIVEMSGS,  s_JamBaseHeader->ActiveMsgs);
-   jamputulong(buf,JAMBASEHEADER_PASSWORDCRC, s_JamBaseHeader->PasswordCRC );
-   jamputulong(buf,JAMBASEHEADER_BASEMSGNUM,  s_JamBaseHeader->BaseMsgNum);
+   jamputuint32_t(buf,JAMBASEHEADER_DATECREATED, s_JamBaseHeader->DateCreated);
+   jamputuint32_t(buf,JAMBASEHEADER_MODCOUNTER,  s_JamBaseHeader->ModCounter);
+   jamputuint32_t(buf,JAMBASEHEADER_ACTIVEMSGS,  s_JamBaseHeader->ActiveMsgs);
+   jamputuint32_t(buf,JAMBASEHEADER_PASSWORDCRC, s_JamBaseHeader->PasswordCRC );
+   jamputuint32_t(buf,JAMBASEHEADER_BASEMSGNUM,  s_JamBaseHeader->BaseMsgNum);
 
    memcpy(&buf[JAMBASEHEADER_RSRVD],s_JamBaseHeader->RSRVD,1000);
 
@@ -106,23 +106,23 @@ int freadjammsgheader(FILE *fp,s_JamMsgHeader *s_JamMsgHeader)
 
    s_JamMsgHeader->Revision      = jamgetuword(buf,JAMMSGHEADER_REVISION);
    s_JamMsgHeader->ReservedWord  = jamgetuword(buf,JAMMSGHEADER_RESERVEDWORD);
-   s_JamMsgHeader->SubfieldLen   = jamgetulong(buf,JAMMSGHEADER_SUBFIELDLEN);
-   s_JamMsgHeader->TimesRead     = jamgetulong(buf,JAMMSGHEADER_TIMESREAD);
-   s_JamMsgHeader->MsgIdCRC      = jamgetulong(buf,JAMMSGHEADER_MSGIDCRC);
-   s_JamMsgHeader->ReplyCRC      = jamgetulong(buf,JAMMSGHEADER_REPLYCRC);
-   s_JamMsgHeader->ReplyTo       = jamgetulong(buf,JAMMSGHEADER_REPLYTO);
-   s_JamMsgHeader->Reply1st      = jamgetulong(buf,JAMMSGHEADER_REPLY1ST);
-   s_JamMsgHeader->ReplyNext     = jamgetulong(buf,JAMMSGHEADER_REPLYNEXT);
-   s_JamMsgHeader->DateWritten   = jamgetulong(buf,JAMMSGHEADER_DATEWRITTEN);
-   s_JamMsgHeader->DateReceived  = jamgetulong(buf,JAMMSGHEADER_DATERECEIVED);
-   s_JamMsgHeader->DateProcessed = jamgetulong(buf,JAMMSGHEADER_DATEPROCESSED);
-   s_JamMsgHeader->MsgNum        = jamgetulong(buf,JAMMSGHEADER_MSGNUM);
-   s_JamMsgHeader->Attribute     = jamgetulong(buf,JAMMSGHEADER_ATTRIBUTE);
-   s_JamMsgHeader->Attribute2    = jamgetulong(buf,JAMMSGHEADER_ATTRIBUTE2);
-   s_JamMsgHeader->TxtOffset     = jamgetulong(buf,JAMMSGHEADER_TXTOFFSET);
-   s_JamMsgHeader->TxtLen        = jamgetulong(buf,JAMMSGHEADER_TXTLEN);
-   s_JamMsgHeader->PasswordCRC   = jamgetulong(buf,JAMMSGHEADER_PASSWORDCRC);
-   s_JamMsgHeader->Cost          = jamgetulong(buf,JAMMSGHEADER_COST);
+   s_JamMsgHeader->SubfieldLen   = jamgetuint32_t(buf,JAMMSGHEADER_SUBFIELDLEN);
+   s_JamMsgHeader->TimesRead     = jamgetuint32_t(buf,JAMMSGHEADER_TIMESREAD);
+   s_JamMsgHeader->MsgIdCRC      = jamgetuint32_t(buf,JAMMSGHEADER_MSGIDCRC);
+   s_JamMsgHeader->ReplyCRC      = jamgetuint32_t(buf,JAMMSGHEADER_REPLYCRC);
+   s_JamMsgHeader->ReplyTo       = jamgetuint32_t(buf,JAMMSGHEADER_REPLYTO);
+   s_JamMsgHeader->Reply1st      = jamgetuint32_t(buf,JAMMSGHEADER_REPLY1ST);
+   s_JamMsgHeader->ReplyNext     = jamgetuint32_t(buf,JAMMSGHEADER_REPLYNEXT);
+   s_JamMsgHeader->DateWritten   = jamgetuint32_t(buf,JAMMSGHEADER_DATEWRITTEN);
+   s_JamMsgHeader->DateReceived  = jamgetuint32_t(buf,JAMMSGHEADER_DATERECEIVED);
+   s_JamMsgHeader->DateProcessed = jamgetuint32_t(buf,JAMMSGHEADER_DATEPROCESSED);
+   s_JamMsgHeader->MsgNum        = jamgetuint32_t(buf,JAMMSGHEADER_MSGNUM);
+   s_JamMsgHeader->Attribute     = jamgetuint32_t(buf,JAMMSGHEADER_ATTRIBUTE);
+   s_JamMsgHeader->Attribute2    = jamgetuint32_t(buf,JAMMSGHEADER_ATTRIBUTE2);
+   s_JamMsgHeader->TxtOffset     = jamgetuint32_t(buf,JAMMSGHEADER_TXTOFFSET);
+   s_JamMsgHeader->TxtLen        = jamgetuint32_t(buf,JAMMSGHEADER_TXTLEN);
+   s_JamMsgHeader->PasswordCRC   = jamgetuint32_t(buf,JAMMSGHEADER_PASSWORDCRC);
+   s_JamMsgHeader->Cost          = jamgetuint32_t(buf,JAMMSGHEADER_COST);
 
    return 1;
 }
@@ -135,23 +135,23 @@ int fwritejammsgheader(FILE *fp,s_JamMsgHeader *s_JamMsgHeader)
 
    jamputuword(buf,JAMMSGHEADER_REVISION,      s_JamMsgHeader->Revision);
    jamputuword(buf,JAMMSGHEADER_RESERVEDWORD,  s_JamMsgHeader->ReservedWord);
-   jamputulong(buf,JAMMSGHEADER_SUBFIELDLEN,   s_JamMsgHeader->SubfieldLen);
-   jamputulong(buf,JAMMSGHEADER_TIMESREAD,     s_JamMsgHeader->TimesRead);
-   jamputulong(buf,JAMMSGHEADER_MSGIDCRC,      s_JamMsgHeader->MsgIdCRC);
-   jamputulong(buf,JAMMSGHEADER_REPLYCRC,      s_JamMsgHeader->ReplyCRC  );
-   jamputulong(buf,JAMMSGHEADER_REPLYTO,       s_JamMsgHeader->ReplyTo);
-   jamputulong(buf,JAMMSGHEADER_REPLY1ST,      s_JamMsgHeader->Reply1st);
-   jamputulong(buf,JAMMSGHEADER_REPLYNEXT,     s_JamMsgHeader->ReplyNext);
-   jamputulong(buf,JAMMSGHEADER_DATEWRITTEN,   s_JamMsgHeader->DateWritten);
-   jamputulong(buf,JAMMSGHEADER_DATERECEIVED,  s_JamMsgHeader->DateReceived );
-   jamputulong(buf,JAMMSGHEADER_DATEPROCESSED, s_JamMsgHeader->DateProcessed);
-   jamputulong(buf,JAMMSGHEADER_MSGNUM,        s_JamMsgHeader->MsgNum);
-   jamputulong(buf,JAMMSGHEADER_ATTRIBUTE,     s_JamMsgHeader->Attribute);
-   jamputulong(buf,JAMMSGHEADER_ATTRIBUTE2,    s_JamMsgHeader->Attribute2);
-   jamputulong(buf,JAMMSGHEADER_TXTOFFSET,     s_JamMsgHeader->TxtOffset);
-   jamputulong(buf,JAMMSGHEADER_TXTLEN,        s_JamMsgHeader->TxtLen);
-   jamputulong(buf,JAMMSGHEADER_PASSWORDCRC,   s_JamMsgHeader->PasswordCRC);
-   jamputulong(buf,JAMMSGHEADER_COST,          s_JamMsgHeader->Cost);
+   jamputuint32_t(buf,JAMMSGHEADER_SUBFIELDLEN,   s_JamMsgHeader->SubfieldLen);
+   jamputuint32_t(buf,JAMMSGHEADER_TIMESREAD,     s_JamMsgHeader->TimesRead);
+   jamputuint32_t(buf,JAMMSGHEADER_MSGIDCRC,      s_JamMsgHeader->MsgIdCRC);
+   jamputuint32_t(buf,JAMMSGHEADER_REPLYCRC,      s_JamMsgHeader->ReplyCRC  );
+   jamputuint32_t(buf,JAMMSGHEADER_REPLYTO,       s_JamMsgHeader->ReplyTo);
+   jamputuint32_t(buf,JAMMSGHEADER_REPLY1ST,      s_JamMsgHeader->Reply1st);
+   jamputuint32_t(buf,JAMMSGHEADER_REPLYNEXT,     s_JamMsgHeader->ReplyNext);
+   jamputuint32_t(buf,JAMMSGHEADER_DATEWRITTEN,   s_JamMsgHeader->DateWritten);
+   jamputuint32_t(buf,JAMMSGHEADER_DATERECEIVED,  s_JamMsgHeader->DateReceived );
+   jamputuint32_t(buf,JAMMSGHEADER_DATEPROCESSED, s_JamMsgHeader->DateProcessed);
+   jamputuint32_t(buf,JAMMSGHEADER_MSGNUM,        s_JamMsgHeader->MsgNum);
+   jamputuint32_t(buf,JAMMSGHEADER_ATTRIBUTE,     s_JamMsgHeader->Attribute);
+   jamputuint32_t(buf,JAMMSGHEADER_ATTRIBUTE2,    s_JamMsgHeader->Attribute2);
+   jamputuint32_t(buf,JAMMSGHEADER_TXTOFFSET,     s_JamMsgHeader->TxtOffset);
+   jamputuint32_t(buf,JAMMSGHEADER_TXTLEN,        s_JamMsgHeader->TxtLen);
+   jamputuint32_t(buf,JAMMSGHEADER_PASSWORDCRC,   s_JamMsgHeader->PasswordCRC);
+   jamputuint32_t(buf,JAMMSGHEADER_COST,          s_JamMsgHeader->Cost);
 
    if(fwrite(buf,SIZE_JAMMSGHEADER,1,fp) != 1)
       return 0;
@@ -166,8 +166,8 @@ int freadjamindex(FILE *fp,s_JamIndex *s_JamIndex)
    if(fread(buf,SIZE_JAMINDEX,1,fp) != 1)
       return 0;
 
-   s_JamIndex->UserCRC   = jamgetulong(buf,JAMINDEX_USERCRC);
-   s_JamIndex->HdrOffset = jamgetulong(buf,JAMINDEX_HDROFFSET);
+   s_JamIndex->UserCRC   = jamgetuint32_t(buf,JAMINDEX_USERCRC);
+   s_JamIndex->HdrOffset = jamgetuint32_t(buf,JAMINDEX_HDROFFSET);
 
    return 1;
 }
@@ -176,8 +176,8 @@ int fwritejamindex(FILE *fp,s_JamIndex *s_JamIndex)
 {
    uchar buf[SIZE_JAMINDEX];
 
-   jamputulong(buf,JAMINDEX_USERCRC,   s_JamIndex->UserCRC);
-   jamputulong(buf,JAMINDEX_HDROFFSET, s_JamIndex->HdrOffset);
+   jamputuint32_t(buf,JAMINDEX_USERCRC,   s_JamIndex->UserCRC);
+   jamputuint32_t(buf,JAMINDEX_HDROFFSET, s_JamIndex->HdrOffset);
 
    if(fwrite(buf,SIZE_JAMINDEX,1,fp) != 1)
       return 0;
@@ -192,10 +192,10 @@ int freadjamlastread(FILE *fp,s_JamLastRead *s_JamLastRead)
    if(fread(buf,SIZE_JAMLASTREAD,1,fp) != 1)
       return 0;
 
-   s_JamLastRead->UserCRC     = jamgetulong(buf,JAMLASTREAD_USERCRC);
-   s_JamLastRead->UserID      = jamgetulong(buf,JAMLASTREAD_USERID);
-   s_JamLastRead->LastReadMsg = jamgetulong(buf,JAMLASTREAD_LASTREADMSG);
-   s_JamLastRead->HighReadMsg = jamgetulong(buf,JAMLASTREAD_HIGHREADMSG);
+   s_JamLastRead->UserCRC     = jamgetuint32_t(buf,JAMLASTREAD_USERCRC);
+   s_JamLastRead->UserID      = jamgetuint32_t(buf,JAMLASTREAD_USERID);
+   s_JamLastRead->LastReadMsg = jamgetuint32_t(buf,JAMLASTREAD_LASTREADMSG);
+   s_JamLastRead->HighReadMsg = jamgetuint32_t(buf,JAMLASTREAD_HIGHREADMSG);
 
    return 1;
 }
@@ -204,10 +204,10 @@ int fwritejamlastread(FILE *fp,s_JamLastRead *s_JamLastRead)
 {
    uchar buf[SIZE_JAMLASTREAD];
 
-   jamputulong(buf,JAMLASTREAD_USERCRC,s_JamLastRead->UserCRC);
-   jamputulong(buf,JAMLASTREAD_USERID,s_JamLastRead->UserID);
-   jamputulong(buf,JAMLASTREAD_LASTREADMSG,s_JamLastRead->LastReadMsg);
-   jamputulong(buf,JAMLASTREAD_HIGHREADMSG,s_JamLastRead->HighReadMsg);
+   jamputuint32_t(buf,JAMLASTREAD_USERCRC,s_JamLastRead->UserCRC);
+   jamputuint32_t(buf,JAMLASTREAD_USERID,s_JamLastRead->UserID);
+   jamputuint32_t(buf,JAMLASTREAD_LASTREADMSG,s_JamLastRead->LastReadMsg);
+   jamputuint32_t(buf,JAMLASTREAD_HIGHREADMSG,s_JamLastRead->HighReadMsg);
 
    if(fwrite(buf,SIZE_JAMLASTREAD,1,fp) != 1)
       return 0;
@@ -221,7 +221,7 @@ int fwritejamsavesubfield(FILE *fp,s_JamSaveSubfield *s_JamSaveSubfield)
 
    jamputuword(buf,JAMSAVESUBFIELD_LOID,   s_JamSaveSubfield->LoID);
    jamputuword(buf,JAMSAVESUBFIELD_HIID,   s_JamSaveSubfield->HiID);
-   jamputulong(buf,JAMSAVESUBFIELD_DATLEN, s_JamSaveSubfield->DatLen);
+   jamputuint32_t(buf,JAMSAVESUBFIELD_DATLEN, s_JamSaveSubfield->DatLen);
 
    if(fwrite(buf,SIZE_JAMSAVESUBFIELD,1,fp) != 1)
       return 0;
@@ -233,7 +233,7 @@ void getjamsubfield(uchar *buf,s_JamSubfield *Subfield_S)
 {
    Subfield_S->LoID   = jamgetuword(buf,JAMSAVESUBFIELD_LOID);
    Subfield_S->HiID   = jamgetuword(buf,JAMSAVESUBFIELD_HIID);
-   Subfield_S->DatLen = jamgetulong(buf,JAMSAVESUBFIELD_DATLEN);
+   Subfield_S->DatLen = jamgetuint32_t(buf,JAMSAVESUBFIELD_DATLEN);
 
    Subfield_S->Buffer = (uchar *) buf + SIZE_JAMSAVESUBFIELD;
 }

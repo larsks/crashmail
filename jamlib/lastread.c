@@ -47,7 +47,7 @@
 **
 ***********************************************************************/
 int JAM_ReadLastRead( s_JamBase*	Base_PS,
-		      ulong 		User_I,
+		      uint32_t 		User_I,
 		      s_JamLastRead* 	Record_PS )
 {
     s_JamLastRead Record_S;
@@ -87,7 +87,7 @@ int JAM_ReadLastRead( s_JamBase*	Base_PS,
 **
 ***********************************************************************/
 int JAM_WriteLastRead( s_JamBase* 	Base_PS,
-		       ulong 		User_I,
+		       uint32_t 		User_I,
 		       s_JamLastRead* 	Record_PS )
 {
     s_JamLastRead Record_S;
