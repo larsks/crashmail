@@ -1,5 +1,7 @@
 include ../Makefile.inc
 
+ROUNDUP=./roundup
+
 all:
-	roundup
+	$(ROUNDUP)
 
