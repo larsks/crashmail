@@ -4,17 +4,17 @@ struct msg_Area
 {
    struct msg_Area *Next;
    struct Area *area;
-   ulong LowMsg;
-   ulong HighMsg;
-   ulong OldHighWater;
-   ulong HighWater;
+   uint32_t LowMsg;
+   uint32_t HighMsg;
+   uint32_t OldHighWater;
+   uint32_t HighWater;
 };
 
 bool msg_GetHighLowMsg(struct msg_Area *area);
 bool msg_WriteHighWater(struct msg_Area *area);
 bool msg_WriteMSG(struct MemMessage *mm,uchar *file);
-ulong msg_ReadCR(uchar *buf, ulong maxlen, osFile fh);
-bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemMessage *mm),bool isrescanning);
+uint32_t msg_ReadCR(uchar *buf, uint32_t maxlen, osFile fh);
+bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct MemMessage *mm),bool isrescanning);
 
 struct jbList msg_AreaList;
 
@@ -89,9 +89,9 @@ bool msg_importfunc(struct MemMessage *mm,struct Area *area)
    return msg_WriteMSG(mm,buf);
 }
 
-bool msg_rescanfunc(struct Area *area,ulong max,bool (*handlefunc)(struct MemMessage *mm))
+bool msg_rescanfunc(struct Area *area,uint32_t max,bool (*handlefunc)(struct MemMessage *mm))
 {
-   ulong start;
+   uint32_t start;
    struct msg_Area *ma;
 
    if(!(ma=msg_getarea(area)))
@@ -118,7 +118,7 @@ bool msg_rescanfunc(struct Area *area,ulong max,bool (*handlefunc)(struct MemMes
 
 bool msg_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
 {
-   ulong start;
+   uint32_t start;
    uchar buf[200];
    struct StoredMsg Msg;
    osFile fh;
@@ -165,15 +165,15 @@ bool msg_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
    return(TRUE);
 }
 
-bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemMessage *mm),bool isrescanning)
+bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct MemMessage *mm),bool isrescanning)
 {
-   ulong rlen;
+   uint32_t rlen;
    uchar buf[200],buf2[50];
    bool kludgeadd;
    osFile fh;
    struct StoredMsg Msg;
    struct MemMessage *mm;
-	ushort oldattr;
+	uint16_t oldattr;
    struct msg_Area *ma;
 
    if(!(ma=msg_getarea(area)))
@@ -341,8 +341,8 @@ bool msg_ExportMSGNum(struct Area *area,ulong num,bool (*handlefunc)(struct MemM
    return(TRUE);
 }
 
-ulong msg_templowmsg;
-ulong msg_temphighmsg;
+uint32_t msg_templowmsg;
+uint32_t msg_temphighmsg;
 
 void msg_scandirfunc(uchar *file)
 {
@@ -367,7 +367,7 @@ bool msg_GetHighLowMsg(struct msg_Area *area)
 
       if(!osMkDir(area->area->Path))
       {
-			ulong err=osError();
+			uint32_t err=osError();
          LogWrite(1,SYSTEMERR,"Unable to create directory");
 			LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
 
@@ -380,7 +380,7 @@ bool msg_GetHighLowMsg(struct msg_Area *area)
 
    if(!osScanDir(area->area->Path,msg_scandirfunc))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to scan directory %s",area->area->Path);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
 			
@@ -437,7 +437,7 @@ bool msg_WriteHighWater(struct msg_Area *area)
 
    if(!(fh=osOpen(buf,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to write Highwater mark to %s",buf);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
@@ -534,7 +534,7 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
 
       if(sbbuf[0])
 		{
-         if(!osWrite(fh,sbbuf,(ulong)strlen(sbbuf)))
+         if(!osWrite(fh,sbbuf,(uint32_t)strlen(sbbuf)))
 				{ ioerror=TRUE; ioerrornum=osError(); }
 		}	
 
@@ -550,7 +550,7 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
 				if(!osWrite(fh,"\x01PATH: ",7))
 					{ ioerror=TRUE; ioerrornum=osError(); }
 
-            if(!osWrite(fh,path->Path[c],(ulong)strlen(path->Path[c])))
+            if(!osWrite(fh,path->Path[c],(uint32_t)strlen(path->Path[c])))
 					{ ioerror=TRUE; ioerrornum=osError(); }
 
             if(!osWrite(fh,"\x0d",1))
@@ -568,7 +568,7 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
    return(TRUE);
 }
 
-ulong msg_ReadCR(uchar *buf, ulong maxlen, osFile fh)
+uint32_t msg_ReadCR(uchar *buf, uint32_t maxlen, osFile fh)
 {
    /* Reads from fh until buffer full or CR */
 

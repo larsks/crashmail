@@ -1,8 +1,8 @@
 #include "crashmail.h"
 
-void ExpandPacker(uchar *cmd,uchar *dest,ulong destsize,uchar *arc,uchar *file)
+void ExpandPacker(uchar *cmd,uchar *dest,uint32_t destsize,uchar *arc,uchar *file)
 {
-   ulong c,d;
+   uint32_t c,d;
 
    d=0;
    for(c=0;c<strlen(cmd);c++)
@@ -31,7 +31,7 @@ void ExpandPacker(uchar *cmd,uchar *dest,ulong destsize,uchar *arc,uchar *file)
    dest[d]=0;
 }
 
-void ExpandFilter(uchar *cmd,uchar *dest,ulong destsize,
+void ExpandFilter(uchar *cmd,uchar *dest,uint32_t destsize,
    uchar *rfc1,
 	uchar *rfc2,
    uchar *msg,
@@ -43,7 +43,7 @@ void ExpandFilter(uchar *cmd,uchar *dest,ulong destsize,
    uchar *orignode,
    uchar *destnode)
 {
-   ulong c,d;
+   uint32_t c,d;
 
    d=0;
    for(c=0;c<strlen(cmd);c++)
@@ -145,7 +145,7 @@ int DateCompareFE(const void *f1, const void *f2)
 bool SortFEList(struct jbList *list)
 {
    struct osFileEntry *ftt,**buf,**work;
-   ulong nodecount = 0;
+   uint32_t nodecount = 0;
 
    for(ftt=(struct osFileEntry *)list->First;ftt;ftt=ftt->Next)
       nodecount++;
@@ -281,7 +281,7 @@ void stripleadtrail(uchar *str)
 void BadFile(uchar *filename,uchar *comment)
 {
    uchar destname[100],numbuf[10];
-   ulong num;
+   uint32_t num;
 
    LogWrite(3,TOSSINGERR,"Renaming %s to .bad",filename);
 
@@ -304,7 +304,7 @@ void BadFile(uchar *filename,uchar *comment)
 
    if(!movefile(filename,destname))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to move %s to %s",filename,destname);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return;
@@ -358,7 +358,7 @@ void MakeFidoDate(time_t tim,uchar *dest)
 bool copyfile(uchar *file,uchar *newfile)
 {
    osFile ifh,ofh;
-   ulong len;
+   uint32_t len;
    uchar *copybuf;
 
    if(!(copybuf=(uchar *)malloc(COPYBUFSIZE)))
@@ -484,7 +484,7 @@ bool MakeNetmailKludges(struct MemMessage *mm)
 
 time_t FidoToTime(uchar *date)
 {
-   ulong month;
+   uint32_t month;
    struct tm tm;
    time_t t;
 
@@ -553,7 +553,7 @@ time_t FidoToTime(uchar *date)
 
 bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain)
 {
-   ulong c=0;
+   uint32_t c=0;
    uchar buf2[100];
 
    domain[0]=0;
@@ -574,7 +574,7 @@ bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain)
 
 bool ExtractAddress(uchar *origin, struct Node4D *n4d)
 {
-   ulong pos,e;
+   uint32_t pos,e;
    uchar addr[50];
 	uchar domain[20];
 
@@ -672,7 +672,7 @@ bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
    uchar *domain;
    struct Aka *aka;
    struct TextChunk *tmp;
-   ulong c,d,lastspace;
+   uint32_t c,d,lastspace;
    uchar buffer[100],fromaddr[100],toaddr[100];
 
    for(aka=(struct Aka *)config.AkaList.First;aka;aka=aka->Next)
@@ -705,7 +705,7 @@ bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
 
    if(!(fh=osOpen(name,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Unable to write RFC-message to %s",name);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
 			
@@ -867,7 +867,7 @@ bool WriteMSG(struct MemMessage *mm,uchar *file)
 
    if(!(fh=osOpen(file,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Unable to write message to %s",file);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
 
@@ -901,7 +901,7 @@ bool WriteMSG(struct MemMessage *mm,uchar *file)
 
       if(sbbuf[0])
 		{
-         if(!osWrite(fh,sbbuf,(ulong)strlen(sbbuf)))
+         if(!osWrite(fh,sbbuf,(uint32_t)strlen(sbbuf)))
 				{ ioerror=TRUE; ioerrornum=osError(); }
 		}	
 
@@ -917,7 +917,7 @@ bool WriteMSG(struct MemMessage *mm,uchar *file)
 				if(!osWrite(fh,"\x01PATH: ",7))
 					{ ioerror=TRUE; ioerrornum=osError(); }
 				
-            if(!osWrite(fh,path->Path[c],(ulong)strlen(path->Path[c])))
+            if(!osWrite(fh,path->Path[c],(uint32_t)strlen(path->Path[c])))
 					{ ioerror=TRUE; ioerrornum=osError(); }
 
             if(!osWrite(fh,"\x0d",1))

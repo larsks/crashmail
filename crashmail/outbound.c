@@ -17,7 +17,7 @@ bool LockBasename(uchar *basename)
 	
 	if(!(fp=osOpen(buf,MODE_NEWFILE)))
 	{
-		ulong err=osError();
+		uint32_t err=osError();
 		LogWrite(1,SYSTEMERR,"Failed to create busy file %s\n",buf);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
 		return(FALSE);
@@ -44,7 +44,7 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
    struct Route *tmproute;
    bool samedomain;
    uchar *ospathchars;
-   ulong num,c;
+   uint32_t num,c;
    uchar buf[50];
 
    ospathchars=OS_PATH_CHARS;
@@ -179,7 +179,7 @@ void ReadIndex(void)
 {
 	osFile fh;
 	uchar buf[200],buf2[200];
-	ulong jbcpos;
+	uint32_t jbcpos;
 	struct ConfigNode *cnode,*c1,*c2;
 	struct Node4D n4d;
 
@@ -236,7 +236,7 @@ void ReadIndex(void)
          }
 }
 
-bool ExistsBasenum(ulong num)
+bool ExistsBasenum(uint32_t num)
 {
 	uchar name[20];
 	struct osFileEntry *fe;
@@ -253,7 +253,7 @@ bool ExistsBasenum(ulong num)
 	return(FALSE);
 }
 
-bool ExistsBundle(ulong basenum,ulong num)
+bool ExistsBundle(uint32_t basenum,uint32_t num)
 {
 	uchar name[20];
 	struct osFileEntry *fe;
@@ -271,7 +271,7 @@ void MakeArcName(struct ConfigNode *cnode,uchar *dest)
 {
 	struct osFileEntry *fe,*foundfe;
 	uchar ext[10];
-	ulong basenum;
+	uint32_t basenum;
 	long suffix,newsuffix,day,i;
 	uchar *daynames[]={"su","mo","tu","we","th","fr","sa"};
 	time_t t;
@@ -403,13 +403,13 @@ void HandleOrphan(uchar *name)
    uchar buf[200],buf2[200];
    char type;
    bool mode;
-   ulong jbcpos;
+   uint32_t jbcpos;
    struct Node4D n4d;
 	uchar basename[200];
 
    if(!(fh=osOpen(name,MODE_OLDFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open orphan file \"%s\"",name);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return;
@@ -491,7 +491,7 @@ void MakeOrphan(uchar *file,struct Node4D *n4d,char type,long mode)
 
    if(!(fh=osOpen(buf,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open \"%s\", cannot make .orphan file",buf);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return;
@@ -532,7 +532,7 @@ bool doAddFlow(uchar *filename,uchar *basename,uchar type,long mode)
 
    if(!(fh=osOpen(buf,MODE_READWRITE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open \"%s\"",buf);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
@@ -637,7 +637,7 @@ void UpdateFile(uchar *name)
 bool PackFile(char *file)
 {
    uchar basename[200],arcname[200],pktname[200],buf[200],buf2[200],*copybuf;
-   ulong jbcpos,readlen;
+   uint32_t jbcpos,readlen;
    int c,res;
    struct Node4D n4d;
    char type;
@@ -830,7 +830,7 @@ bool PackFile(char *file)
 		
 		if(!(ifh=osOpen(file,MODE_OLDFILE)))
 		{
-			ulong err=osError();
+			uint32_t err=osError();
 			LogWrite(1,SYSTEMERR,"Failed to open \"%s\"",file);
 			LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
 			osFree(copybuf);
@@ -842,7 +842,7 @@ bool PackFile(char *file)
 		{
 			if(!(ofh=osOpen(buf,MODE_READWRITE)))
 			{
-				ulong err=osError();
+				uint32_t err=osError();
 				LogWrite(1,SYSTEMERR,"Failed to open \"%s\"",file);
 				LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
 				osClose(ifh);
@@ -858,7 +858,7 @@ bool PackFile(char *file)
 		{
 			if(!(ofh=osOpen(buf,MODE_NEWFILE)))
 			{
-				ulong err=osError();
+				uint32_t err=osError();
 				LogWrite(1,SYSTEMERR,"Failed to open \"%s\"",file);
 				LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));		
 				osClose(ifh);
@@ -901,7 +901,7 @@ bool ArchiveOutbound(void)
 
    if(!(osReadDir(config.cfg_PacketDir,&ArcList,IsOrphan)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
@@ -923,7 +923,7 @@ bool ArchiveOutbound(void)
 
    if(!(osReadDir(config.cfg_PacketDir,&ArcList,IsArc)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
@@ -943,7 +943,7 @@ bool ArchiveOutbound(void)
 
    if(!(osReadDir(config.cfg_PacketDir,&PktList,IsPktTmp)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketDir);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       jbFreeList(&ArcList);
@@ -968,7 +968,7 @@ bool ArchiveOutbound(void)
 
    if(!(osReadDir(config.cfg_PacketCreate,&PktList,IsNewPkt)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketCreate);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       jbFreeList(&ArcList);

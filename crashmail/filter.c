@@ -2,7 +2,7 @@
 
 /* Boyer-Moore search routines */
 
-ushort bmstep[256];
+uint16_t bmstep[256];
 
 void bminit(uchar *pat)
 {
@@ -725,7 +725,7 @@ bool Filter_Remap(struct MemMessage *mm,uchar *namepat,struct Node4DPat *destpat
    uchar buf[100];
    uchar oldto[36],newto[36];
    struct Node4D olddest4d,newdest4d,my4d;
-   ulong c,d;
+   uint32_t c,d;
 	bool skip;
 
    if(mm->Area[0])

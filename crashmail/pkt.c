@@ -11,18 +11,18 @@
 bool messageend;
 bool shortread,longread;
 
-ushort getuword(uchar *buf,ulong offset)
+uint16_t getuword(uchar *buf,uint32_t offset)
 {
-   return (ushort)(buf[offset]+256*buf[offset+1]);
+   return (uint16_t)(buf[offset]+256*buf[offset+1]);
 }
 
-void putuword(uchar *buf,ulong offset,ushort num)
+void putuword(uchar *buf,uint32_t offset,uint16_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
 }
 
-ulong ReadNull(uchar *buf, ulong maxlen, osFile fh)
+uint32_t ReadNull(uchar *buf, uint32_t maxlen, osFile fh)
 {
    /* Reads from fh until buffer full or NULL */
 
@@ -48,7 +48,7 @@ ulong ReadNull(uchar *buf, ulong maxlen, osFile fh)
    return(c);
 }
 
-ulong ReadCR(uchar *buf, ulong maxlen, osFile fh)
+uint32_t ReadCR(uchar *buf, uint32_t maxlen, osFile fh)
 {
    /* Reads from fh until buffer full or CR */
 
@@ -78,7 +78,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
    osFile fh;
    struct Aka *tmpaka;
    struct ConfigNode *tmpcnode;
-   ulong rlen,msgnum,msgoffset;
+   uint32_t rlen,msgnum,msgoffset;
    uchar buf[200];
    uchar PktHeader[SIZE_PKTHEADER];
    uchar PktMsgHeader[SIZE_PKTMSGHEADER];
@@ -123,7 +123,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
 
    if(!(fh=osOpen(pkt,MODE_OLDFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Unable to open %s",pkt);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       mmFree(mm);
@@ -449,7 +449,7 @@ bool ReadPkt(uchar *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(s
          
       if(tmpcnode)
       {
-         ulong size;
+         uint32_t size;
          
          size=0;
 
@@ -520,14 +520,14 @@ struct Pkt
 {
    struct Pkt *Next;
    osFile fh;
-   ulong hexnum;
-   ulong Len;
-   ushort Type;
+   uint32_t hexnum;
+   uint32_t Len;
+   uint16_t Type;
    struct Node4D Dest;
    struct Node4D Orig;
 };
 
-void pktWrite(struct Pkt *pkt,uchar *buf,ulong len)
+void pktWrite(struct Pkt *pkt,uchar *buf,uint32_t len)
 {
    if(!osWrite(pkt->fh,buf,len))
 		{ ioerror=TRUE; ioerrornum=osError(); }
@@ -537,10 +537,10 @@ void pktWrite(struct Pkt *pkt,uchar *buf,ulong len)
 
 void WriteNull(struct Pkt *pkt,uchar *str)
 {
-   pktWrite(pkt,str,(ulong)(strlen(str)+1));
+   pktWrite(pkt,str,(uint32_t)(strlen(str)+1));
 }
 
-struct Pkt *FindPkt(struct Node4D *node,struct Node4D *mynode,ushort type)
+struct Pkt *FindPkt(struct Node4D *node,struct Node4D *mynode,uint16_t type)
 {
    struct Pkt *pkt;
 
@@ -552,13 +552,13 @@ struct Pkt *FindPkt(struct Node4D *node,struct Node4D *mynode,ushort type)
 }
 
 time_t lastt;
-ulong serial;
+uint32_t serial;
 
-struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Node4D *orig,ushort type)
+struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Node4D *orig,uint16_t type)
 {
    uchar buf[100],buf2[100];
    struct Pkt *pkt;
-   ulong num,c;
+   uint32_t num,c;
    time_t t;
    struct tm *tp;
    uchar PktHeader[SIZE_PKTHEADER];
@@ -584,7 +584,7 @@ struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Node4D 
 
    if(!(pkt->fh=osOpen(buf,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Unable to create packet %s",buf);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       osFree(pkt);
@@ -690,7 +690,7 @@ void FinishPacket(struct Pkt *pkt)
 
 		if(!osRename(oldname,newname))
 		{
-			ulong err=osError();
+			uint32_t err=osError();
 			LogWrite(1,SYSTEMERR,"Failed to rename %s to %s",oldname,newname);
 			LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
 		}	
@@ -740,7 +740,7 @@ bool WriteMsgHeader(struct Pkt *pkt,struct MemMessage *mm)
 
 bool WritePath(struct Pkt *pkt,struct jbList *list)
 {
-   ushort c;
+   uint16_t c;
    struct Path *path;
 
    for(path=(struct Path *)list->First;path;path=path->Next)
@@ -748,7 +748,7 @@ bool WritePath(struct Pkt *pkt,struct jbList *list)
          if(path->Path[c][0]!=0)
          {
             pktWrite(pkt,"\x01PATH: ",7);
-            pktWrite(pkt,path->Path[c],(ulong)strlen(path->Path[c]));
+            pktWrite(pkt,path->Path[c],(uint32_t)strlen(path->Path[c]));
             pktWrite(pkt,"\x0d",1);
          }
 
@@ -765,7 +765,7 @@ bool WriteSeenBy(struct Pkt *pkt,struct jbList *list)
    if(!(buf=mmMakeSeenByBuf(list)))
       return(FALSE);
 
-   pktWrite(pkt,buf,(ulong)strlen(buf));
+   pktWrite(pkt,buf,(uint32_t)strlen(buf));
 
    osFree(buf);
 
@@ -778,7 +778,7 @@ bool WriteEchoMail(struct MemMessage *mm,struct ConfigNode *node, struct Aka *ak
    struct Node4D *From4D;
    struct Pkt *pkt;
    struct TextChunk  *chunk;
-   ulong size;
+   uint32_t size;
 
    From4D=&aka->Node;
 
@@ -819,7 +819,7 @@ bool WriteEchoMail(struct MemMessage *mm,struct ConfigNode *node, struct Aka *ak
 
    sprintf(buf,"AREA:%s\x0d",mm->Area);
 
-   pktWrite(pkt,buf,(ulong)strlen(buf));
+   pktWrite(pkt,buf,(uint32_t)strlen(buf));
 
    if(ioerror)
       return(FALSE);
@@ -900,7 +900,7 @@ bool WriteNetMail(struct MemMessage *mm,struct Node4D *dest,struct Aka *aka)
    struct ConfigNode *cnode;
    struct TextChunk *chunk;
   	struct Node4D *From4D;
-   ulong size;
+   uint32_t size;
 
    toss_written++;
 

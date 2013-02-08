@@ -12,4 +12,4 @@
 
 bool OpenLogfile(uchar *filename);
 void CloseLogfile(void);
-void LogWrite(ulong level,ulong category,uchar *fmt,...);
+void LogWrite(uint32_t level,uint32_t category,uchar *fmt,...);

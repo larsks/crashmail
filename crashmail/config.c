@@ -4,7 +4,7 @@ extern uchar *config_version;
 
 bool CorrectFlags(uchar *flags)
 {
-   ulong c;
+   uint32_t c;
 
    for(c=0;c<strlen(flags);c++)
    {
@@ -19,10 +19,10 @@ bool CorrectFlags(uchar *flags)
 
 uchar cfgbuf[4000];
 
-bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgline,uchar *cfgerr)
+bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,uint32_t *cfgline,uchar *cfgerr)
 {
    uchar buf2[200],cfgword[30];
-   ulong c,d,jbcpos;
+   uint32_t c,d,jbcpos;
    osFile cfgfh;
    
    struct Aka           *tmpaka,    *LastAka=NULL;
@@ -44,7 +44,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgli
    struct BannedNode *tmpbnode;
    struct Node4D     tmp4d;
 
-   ushort flags;
+   uint16_t flags;
 
    cfg->changed=FALSE;
    mystrncpy(cfg->filename,filename,100);
@@ -1925,7 +1925,7 @@ void InitConfig(struct Config *cfg)
 void WriteSafely(osFile fh,uchar *str)
 {
    uchar buf[300];
-   ushort c,d;
+   uint16_t c,d;
 
    d=0;
 
@@ -2062,7 +2062,7 @@ void WriteArea(struct Area *tmparea,osFile osfh)
    struct ImportNode *tmpinode;
    struct TossNode   *tmptnode;
    struct BannedNode *tmpbnode;
-   ulong c;
+   uint32_t c;
 
    if(tmparea->AreaType == AREATYPE_NETMAIL)
       osFPrintf(osfh,"NETMAIL ");
@@ -2191,7 +2191,7 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
    struct ConfigNode    *cnode;
    struct Area          *area;
    struct Node4D n4d;
-   ulong jbcpos,c;
+   uint32_t jbcpos,c;
 
    strcpy(cfgtemp,cfg->filename);
    strcat(cfgtemp,".tmp");
@@ -2201,14 +2201,14 @@ bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
 
    if(!(oldfh=osOpen(cfg->filename,MODE_OLDFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       sprintf(cfgerr,"Unable to read file %s (error: %s)",cfg->filename,osErrorMsg(err));
       return(FALSE);
    }
 
    if(!(newfh=osOpen(cfgtemp,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       sprintf(cfgerr,"Unable to write to config file %s (error: %s)",cfgtemp,osErrorMsg(err));
       osClose(oldfh);
       return(FALSE);

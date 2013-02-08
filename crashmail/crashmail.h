@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -52,17 +53,17 @@ extern struct jbList DeleteList;
 extern bool nomem;
 extern bool ioerror;
 
-extern ulong ioerrornum;
+extern uint32_t ioerrornum;
 
-extern ulong toss_read;
-extern ulong toss_bad;
-extern ulong toss_route;
-extern ulong toss_import;
-extern ulong toss_written;
-extern ulong toss_dupes;
+extern uint32_t toss_read;
+extern uint32_t toss_bad;
+extern uint32_t toss_route;
+extern uint32_t toss_import;
+extern uint32_t toss_written;
+extern uint32_t toss_dupes;
 
-extern ulong scan_total;
-extern ulong rescan_total;
+extern uint32_t scan_total;
+extern uint32_t rescan_total;
 
 extern bool no_security;
 
@@ -70,7 +71,7 @@ extern int handle_nesting;
 
 extern struct ConfigNode *RescanNode;
 
-extern ulong DayStatsWritten;
+extern uint32_t DayStatsWritten;
 
 extern struct Nodelist AvailNodelists[];
 extern struct Messagebase AvailMessagebases[];

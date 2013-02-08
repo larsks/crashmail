@@ -32,7 +32,7 @@ bool OpenLogfile(uchar *logfile)
 
    if(!(logfh=osOpen(logfile,MODE_READWRITE)))
 	{
-		ulong err=osError();
+		uint32_t err=osError();
       printf("Failed to open logfile %s\n",config.cfg_LogFile);
 		printf("Error: %s\n",osErrorMsg(err));	
       return(FALSE);
@@ -59,7 +59,7 @@ void CloseLogfile(void)
 
 uchar *categoryletters="-%=!/D+^?";
 
-void LogWrite(ulong level,ulong category,uchar *fmt,...)
+void LogWrite(uint32_t level,uint32_t category,uchar *fmt,...)
 {
    va_list args;
    time_t t;

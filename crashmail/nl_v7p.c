@@ -19,8 +19,8 @@ struct v7p_ndxcontrol
    long firstleaf;
    long lastleaf;
    long freelist;
-   ushort levels;
-   ushort xor;
+   uint16_t levels;
+   uint16_t xor;
 };
 
 struct v7p_ndxindex
@@ -29,13 +29,13 @@ struct v7p_ndxindex
    long prev;
    long next;
    short keycount;
-   ushort keystart;
+   uint16_t keystart;
 };
 
 struct v7p_ndxindexkey
 {
-   ushort offset;
-   ushort len;
+   uint16_t offset;
+   uint16_t len;
    long value;
    long lower;
 };
@@ -46,13 +46,13 @@ struct v7p_ndxleaf
    long prev;
    long next;
    short keycount;
-   ushort keystart;
+   uint16_t keystart;
 };
 
 struct v7p_ndxleafkey
 {
-   ushort offset;
-   ushort len;
+   uint16_t offset;
+   uint16_t len;
    long value;
 };
 
@@ -75,7 +75,7 @@ osFile v7p_ndxfh;
 osFile v7p_datfh;
 osFile v7p_dtpfh;
 
-ushort v7p_ndxrecsize;
+uint16_t v7p_ndxrecsize;
 
 struct v7p_ndxcontrol v7p_ndxcontrol;
 struct v7p_datheader v7p_datheader;
@@ -105,7 +105,7 @@ int v7p_ndxcompare(uchar *d1,uchar *d2,int len)
    return Compare4D(&n1,&n2);
 }
 
-bool v7p_findoffset(struct Node4D *node,ulong *offset)
+bool v7p_findoffset(struct Node4D *node,uint32_t *offset)
 {
    int i,res;
    long recnum;
@@ -179,10 +179,10 @@ bool v7p_findoffset(struct Node4D *node,ulong *offset)
    return(TRUE);
 }
 
-ulong v7p_unpack(uchar *dest,uchar *pack,ulong size)
+uint32_t v7p_unpack(uchar *dest,uchar *pack,uint32_t size)
 {
-   ulong c,d;
-   ushort w;
+   uint32_t c,d;
+   uint16_t w;
    uchar *table=" EANROSTILCHBDMUGPKYWFVJXZQ-'0123456789";
 
    d=0;
@@ -206,9 +206,9 @@ ulong v7p_unpack(uchar *dest,uchar *pack,ulong size)
    return(d);
 }
 
-bool v7p_gethubregion(ulong datoffset,ulong *hub,ulong *region)
+bool v7p_gethubregion(uint32_t datoffset,uint32_t *hub,uint32_t *region)
 {
-   ulong dtpoffset,sum;
+   uint32_t dtpoffset,sum;
    uchar *junk,*unpacked;
    int sz,d,c;
 
@@ -329,7 +329,7 @@ bool v7p_nlStart(uchar *errbuf)
       return(FALSE);
    }
 
-   if(osRead(v7p_ndxfh,&v7p_ndxrecsize,sizeof(ushort))!=sizeof(ushort))
+   if(osRead(v7p_ndxfh,&v7p_ndxrecsize,sizeof(uint16_t))!=sizeof(uint16_t))
    {
       sprintf(errbuf,"V7+ nodelist \"%s\" appears to be corrupt",config.cfg_Nodelist);
       osClose(v7p_ndxfh);
@@ -368,7 +368,7 @@ void v7p_nlEnd(void)
 
 bool v7p_nlCheckNode(struct Node4D *node)
 {
-   ulong junk;
+   uint32_t junk;
 
    if(v7p_findoffset(node,&junk))
       return(TRUE);
@@ -379,7 +379,7 @@ bool v7p_nlCheckNode(struct Node4D *node)
 long v7p_nlGetHub(struct Node4D *node)
 {
    struct Node4D t4d;
-   ulong hub,region,datoffset;
+   uint32_t hub,region,datoffset;
 
    Copy4D(&t4d,node);
    t4d.Point=0;
@@ -396,7 +396,7 @@ long v7p_nlGetHub(struct Node4D *node)
 long v7p_nlGetRegion(struct Node4D *node)
 {
    struct Node4D t4d;
-   ulong hub,region,datoffset;
+   uint32_t hub,region,datoffset;
 
    Copy4D(&t4d,node);
    t4d.Point=0;

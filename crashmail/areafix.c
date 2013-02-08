@@ -12,8 +12,8 @@ struct afReply
 {
    struct MemMessage *mm;
 	uchar subject[72];
-	ulong lines;
-	ulong part;
+	uint32_t lines;
+	uint32_t part;
 };
 
 struct afReply *afInitReply(uchar *fromname,struct Node4D *from4d,uchar *toname,struct Node4D *to4d,uchar *subject);
@@ -42,7 +42,7 @@ bool AreaFix(struct MemMessage *mm)
    struct TossNode   *temptnode;
    struct BannedNode *bannednode;
    struct TextChunk *chunk;
-   ulong c,d,q,jbcpos;
+   uint32_t c,d,q,jbcpos;
    uchar password[100],buf[100],buf2[100];
    bool stop,sendareaquery,sendarealist,sendareaunlinked,sendhelp,sendinfo,done,iswild;
    bool globalrescan,wasfeed;
@@ -293,7 +293,7 @@ bool AreaFix(struct MemMessage *mm)
          }
          else if(buf[0]!=1 && buf[0]!=0)
          {
-            ulong rescannum;
+            uint32_t rescannum;
             bool patterndone,dorescan,areaexists,success;
             struct Area *rescanarea;
 
@@ -632,7 +632,7 @@ bool AreaFix(struct MemMessage *mm)
 
                                     if(area)
                                     {
-                                       ushort flags;
+                                       uint16_t flags;
 
                                        flags=0;
 
@@ -854,7 +854,7 @@ struct StatsNode
    uchar Group;
    bool Attached;
    bool Feed;
-   ulong WeekKB; /* -1 means unknown */
+   uint32_t WeekKB; /* -1 means unknown */
 };
 
 struct jbList SortList;
@@ -920,7 +920,7 @@ int CompareAreas(const void *a1,const void *a2)
 
 void SortSortList(void)
 {
-   ulong nc;
+   uint32_t nc;
    struct StatsNode *ss,**buf,**work;
 
    nc=0;
@@ -991,13 +991,13 @@ bool AddForwardList(struct Arealist *arealist)
    osFile fh;
    uchar buf[200];
    uchar desc[100];
-   ulong c,d;
+   uint32_t c,d;
    struct Area *area;
    struct StatsNode *ss;
    
    if(!(fh=osOpen(arealist->AreaFile,MODE_OLDFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"AreaFix: File %s not found",arealist->AreaFile);
 		LogWrite(1,SYSTEMERR,"AreaFix: Error: %s",osErrorMsg(err));
       return(TRUE);
@@ -1311,7 +1311,7 @@ void rawSendHelp(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
 
    if(!(fh=osOpen(config.cfg_AreaFixHelp,MODE_OLDFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"AreaFix: Unable to open %s",config.cfg_AreaFixHelp);
 		LogWrite(1,SYSTEMERR,"AreaFix: Error: %s",osErrorMsg(err));
       afAddLine(afr,"*** Error *** : Couldn't open help file");
@@ -1619,7 +1619,7 @@ struct Arealist *FindForward(uchar *tagname,uchar *flags)
 {
    struct Arealist *arealist;
    uchar buf[200];
-   ulong c;
+   uint32_t c;
    osFile fh;
 
    for(arealist=(struct Arealist *)config.ArealistList.First;arealist;arealist=arealist->Next)
@@ -1643,7 +1643,7 @@ struct Arealist *FindForward(uchar *tagname,uchar *flags)
          }
 			else
 			{
-				ulong err=osError();
+				uint32_t err=osError();
 				LogWrite(1,SYSTEMERR,"Failed to open file %s",arealist->AreaFile);
 				LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
 			}
