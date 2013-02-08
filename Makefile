@@ -92,35 +92,35 @@ install: all
 
 crashmail/crashmail: $(OBJS) $(JAMLIB) $(CMNLLIB) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $^ $(JAMLIB) $(CMNLLIB) $(OSLIB)
+	@$(CC) $(LDFLAGS) -o $@ $^ $(JAMLIB) $(CMNLLIB) $(OSLIB) $(LIBS)
 
 tools/crashstats: tools/crashstats.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $^
+	@$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 tools/crashlist: tools/crashlist.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $^
+	@$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 tools/crashgetnode: tools/crashgetnode.o $(SHAREDOBJS) $(CMNLLIB) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $^
+	@$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 tools/crashmaint: tools/crashmaint.o $(SHAREDOBJS) $(OSLIB) $(JAMLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $^
+	@$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 tools/crashwrite: tools/crashwrite.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $^
+	@$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 tools/crashexport: tools/crashexport.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $^
+	@$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 tools/crashlistout: tools/crashlistout.o $(SHAREDOBJS) $(OSLIB)
 	@echo Linking $@.
-	@$(CC) -o $@ $^
+	@$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 .PHONY: jamlib/jamlib.a
 jamlib/jamlib.a:
