@@ -41,18 +41,20 @@ nodelist that looks like this:
     ,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
     ,99,Test_Host_2,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 
-Then your pointlist should look like this:
+Then your pointlist could look like this:
 
     Zone,99,Test_Zone,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
     Host,99,Test_Net,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
     ,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
     Point,1,Test_Point_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 
-That is, your pointlist must contain the zone, net, and node that are
-superior to your point. There is currently no support for the `Boss`
-directive seen in some other software:
+Or like this:
 
-    Boss,1:99/1
+    Boss,99:99/1
+    Point,1,Test_Point_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+
+The `Boss` directive is common in other FTN software but is only
+available in versions of Crashmail > 0.86.
 
 Author
 ======

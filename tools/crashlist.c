@@ -11,6 +11,7 @@
 #include <shared/jblist.h>
 #include <shared/path.h>
 #include <shared/mystrncpy.h>
+#include <shared/node4d.h>
 
 #include <oslib/os.h>
 #include <oslib/osmem.h>
@@ -145,6 +146,7 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
 	struct idx idx;
 	uchar buf[500];
 	osFile nfh;
+	int ispoint = 0;
 	
 	if(!FindList(dir,file,buf))
 		return;
@@ -175,6 +177,7 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
    {
 		if(strnicmp(buf,"Zone,",5)==0)
 		{
+			ispoint = 0;
 			idx.zone=atoi(&buf[5]);
 			idx.region=0;
 			idx.net=idx.zone;
@@ -186,6 +189,7 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
 		
 		if(strnicmp(buf,"Region,",7)==0)
 		{
+			ispoint = 0;
 			idx.region=atoi(&buf[7]);
 			idx.net=idx.region;
 			idx.hub=0;
@@ -196,6 +200,7 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
 
 		if(strnicmp(buf,"Host,",5)==0)
 		{
+			ispoint = 0;
 			idx.net=atoi(&buf[5]);
 			idx.hub=0;
 			idx.node=0;
@@ -205,6 +210,7 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
 
 		if(strnicmp(buf,"Hub,",4)==0)
 		{
+			ispoint = 0;
 			idx.hub=atoi(&buf[4]);
 			idx.node=idx.hub;
 			idx.point=0;
@@ -213,6 +219,7 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
 
 		if(strnicmp(buf,"Pvt,",4)==0)
 		{
+			ispoint = 0;
 			idx.node=atoi(&buf[4]);
 			idx.point=0;
 			WriteIdx(ifh,&idx);
@@ -220,8 +227,41 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
 
 		if(strnicmp(buf,"Hold,",5)==0)
 		{
+			ispoint = 0;
 			idx.node=atoi(&buf[5]);
 			idx.point=0;
+			WriteIdx(ifh,&idx);
+		}
+
+		if(strnicmp(buf,"Boss,",4)==0)
+		{
+			struct Node4D n4d;
+			char *node = &buf[5];
+
+			node[strlen(node)-1]=0;
+			if(!Parse4D(node,&n4d))
+			{
+				printf("Invalid node %s\n", node);
+				exit(OS_EXIT_ERROR);
+			}
+
+			idx.zone = n4d.Zone;
+			idx.net = n4d.Net;
+			idx.node = n4d.Node;
+			ispoint = 1;
+
+			WriteIdx(ifh,&idx);
+		}
+
+		if(strnicmp(buf,"Point,",6)==0)
+		{
+			idx.point=atoi(&buf[6]);
+			WriteIdx(ifh,&idx);
+		}
+
+		if(ispoint && strnicmp(buf,",",1)==0)
+		{
+			idx.point=atoi(&buf[1]);
 			WriteIdx(ifh,&idx);
 		}
 
@@ -229,12 +269,6 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
 		{
 			idx.node=atoi(&buf[1]);
 			idx.point=0;
-			WriteIdx(ifh,&idx);
-		}
-
-		if(strnicmp(buf,"Point,",6)==0)
-		{
-			idx.point=atoi(&buf[6]);
 			WriteIdx(ifh,&idx);
 		}
 
