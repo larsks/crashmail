@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -35,9 +36,9 @@ struct DiskAreaStats
    uchar Group;
    uchar fill_to_make_even; /* Just ignore this one */
 
-   ulong TotalTexts;
-   ushort Last8Days[8];
-   ulong Dupes;
+   uint32_t TotalTexts;
+   uint16_t Last8Days[8];
+   uint32_t Dupes;
 
    time_t FirstTime;
    time_t LastTime;
@@ -46,15 +47,15 @@ struct DiskAreaStats
 struct DiskNodeStats
 {
    struct Node4D Node;
-   ulong GotNetmails;
-   ulong GotNetmailBytes;
-   ulong SentNetmails;
-   ulong SentNetmailBytes;
-   ulong GotEchomails;
-   ulong GotEchomailBytes;
-   ulong SentEchomails;
-   ulong SentEchomailBytes;
-   ulong Dupes;
+   uint32_t GotNetmails;
+   uint32_t GotNetmailBytes;
+   uint32_t SentNetmails;
+   uint32_t SentNetmailBytes;
+   uint32_t GotEchomails;
+   uint32_t GotEchomailBytes;
+   uint32_t SentEchomails;
+   uint32_t SentEchomailBytes;
+   uint32_t Dupes;
    time_t FirstTime;
 };
 
@@ -62,28 +63,28 @@ struct StatsNode
 {
    struct StatsNode *Next;
    uchar Tagname[80];
-   ulong Average;
-   ulong Total;
-   ulong Dupes;
+   uint32_t Average;
+   uint32_t Total;
+   uint32_t Dupes;
    time_t FirstTime;
    time_t LastTime;
-   ushort Last8Days[8];
+   uint16_t Last8Days[8];
 };
 
 struct NodeStatsNode
 {
    struct NodeStatsNode *Next;
    struct Node4D Node;
-   ulong GotNetmails;
-   ulong GotNetmailBytes;
-   ulong SentNetmails;
-   ulong SentNetmailBytes;
-   ulong GotEchomails;
-   ulong GotEchomailBytes;
-   ulong SentEchomails;
-   ulong SentEchomailBytes;
-   ulong Dupes;
-   ulong Days;
+   uint32_t GotNetmails;
+   uint32_t GotNetmailBytes;
+   uint32_t SentNetmails;
+   uint32_t SentNetmailBytes;
+   uint32_t GotEchomails;
+   uint32_t GotEchomailBytes;
+   uint32_t SentEchomails;
+   uint32_t SentEchomailBytes;
+   uint32_t Dupes;
+   uint32_t Days;
    time_t FirstTime;
 };
 
@@ -177,7 +178,7 @@ int CompareLastTime(const void *a1,const void *a2)
 
 bool Sort(struct jbList *list,uchar sortmode)
 {
-   ulong nc;
+   uint32_t nc;
    struct StatsNode *sn,**buf,**work;
 
    nc=0;
@@ -240,7 +241,7 @@ int CompareNodes(const void *a1,const void *a2)
 bool SortNodes(struct jbList *list)
 {
    struct NodeStatsNode *sn,**buf,**work;
-   ulong nc;
+   uint32_t nc;
    
    nc=0;
 
@@ -292,10 +293,10 @@ bool CheckFlags(uchar group,uchar *node)
    return(FALSE);
 }
 
-ulong CalculateAverage(ushort *last8array,ulong total,ulong daystatswritten,time_t firstday)
+uint32_t CalculateAverage(uint16_t *last8array,uint32_t total,uint32_t daystatswritten,time_t firstday)
 {
-   ushort days,c;
-   ulong sum;
+   uint16_t days,c;
+   uint32_t sum;
 
    if(daystatswritten == 0 || firstday == 0)
       return(0);
@@ -331,9 +332,9 @@ void breakfunc(int x)
 int main(int argc, char **argv)
 {
    osFile fh;
-   ulong total,areas,totaldupes;
+   uint32_t total,areas,totaldupes;
    time_t firsttime,t;
-   ulong DayStatsWritten;
+   uint32_t DayStatsWritten;
    uchar buf[200],date[30],date2[30];
    struct DiskAreaStats dastat;
    struct DiskNodeStats dnstat;
@@ -341,8 +342,8 @@ int main(int argc, char **argv)
    struct NodeStatsNode *nsn;
    struct jbList StatsList;
    struct jbList NodesList;
-   ulong c,num,tot;
-   ushort total8days[8];
+   uint32_t c,num,tot;
+   uint16_t total8days[8];
    uchar sortmode;
    struct tm *tp;
    uchar *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
@@ -394,7 +395,7 @@ int main(int argc, char **argv)
 
    if(!(fh=osOpen(args[ARG_FILE].data,MODE_OLDFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       printf("Error opening %s\n",(char *)args[ARG_FILE].data);
 		printf("Error: %s\n",osErrorMsg(err));		
       osEnd();
@@ -412,7 +413,7 @@ int main(int argc, char **argv)
       exit(OS_EXIT_ERROR);
    }
 
-   osRead(fh,&DayStatsWritten,sizeof(ulong));
+   osRead(fh,&DayStatsWritten,sizeof(uint32_t));
 
    total=0;
    totaldupes=0;
@@ -425,7 +426,7 @@ int main(int argc, char **argv)
    jbNewList(&StatsList);
    jbNewList(&NodesList);
 
-   osRead(fh,&num,sizeof(ulong));
+   osRead(fh,&num,sizeof(uint32_t));
    c=0;
 
    if(!args[ARG_NOAREAS].data)
@@ -450,7 +451,7 @@ int main(int argc, char **argv)
             sn->Total=dastat.TotalTexts;
             sn->FirstTime=dastat.FirstTime;
             sn->LastTime=dastat.LastTime;
-            memcpy(&sn->Last8Days[0],&dastat.Last8Days[0],8*sizeof(ushort));
+            memcpy(&sn->Last8Days[0],&dastat.Last8Days[0],8*sizeof(uint16_t));
 
             sn->Average=CalculateAverage(&dastat.Last8Days[0],dastat.TotalTexts,DayStatsWritten,sn->FirstTime / (24*60*60));
          }
@@ -468,7 +469,7 @@ int main(int argc, char **argv)
          c++;
    }
 
-   osRead(fh,&num,sizeof(ulong));
+   osRead(fh,&num,sizeof(uint32_t));
    c=0;
 
    if(!args[ARG_NONODES].data)
