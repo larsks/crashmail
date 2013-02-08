@@ -10,7 +10,7 @@ struct osFileEntry
    struct osFileEntry *Next;
    uchar Name[100];
    time_t Date;
-   ulong Size;
+   uint32_t Size;
 };
 
 bool osReadDir(uchar *dir,struct jbList *filelist,bool (*acceptfunc)(uchar *filename));

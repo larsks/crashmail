@@ -3,8 +3,8 @@
 
 #include "shared/types.h"
 
-void *osAlloc(ulong size);
-void *osAllocCleared(ulong size);
+void *osAlloc(uint32_t size);
+void *osAllocCleared(uint32_t size);
 void osFree(void *buf);
 
 #endif

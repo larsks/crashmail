@@ -1,13 +1,14 @@
 #include <stdlib.h>
+#include <stdint.h>
 
 #include <oslib/osmem.h>
 
-void *osAlloc(ulong size)
+void *osAlloc(uint32_t size)
 {
    return malloc((size_t)size);
 }
 
-void *osAllocCleared(ulong size)
+void *osAllocCleared(uint32_t size)
 {
    return calloc((size_t)size,1);
 }

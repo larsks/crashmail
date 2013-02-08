@@ -15,7 +15,7 @@ bool osDelete(uchar *file);
 bool osMkDir(uchar *dir);
 void osSleep(int secs);
 
-ulong osError(void);
-uchar *osErrorMsg(ulong errnum);
+uint32_t osError(void);
+uchar *osErrorMsg(uint32_t errnum);
 
 #endif

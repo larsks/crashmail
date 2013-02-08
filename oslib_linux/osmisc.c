@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -87,12 +88,12 @@ void osSleep(int secs)
    sleep(secs);
 }
 
-uchar *osErrorMsg(ulong errnum)
+uchar *osErrorMsg(uint32_t errnum)
 {
 	return (uchar *)strerror(errnum);
 }
 
-ulong osError(void)
+uint32_t osError(void)
 {
-	return (ulong)errno;
+	return (uint32_t)errno;
 }
