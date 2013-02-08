@@ -1,10 +1,11 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <shared/types.h>
 #include <shared/mystrncpy.h>
 #include <oslib/os.h>
 
-void MakeFullPath(uchar *path,uchar *file,uchar *dest,ulong destsize)
+void MakeFullPath(uchar *path,uchar *file,uchar *dest,uint32_t destsize)
 {
    int d;
    char *chr;

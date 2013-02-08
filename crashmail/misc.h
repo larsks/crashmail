@@ -1,4 +1,4 @@
-void ExpandPacker(uchar *cmd,uchar *dest,ulong destsize,uchar *archive,uchar *file);
+void ExpandPacker(uchar *cmd,uchar *dest,uint32_t destsize,uchar *archive,uchar *file);
 
 bool SortFEList(struct jbList *list);
 void BadFile(uchar *filename,uchar *comment);
@@ -16,7 +16,7 @@ void stripleadtrail(uchar *str);
 
 bool MatchFlags(uchar group,uchar *node);
 
-void ExpandFilter(uchar *cmd,uchar *dest,ulong destsize,
+void ExpandFilter(uchar *cmd,uchar *dest,uint32_t destsize,
    uchar *rfc1,
    uchar *rfc2,
    uchar *msg,

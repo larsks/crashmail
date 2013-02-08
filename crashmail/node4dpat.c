@@ -2,7 +2,7 @@
 
 bool rawParse4DPat(uchar *buf, struct Node4DPat *node)
 {
-   ulong c=0,tempc=0;
+   uint32_t c=0,tempc=0;
    uchar temp[10];
    bool GotZone=FALSE,GotNet=FALSE,GotNode=FALSE;
 
@@ -159,7 +159,7 @@ bool Parse4DDestPat(uchar *buf, struct Node4DPat *node)
    return(res);
 }
 
-int NodeCompare(uchar *pat,ushort num)
+int NodeCompare(uchar *pat,uint16_t num)
 {
    uchar buf[10],c;
    sprintf(buf,"%u",num);
@@ -313,7 +313,7 @@ bool Check4DPatNodelist(struct Node4DPat *pat)
 
 bool Parse2DPat(uchar *buf, struct Node2DPat *node)
 {
-   ulong c=0,tempc=0;
+   uint32_t c=0,tempc=0;
    uchar temp[10];
    bool GotNet=FALSE;
 
@@ -347,7 +347,7 @@ bool Parse2DPat(uchar *buf, struct Node2DPat *node)
    return(TRUE);
 }
 
-int Compare2DPat(struct Node2DPat *nodepat,ushort net,ushort node)
+int Compare2DPat(struct Node2DPat *nodepat,uint16_t net,uint16_t node)
 {
       if(NodeCompare(nodepat->Net,  net )!=0) return(1);
       if(NodeCompare(nodepat->Node, node)!=0) return(1);

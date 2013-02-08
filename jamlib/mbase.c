@@ -145,7 +145,7 @@ int JAM_OpenMB( uchar* Basename_PC, s_JamBase** NewArea_PPS )
 **
 ***********************************************************************/
 int JAM_CreateMB( uchar* 	Basename_PC,
-		  ulong 	BaseMsg_I,
+		  uint32_t 	BaseMsg_I,
 		  s_JamBase** 	NewArea_PPS )
 {
     s_JamBaseHeader	Base_S;
@@ -260,7 +260,7 @@ int JAM_RemoveMB( s_JamBase* Base_PS, uchar* Basename_PC )
 **  JAM_GetMBSize - Get the number of messages in message base
 **
 ***********************************************************************/
-int JAM_GetMBSize( s_JamBase* Base_PS, ulong* Messages_PI )
+int JAM_GetMBSize( s_JamBase* Base_PS, uint32_t* Messages_PI )
 {
     long Offset_I;
 
@@ -402,11 +402,11 @@ int JAM_WriteMBHeader( s_JamBase* Base_PS, s_JamBaseHeader* Header_PS )
 **
 ***********************************************************************/
 int JAM_FindUser( s_JamBase*	Base_PS,
-		  ulong 	UserCrc_I,
-		  ulong 	StartMsg_I,
-		  ulong* 	MsgNo_PI )
+		  uint32_t 	UserCrc_I,
+		  uint32_t 	StartMsg_I,
+		  uint32_t* 	MsgNo_PI )
 {
-    ulong MsgNo_I;
+    uint32_t MsgNo_I;
 
     /* go to start message */
     if ( fseek( Base_PS->IdxFile_PS, StartMsg_I * sizeof( s_JamIndex ), 

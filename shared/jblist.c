@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "oslib/osmem.h"
 #include "shared/jblist.h"
@@ -37,10 +38,10 @@ void jbFreeList(struct jbList *list)
    list->Last=NULL;
 }
 
-void jbFreeNum(struct jbList *list,ulong num)
+void jbFreeNum(struct jbList *list,uint32_t num)
 {
    struct jbNode *old=NULL,*tmp;
-   ulong c;
+   uint32_t c;
 
    tmp=list->First;
 

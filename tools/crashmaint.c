@@ -6,10 +6,6 @@
 
 #include <jamlib/jam.h>
 
-#define NO_TYPEDEF_UCHAR
-#define NO_TYPEDEF_ULONG
-#define NO_TYPEDEF_USHORT
-
 #include <shared/parseargs.h>
 #include <shared/jblist.h>
 #include <shared/jbstrcpy.h>
@@ -39,7 +35,7 @@ struct Area
    uchar Tagname[80];
    uchar Path[80];
 	uchar Messagebase[20];
-   ulong KeepNum,KeepDays;
+   uint32_t KeepNum,KeepDays;
 };
 
 struct jbList AreaList;
@@ -99,7 +95,7 @@ void breakfunc(int x)
 struct Msg
 {
    struct Msg *Next;
-   ulong Num,NewNum,Day;
+   uint32_t Num,NewNum,Day;
 };
 
 struct jbList MsgList;
@@ -119,7 +115,7 @@ int Compare(const void *a1,const void *a2)
 bool Sort(struct jbList *list)
 {
    struct Msg *msg,**buf,**work;
-   ulong nc;
+   uint32_t nc;
 
    nc=0;
 
@@ -174,7 +170,7 @@ void scanfunc(uchar *str)
 {
    uchar buf[200];
    struct osFileEntry *fe;
-   ulong num,day;
+   uint32_t num,day;
    struct Msg *msg;
 
    if(strlen(str) < 5)
@@ -210,7 +206,7 @@ void scanfunc(uchar *str)
 
 bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose)
 {
-   ulong today,num,del,highwater,oldhighwater;
+   uint32_t today,num,del,highwater,oldhighwater;
    struct Msg *msg;
    uchar buf[200],newbuf[200],buf2[100];
    struct StoredMsg StoredMsg;
@@ -227,7 +223,7 @@ bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose)
 
    if(!(osScanDir(area->Path,scanfunc)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       printf(" Error: Couldn't scan directory %s\n",area->Path);
 		printf(" Error: %s\n",osErrorMsg(err));
       jbFreeList(&MsgList);
@@ -443,7 +439,7 @@ long jam_utcoffset = 0xbaadf00d;
 
 bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 {
-   ulong today,active,basenum,total,del,num,day;
+   uint32_t today,active,basenum,total,del,num,day;
    s_JamBase *Base_PS,*NewBase_PS;
    s_JamBaseHeader BaseHeader_S;
    s_JamMsgHeader	Header_S;
@@ -865,11 +861,11 @@ bool ReadConfig(uchar *file)
    uchar cfgword[20];
    uchar tag[80],aka[80],path[80],mb[20];
    struct Area *tmparea,*LastArea;
-   ulong jbcpos;
+   uint32_t jbcpos;
 
    if(!(fh=osOpen(file,MODE_OLDFILE)))
 	{
-		ulong err=osError();
+		uint32_t err=osError();
       printf("Failed to open file %s for reading\n",file);
 		printf("Error: %s\n",osErrorMsg(err));
       return(FALSE);

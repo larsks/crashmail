@@ -12,17 +12,17 @@ struct jbList DeleteList;
 bool nomem;
 bool ioerror;
 
-ulong ioerrornum;
+uint32_t ioerrornum;
 
-ulong toss_read;
-ulong toss_bad;
-ulong toss_route;
-ulong toss_import;
-ulong toss_written;
-ulong toss_dupes;
+uint32_t toss_read;
+uint32_t toss_bad;
+uint32_t toss_route;
+uint32_t toss_import;
+uint32_t toss_written;
+uint32_t toss_dupes;
 
-ulong scan_total;
-ulong rescan_total;
+uint32_t scan_total;
+uint32_t rescan_total;
 
 bool no_security;
 
@@ -30,7 +30,7 @@ int handle_nesting;
 
 struct ConfigNode *RescanNode;
 
-ulong DayStatsWritten; /* The area statistics are updated until this day */
+uint32_t DayStatsWritten; /* The area statistics are updated until this day */
 
 struct Config config;
 
@@ -148,7 +148,7 @@ void AfterScanToss(bool success)
    struct Area *area;
    struct ConfigNode *cnode;
    uchar errbuf[200];
-   ulong day,d,e,i;
+   uint32_t day,d,e,i;
 
    ClosePackets();
 
@@ -274,7 +274,7 @@ bool BeforeScanToss(void)
 
    if(!osReadDir(config.cfg_PacketCreate,&NewPktFEList,IsNewPkt))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to read directory \"%s\"",config.cfg_PacketCreate);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
 
@@ -333,7 +333,7 @@ void Version(void)
       printf(" %-10.10s %s\n",AvailNodelists[i].name,AvailNodelists[i].desc);
 }
 
-bool Rescan(uchar *areaname,uchar *node,ulong max)
+bool Rescan(uchar *areaname,uchar *node,uint32_t max)
 {
    struct Area *area;
    struct ConfigNode *cnode;
@@ -542,7 +542,7 @@ void breakfunc(int x)
 int main(int argc, char **argv)
 {
    uchar *cfg;
-   ulong cfgline;
+   uint32_t cfgline;
    short seconderr;
    uchar errorbuf[500];
 
@@ -670,7 +670,7 @@ int main(int argc, char **argv)
 
    else if(args[ARG_RESCAN].data)
    {
-      ulong num;
+      uint32_t num;
 
       num=0;
 

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include <time.h>
@@ -31,19 +32,19 @@ struct argument args[] =
 
 struct idx
 {
-	ushort zone,net,node,point,region,hub;
-	ulong offset;
+	uint16_t zone,net,node,point,region,hub;
+	uint32_t offset;
 };
 
 bool nomem,diskfull;
 
-void putuword(uchar *buf,ulong offset,ushort num)
+void putuword(uchar *buf,uint32_t offset,uint16_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
 }
 
-void putulong(uchar *buf,ulong offset,ulong num)
+void putuint32_t(uchar *buf,uint32_t offset,uint32_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=(num / 256) % 256;
@@ -61,7 +62,7 @@ void WriteIdx(osFile fh,struct idx *idx)
 	putuword(binbuf,6,idx->point);
 	putuword(binbuf,8,idx->region);
 	putuword(binbuf,10,idx->hub);
-	putulong(binbuf,12,idx->offset);
+	putuint32_t(binbuf,12,idx->offset);
 
 	osWrite(fh,binbuf,sizeof(binbuf));
 }
@@ -122,7 +123,7 @@ bool FindList(uchar *dir,uchar *file,uchar *dest)
 			
    if(!osScanDir(dir,scandirfunc))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       printf("Failed to scan directory %s\n",dir);
 		printf("Error: %s\n",osErrorMsg(err));		
       return(FALSE);
@@ -139,7 +140,7 @@ bool FindList(uchar *dir,uchar *file,uchar *dest)
 	return(TRUE);
 }
 
-void ProcessList(uchar *dir,uchar *file,osFile ifh,ushort defzone)
+void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
 {
 	struct idx idx;
 	uchar buf[500];
@@ -150,7 +151,7 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,ushort defzone)
 	
 	if(!(nfh=osOpen(buf,MODE_OLDFILE)))
 	{
-		ulong err=osError();
+		uint32_t err=osError();
 		printf("Failed to read %s\n",buf);
 		printf("Error: %s\n",osErrorMsg(err));		
 		return;
@@ -255,7 +256,7 @@ int main(int argc, char **argv)
 {
    osFile lfh,ifh;
    uchar *dir,buf[200],cfgbuf[200],file[100];
-   ulong jbcpos,zone;  
+   uint32_t jbcpos,zone;  
 
    if(!osInit())
       exit(OS_EXIT_ERROR);
@@ -288,7 +289,7 @@ int main(int argc, char **argv)
 		
    if(!(lfh=osOpen(buf,MODE_OLDFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       printf("Failed to open %s for reading\n",buf);
 		printf("Error: %s\n",osErrorMsg(err));		
       osEnd();
@@ -299,7 +300,7 @@ int main(int argc, char **argv)
 
    if(!(ifh=osOpen(buf,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       printf("Failed to open %s for writing (nodelist in use?)\n",buf);
 		printf("Error: %s\n",osErrorMsg(err));		
 		osClose(lfh);

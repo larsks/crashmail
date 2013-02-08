@@ -10,9 +10,9 @@ struct DiskAreaStats
    uchar Group;
    uchar fill_to_make_even; /* Just ignore this one */
 
-   ulong TotalTexts;
-   ushort Last8Days[8];
-   ulong Dupes;
+   uint32_t TotalTexts;
+   uint16_t Last8Days[8];
+   uint32_t Dupes;
 
    time_t FirstTime;
    time_t LastTime;
@@ -21,15 +21,15 @@ struct DiskAreaStats
 struct DiskNodeStats
 {
    struct Node4D Node;
-   ulong GotNetmails;
-   ulong GotNetmailBytes;
-   ulong SentNetmails;
-   ulong SentNetmailBytes;
-   ulong GotEchomails;
-   ulong GotEchomailBytes;
-   ulong SentEchomails;
-   ulong SentEchomailBytes;
-   ulong Dupes;
+   uint32_t GotNetmails;
+   uint32_t GotNetmailBytes;
+   uint32_t SentNetmails;
+   uint32_t SentNetmailBytes;
+   uint32_t GotEchomails;
+   uint32_t GotEchomailBytes;
+   uint32_t SentEchomails;
+   uint32_t SentEchomailBytes;
+   uint32_t Dupes;
    time_t FirstTime;
 };
 
@@ -40,11 +40,11 @@ bool WriteStats(uchar *file)
    struct DiskAreaStats dastat;
    struct DiskNodeStats dnstat;
    osFile fh;
-   ulong areas,nodes;
+   uint32_t areas,nodes;
 
    if(!(fh=osOpen(file,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Unable to open %s for writing",file);
 		LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
@@ -67,8 +67,8 @@ bool WriteStats(uchar *file)
       DayStatsWritten = time(NULL) / (24*60*60);
 
    osWrite(fh,STATS_IDENTIFIER,4);
-   osWrite(fh,&DayStatsWritten,sizeof(ulong));
-   osWrite(fh,&areas,sizeof(ulong));
+   osWrite(fh,&DayStatsWritten,sizeof(uint32_t));
+   osWrite(fh,&areas,sizeof(uint32_t));
 
    for(area=(struct Area *)config.AreaList.First;area;area=area->Next)
    {
@@ -81,7 +81,7 @@ bool WriteStats(uchar *file)
       	   dastat.Dupes=area->Dupes;
 	         dastat.LastTime=area->LastTime;
    	      dastat.FirstTime=area->FirstTime;
-      	   memcpy(&dastat.Last8Days[0],&area->Last8Days[0],sizeof(ushort)*8);
+      	   memcpy(&dastat.Last8Days[0],&area->Last8Days[0],sizeof(uint16_t)*8);
 	         Copy4D(&dastat.Aka,&area->Aka->Node);
    	      dastat.Group=area->Group;
 
@@ -90,7 +90,7 @@ bool WriteStats(uchar *file)
       }
    }
 
-   osWrite(fh,&nodes,sizeof(ulong));
+   osWrite(fh,&nodes,sizeof(uint32_t));
 
    for(cnode=(struct ConfigNode *)config.CNodeList.First;cnode;cnode=cnode->Next)
    {
@@ -120,7 +120,7 @@ bool ReadStats(uchar *file)
    struct ConfigNode *cnode;
    struct DiskAreaStats dastat;
    struct DiskNodeStats dnstat;
-   ulong c,num;
+   uint32_t c,num;
    osFile fh;
    uchar buf[5];
 
@@ -137,9 +137,9 @@ bool ReadStats(uchar *file)
       return(FALSE);
    }
 
-   osRead(fh,&DayStatsWritten,sizeof(ulong));
+   osRead(fh,&DayStatsWritten,sizeof(uint32_t));
 
-   osRead(fh,&num,sizeof(ulong));
+   osRead(fh,&num,sizeof(uint32_t));
    c=0;
 
    while(c<num && osRead(fh,&dastat,sizeof(struct DiskAreaStats))==sizeof(struct DiskAreaStats))
@@ -153,13 +153,13 @@ bool ReadStats(uchar *file)
          area->Dupes=dastat.Dupes;
          area->FirstTime=dastat.FirstTime;
          area->LastTime=dastat.LastTime;
-         memcpy(&area->Last8Days[0],&dastat.Last8Days[0],sizeof(ushort)*8);
+         memcpy(&area->Last8Days[0],&dastat.Last8Days[0],sizeof(uint16_t)*8);
       }
 
       c++;
    }
 
-   osRead(fh,&num,sizeof(ulong));
+   osRead(fh,&num,sizeof(uint32_t));
    c=0;
 
    while(c<num && osRead(fh,&dnstat,sizeof(struct DiskNodeStats))==sizeof(struct DiskNodeStats))

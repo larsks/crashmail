@@ -2,7 +2,7 @@
 
 struct cmnlIdx
 {
-   ushort zone,net,node,point,region,hub;
+   uint16_t zone,net,node,point,region,hub;
 };
   
 #define CMNLERR_NO_INDEX			1
@@ -13,7 +13,7 @@ struct cmnlIdx
 
 osFile cmnlOpenNL(uchar *dir);
 void cmnlCloseNL(osFile nl);
-bool cmnlFindNL(osFile nl,uchar *dir,struct cmnlIdx *idx,uchar *line,ulong len);
+bool cmnlFindNL(osFile nl,uchar *dir,struct cmnlIdx *idx,uchar *line,uint32_t len);
 uchar *cmnlLastError(void);
 
-extern ulong cmnlerr;
+extern uint32_t cmnlerr;

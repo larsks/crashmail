@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -30,9 +31,9 @@
 
 uchar *type_names[] = { "Crash", "Direct", "Normal", "Hold", "Request" };
 
-ulong TotalFiles=0;
-ulong TotalBytes=0;
-ulong TotalRequests=0;
+uint32_t TotalFiles=0;
+uint32_t TotalBytes=0;
+uint32_t TotalRequests=0;
 
 struct fileentry
 {
@@ -40,9 +41,9 @@ struct fileentry
    struct Node4D Node;
    uchar file[100];
    uchar dir[100];
-   ulong size;
+   uint32_t size;
    time_t date;
-   ulong type;
+   uint32_t type;
    bool flow;
 };
 
@@ -55,7 +56,7 @@ struct Node4DPat
 };
 
 uchar *cfg_Dir;
-ulong cfg_Zone;
+uint32_t cfg_Zone;
 struct Node4DPat cfg_Pattern;
 bool cfg_Verbose;
 
@@ -77,7 +78,7 @@ struct jbList list;
 
 bool Parse4DPat(uchar *buf, struct Node4DPat *node)
 {
-   ulong c=0,tempc=0;
+   uint32_t c=0,tempc=0;
    uchar temp[10];
    bool GotZone=FALSE,GotNet=FALSE,GotNode=FALSE;
 
@@ -141,7 +142,7 @@ bool Parse4DPat(uchar *buf, struct Node4DPat *node)
    return(TRUE);
 }
 
-int NodeCompare(uchar *pat,ushort num)
+int NodeCompare(uchar *pat,uint16_t num)
 {
    uchar buf[10],c;
    sprintf(buf,"%u",num);
@@ -247,7 +248,7 @@ uchar *PrintFlowSize(struct fileentry *fe)
    uchar fullfile[200],line[200];
    osFile os;
    struct osFileEntry *osfe;
-   ulong files,bytes;
+   uint32_t files,bytes;
 
    files=0;
    bytes=0;
@@ -365,7 +366,7 @@ uchar *PrintReqNums(struct fileentry *fe)
    static uchar buf[50];
    uchar fullfile[200],line[200];
    osFile os;
-   ulong reqs;
+   uint32_t reqs;
 
    reqs=0;
 
@@ -464,7 +465,7 @@ int sortcompare(const void *f1, const void *f2)
 void sortlist(struct jbList *list)
 {
    struct jbNode *jb,**buf,**work;
-   ulong count=0;
+   uint32_t count=0;
 
    for(jb=list->First;jb;jb=jb->Next)
       count++;
@@ -490,14 +491,14 @@ void sortlist(struct jbList *list)
    osFree(buf);
 }
 
-void addentry(uchar *dir,uchar *file,ulong type,struct Node4D *boss,bool flow)
+void addentry(uchar *dir,uchar *file,uint32_t type,struct Node4D *boss,bool flow)
 {
    struct osFileEntry *fe;
    struct fileentry *entry;
    struct Node4D n4d;
    uchar buf[200];
    uchar buf2[200];
-   ulong hex;
+   uint32_t hex;
 
    hex=hextodec(file);
 
@@ -562,7 +563,7 @@ uchar *scandir_dir;
 void scandirfunc(uchar *file)
 {
    uchar *extptr;
-   ulong hex;
+   uint32_t hex;
 
    if(strlen(file) != 12)
       return;
@@ -688,7 +689,7 @@ int main(int argc, char **argv)
 
    if(!osScanDir(cfg_Dir,scandirfunc))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       printf("Failed to scan directory %s\n",cfg_Dir);
 		printf("Error: %s",osErrorMsg(err));		
       return(FALSE);

@@ -15,7 +15,7 @@ struct jbNode
 void jbAddNode(struct jbList *list, struct jbNode *node);
 void jbNewList(struct jbList *list);
 void jbFreeList(struct jbList *list);
-void jbFreeNum(struct jbList *list,ulong num);
+void jbFreeNum(struct jbList *list,uint32_t num);
 void jbFreeNode(struct jbList *list,struct jbNode *node);
 
 #endif

@@ -1,0 +1,9 @@
+Node 99:99/1.1
+Region 0, Hub 0
+Node is listed as a Point
+Name: Test_Point_1
+Location: Test_Locale
+Sysop: Test_Sysop
+Phone: 0-000-000-0000
+Baud: 300
+Flags: INA:localhost,IBN

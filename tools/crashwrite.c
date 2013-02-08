@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include <signal.h>
@@ -68,12 +69,12 @@ uchar PktHeader[SIZE_PKTHEADER];
 
 bool nomem,diskfull;
 
-ushort getuword(uchar *buf,ulong offset)
+uint16_t getuword(uchar *buf,uint32_t offset)
 {
-   return (ushort)(buf[offset]+256*buf[offset+1]);
+   return (uint16_t)(buf[offset]+256*buf[offset+1]);
 }
 
-void putuword(uchar *buf,ulong offset,ushort num)
+void putuword(uchar *buf,uint32_t offset,uint16_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
@@ -99,7 +100,7 @@ void MakeFidoDate(time_t tim,uchar *dest)
 
 void WriteNull(osFile ofh,uchar *str)
 {
-   osWrite(ofh,str,(ulong)(strlen(str)+1));
+   osWrite(ofh,str,(uint32_t)(strlen(str)+1));
 }
 
 int main(int argc, char **argv)
@@ -108,8 +109,8 @@ int main(int argc, char **argv)
    osFile ifh,ofh;
 	time_t t;
 	struct tm *tp;
-	ulong pktnum,c,serial;
-	ushort attr;
+	uint32_t pktnum,c,serial;
+	uint16_t attr;
 	uchar fromname[36],toname[36],subject[72],datetime[20],origin[80];
 	uchar pktname[30],fullname[200],readbuf[100];
 	int i;
@@ -275,7 +276,7 @@ int main(int argc, char **argv)
 
    if(!(ofh=osOpen(fullname,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       printf("Unable to create packet %s\n",fullname);
 		printf("Error: %s\n",osErrorMsg(err));		
 		osEnd();
@@ -324,7 +325,7 @@ int main(int argc, char **argv)
 		
 	   if(!(ifh=osOpen((uchar *)args[ARG_TEXT].data,MODE_OLDFILE)))
    	{
-			ulong err=osError();
+			uint32_t err=osError();
       	printf("Unable to open \"%s\" for reading\n",(uchar *)args[ARG_TEXT].data);
 			printf("Error: %s\n",osErrorMsg(err));		
 			osClose(ofh);

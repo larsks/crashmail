@@ -37,9 +37,9 @@ unsigned long cm_crc32tab[] = { /* CRC polynomial 0xedb88320 */
 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-ulong calcstringcrc(uchar *str)
+uint32_t calcstringcrc(uchar *str)
 {
-   ulong crc;
+   uint32_t crc;
    int c;
 
    crc=0xffffffff;
@@ -52,17 +52,17 @@ ulong calcstringcrc(uchar *str)
 
 struct dupeentry
 {
-   ulong offset;
-   ulong crc32;
+   uint32_t offset;
+   uint32_t crc32;
 };
 
 bool dupechanged;
 
 struct dupeentry *dupebuf;
-ulong dupeentrynum,dupeentrymax;
+uint32_t dupeentrynum,dupeentrymax;
 osFile dupefh;
 
-void adddupeindex(ulong offset,ulong crc32)
+void adddupeindex(uint32_t offset,uint32_t crc32)
 {
    dupebuf[dupeentrynum].offset=offset;
    dupebuf[dupeentrynum].crc32=crc32;
@@ -76,22 +76,22 @@ void adddupeindex(ulong offset,ulong crc32)
       dupeentrynum=0;
 }
 
-void copydupe(ushort c,osFile oldfh,osFile newfh)
+void copydupe(uint16_t c,osFile oldfh,osFile newfh)
 {
    uchar buf[300];
-   ushort size;
+   uint16_t size;
 
    osSeek(oldfh,dupebuf[c].offset,OFFSET_BEGINNING);
 
-   if(osRead(oldfh,&size,sizeof(ushort))!=sizeof(ushort))
+   if(osRead(oldfh,&size,sizeof(uint16_t))!=sizeof(uint16_t))
       return;
 
    if(osRead(oldfh,buf,size) != size)
       return;
 
-   if(!osWrite(newfh,&size,sizeof(ushort)))
+   if(!osWrite(newfh,&size,sizeof(uint16_t)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to write to temporary dupe file");
       LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return;
@@ -99,7 +99,7 @@ void copydupe(ushort c,osFile oldfh,osFile newfh)
 
    if(!osWrite(newfh,buf,size))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to write to temporary dupe file");
       LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return;
@@ -109,8 +109,8 @@ void copydupe(ushort c,osFile oldfh,osFile newfh)
 bool OpenDupeDB(void)
 {
    uchar buf[300];
-   ulong offset,crc32,*crc32p;
-   ushort size,res;
+   uint32_t offset,crc32,*crc32p;
+   uint16_t size,res;
 
    if(!(dupebuf=osAlloc(config.cfg_DupeSize*sizeof(struct dupeentry))))
    {
@@ -125,7 +125,7 @@ bool OpenDupeDB(void)
 
    if(!(dupefh=osOpen(config.cfg_DupeFile,MODE_READWRITE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open dupe file %s in read/write mode",config.cfg_DupeFile);
       LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return(FALSE);
@@ -152,7 +152,7 @@ bool OpenDupeDB(void)
 
    offset=4;
 
-   while(osRead(dupefh,&size,sizeof(ushort))==sizeof(ushort))
+   while(osRead(dupefh,&size,sizeof(uint16_t))==sizeof(uint16_t))
    {
       if(size == 0 || size > 300) /* Unreasonably big */
       {
@@ -161,14 +161,14 @@ bool OpenDupeDB(void)
          return(FALSE);
       }
 
-      if(osRead(dupefh,buf,(ulong)size) != size)
+      if(osRead(dupefh,buf,(uint32_t)size) != size)
       {
          LogWrite(1,SYSTEMERR,"Error in dupe file %s, exiting...",config.cfg_DupeFile);
          osClose(dupefh);
          return(FALSE);
       }
 
-      crc32p=(ulong *)buf;
+      crc32p=(uint32_t *)buf;
       crc32=*crc32p;
 
       adddupeindex(offset,crc32);
@@ -184,7 +184,7 @@ bool OpenDupeDB(void)
 void CloseDupeDB(void)
 {
    osFile newfh;
-   ulong c;
+   uint32_t c;
    uchar duptemp[200];
 
    if(!dupechanged)
@@ -198,7 +198,7 @@ void CloseDupeDB(void)
 
    if(!(newfh=osOpen(duptemp,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to open temporary dupe file %s for writing",duptemp);
       LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
 
@@ -228,21 +228,21 @@ void CloseDupeDB(void)
    return;
 }
 
-void AddDupeBuf(uchar *buf,ushort size)
+void AddDupeBuf(uchar *buf,uint16_t size)
 {
-   ulong crc;
-   ulong offset;
-   ulong crc32,*crc32p;
+   uint32_t crc;
+   uint32_t offset;
+   uint32_t crc32,*crc32p;
 
    osSeek(dupefh,0,OFFSET_END);
    offset=osFTell(dupefh);
 
-   crc32p=(ulong *)buf;
+   crc32p=(uint32_t *)buf;
    crc32=*crc32p;
 
-   if(!osWrite(dupefh,&size,sizeof(ushort)))
+   if(!osWrite(dupefh,&size,sizeof(uint16_t)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to write to dupe file");
       LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return;
@@ -250,7 +250,7 @@ void AddDupeBuf(uchar *buf,ushort size)
 
    if(!osWrite(dupefh,buf,size))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       LogWrite(1,SYSTEMERR,"Failed to write to dupe file");
       LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
       return;
@@ -261,9 +261,9 @@ void AddDupeBuf(uchar *buf,ushort size)
    dupechanged=TRUE;
 }
 
-int dupecomp(uchar *d1,uchar *d2,ulong len)
+int dupecomp(uchar *d1,uchar *d2,uint32_t len)
 {
-   ulong c;
+   uint32_t c;
 
    for(c=0;c<len;c++)
       if(d1[c]!=d2[c]) return(1);
@@ -273,8 +273,8 @@ int dupecomp(uchar *d1,uchar *d2,ulong len)
 
 bool CheckDupe(struct MemMessage *mm)
 {
-   ulong c,crc32,*crc32p;
-   ushort size,dsize;
+   uint32_t c,crc32,*crc32p;
+   uint16_t size,dsize;
    uchar dbuf[300],buf[300];
 
    if(mm->MSGID[0] == 0)
@@ -282,7 +282,7 @@ bool CheckDupe(struct MemMessage *mm)
 
    crc32=calcstringcrc(mm->MSGID);
 
-   crc32p=(ulong *)dbuf;
+   crc32p=(uint32_t *)dbuf;
    *crc32p=crc32;
    dsize=4;
 
@@ -299,9 +299,9 @@ bool CheckDupe(struct MemMessage *mm)
 
          osSeek(dupefh,dupebuf[c].offset,OFFSET_BEGINNING);
 
-         if(osRead(dupefh,&size,sizeof(ushort))==sizeof(ushort))
+         if(osRead(dupefh,&size,sizeof(uint16_t))==sizeof(uint16_t))
             if(size == dsize)
-               if(osRead(dupefh,buf,(ulong)size) == size)
+               if(osRead(dupefh,buf,(uint32_t)size) == size)
                   if(dupecomp(buf,dbuf,dsize) == 0)
                      return(TRUE); /* Dupe */
       }

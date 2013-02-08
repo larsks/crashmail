@@ -31,7 +31,7 @@ void Print4DDestPat(struct Node4DPat *pat,uchar *dest);
 bool Check4DPatNodelist(struct Node4DPat *pat);
 
 bool Parse2DPat(uchar *buf, struct Node2DPat *node);
-int Compare2DPat(struct Node2DPat *nodepat,ushort net,ushort node);
+int Compare2DPat(struct Node2DPat *nodepat,uint16_t net,uint16_t node);
 void ExpandNodePat(struct Node4DPat *temproute,struct Node4D *dest,struct Node4D *sendto);
 
 #endif

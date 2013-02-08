@@ -10,15 +10,23 @@ setup_crashmail_env () {
 	mkdir -p areas/netmail areas/testarea areas/bad
 
 	mkdir -p nodelist
-	cat > nodelist/testlist.txt <<-EOF
+	cat > nodelist/nodelist.txt <<-EOF
 	Zone,99,Test_Zone,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 	Host,99,Test_Net,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 	,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 	,99,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 	EOF
 
+	cat > nodelist/pointlist.txt <<-EOF
+	Zone,99,Test_Zone,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+	Host,99,Test_Net,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+	,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+	Point,1,Test_Point_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+	EOF
+
 	cat > nodelist/cmnodelist.prefs <<-EOF
-	testlist.txt
+	nodelist.txt
+	pointlist.txt
 	EOF
 
 	../tools/crashlist nodelist

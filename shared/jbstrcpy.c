@@ -1,11 +1,12 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include "shared/types.h"
 
-bool jbstrcpy(uchar *dest,uchar *src,ulong maxlen,ulong *jbc)
+bool jbstrcpy(uchar *dest,uchar *src,uint32_t maxlen,uint32_t *jbc)
 {
-   ulong d=0;
-   ulong stopchar1,stopchar2;
-   ulong jbcpos;
+   uint32_t d=0;
+   uint32_t stopchar1,stopchar2;
+   uint32_t jbcpos;
 
    jbcpos= *jbc;
 
@@ -48,10 +49,10 @@ bool jbstrcpy(uchar *dest,uchar *src,ulong maxlen,ulong *jbc)
 }
 
 
-bool jbstrcpyrest(uchar *dest,uchar *src,ulong maxlen,ulong *jbc)
+bool jbstrcpyrest(uchar *dest,uchar *src,uint32_t maxlen,uint32_t *jbc)
 {
-   ulong d=0;
-   ulong jbcpos;
+   uint32_t d=0;
+   uint32_t jbcpos;
    jbcpos=*jbc;
 
    while(src[jbcpos]==32 || src[jbcpos]==9)

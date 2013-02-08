@@ -24,7 +24,7 @@ bool GetDescription(uchar *area,struct ConfigNode *node,uchar *desc)
 {
    struct Arealist *arealist;
    uchar buf[200];
-   ulong c,d;
+   uint32_t c,d;
    osFile fh;
 
    for(arealist=(struct Arealist *)config.ArealistList.First;arealist;arealist=arealist->Next)
@@ -61,7 +61,7 @@ bool GetDescription(uchar *area,struct ConfigNode *node,uchar *desc)
          }
 			else
 			{
-				ulong err=osError();
+				uint32_t err=osError();
 				LogWrite(1,SYSTEMERR,"Failed to open file \"%s\"\n",arealist->AreaFile);
 				LogWrite(1,SYSTEMERR,"Error: %s",osErrorMsg(err));
 			}
@@ -70,7 +70,7 @@ bool GetDescription(uchar *area,struct ConfigNode *node,uchar *desc)
    return(FALSE);
 }
 
-bool AddTossNode(struct Area *area,struct ConfigNode *cnode,ushort flags)
+bool AddTossNode(struct Area *area,struct ConfigNode *cnode,uint16_t flags)
 {
    struct TossNode *tnode;
 
@@ -94,9 +94,9 @@ bool AddTossNode(struct Area *area,struct ConfigNode *cnode,ushort flags)
 
 time_t lastt;
 
-void MakeDirectory(uchar *dest,ulong destsize,uchar *defdir,uchar *areaname)
+void MakeDirectory(uchar *dest,uint32_t destsize,uchar *defdir,uchar *areaname)
 {
-   ulong c,d;
+   uint32_t c,d;
    uchar lowercase[200],shortname[50];
 
    /* Convert to lower case */
@@ -142,7 +142,7 @@ void MakeDirectory(uchar *dest,ulong destsize,uchar *defdir,uchar *areaname)
    dest[d]=0;
 }
 
-struct Area *AddArea(uchar *name,struct Node4D *node,struct Node4D *mynode,ulong active,ulong forcepassthru)
+struct Area *AddArea(uchar *name,struct Node4D *node,struct Node4D *mynode,uint32_t active,uint32_t forcepassthru)
 {
    struct Area *temparea,*defarea;
    struct Aka *tempaka;
@@ -199,7 +199,7 @@ struct Area *AddArea(uchar *name,struct Node4D *node,struct Node4D *mynode,ulong
    if(defarea)
    {
       struct TossNode *tnode;
-      ulong c;
+      uint32_t c;
       uchar *forbiddenchars="\"#'`()*,./:;<>|";
       uchar buf[100],buf2[100];
 
@@ -257,7 +257,7 @@ struct Area *AddArea(uchar *name,struct Node4D *node,struct Node4D *mynode,ulong
       for(tempcnode=(struct ConfigNode *)config.CNodeList.First;tempcnode;tempcnode=tempcnode->Next)
          if(MatchFlags(temparea->Group,tempcnode->AddGroups))
          {
-            ushort flags;
+            uint16_t flags;
 
             flags=0;
 
@@ -279,7 +279,7 @@ struct Area *AddArea(uchar *name,struct Node4D *node,struct Node4D *mynode,ulong
 bool FindNodes2D(struct jbList *list,struct Node4D *node)
 {
    struct Nodes2D *tmp;
-   ushort c;
+   uint16_t c;
 
    for(tmp=(struct Nodes2D *)list->First;tmp;tmp=tmp->Next)
       for(c=0;c<tmp->Nodes;c++)
@@ -386,9 +386,9 @@ bool AddNodePath(struct jbList *list,struct Node4D *node)
    uchar buf[40],buf2[10];
    struct Path *path;
    struct Node4D n4d;
-   ushort lastnet,num;
+   uint16_t lastnet,num;
    bool lastok;
-   ulong jbcpos;
+   uint32_t jbcpos;
 
    lastok=FALSE;
    lastnet=0;
@@ -771,8 +771,8 @@ bool CheckFoundAka(uchar *str)
 bool IsLoopMail(struct MemMessage *mm)
 {
    struct TextChunk *tmp;
-   ushort q;
-   ulong c,d;
+   uint16_t q;
+   uint32_t c,d;
    
    for(tmp=(struct TextChunk *)mm->TextChunks.First;tmp;tmp=tmp->Next)
    {
@@ -800,7 +800,7 @@ bool IsLoopMail(struct MemMessage *mm)
                /* Is created by CrashMail */
 
                uchar destbuf[20];
-               ushort u,v;
+               uint16_t u,v;
 
                v=0;
 
@@ -841,7 +841,7 @@ bool IsLoopMail(struct MemMessage *mm)
 bool Bounce(struct MemMessage *mm,uchar *reason,bool headeronly)
 {
    uchar buf[400],*tmpbuf;
-   ulong c;
+   uint32_t c;
    struct Route *tmproute;
    struct MemMessage *tmpmm;
    struct TextChunk *chunk;
@@ -1124,10 +1124,10 @@ bool HandleNetmail(struct MemMessage *mm)
    struct TextChunk *tmpchunk,*chunk;
    bool istext;
    uchar buf[400],buf2[200],buf3[200],subjtemp[80];
-   ulong c,d,jbcpos;
+   uint32_t c,d,jbcpos;
    time_t t;
    struct tm *tp;
-   ulong size;
+   uint32_t size;
 	uchar oldtype;
    bool headeronly;
 

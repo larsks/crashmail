@@ -85,15 +85,15 @@ struct Area
 
    /* Maint */
 
-   ulong KeepNum,KeepDays;
+   uint32_t KeepNum,KeepDays;
 
    /* Stats */
 
-   ulong Texts;
-   ulong NewTexts;
-   ulong Dupes;
-   ulong NewDupes;
-   ushort Last8Days[8];
+   uint32_t Texts;
+   uint32_t NewTexts;
+   uint32_t Dupes;
+   uint32_t NewDupes;
+   uint16_t Last8Days[8];
    time_t FirstTime;
    time_t LastTime;
 
@@ -119,7 +119,7 @@ struct TossNode
 {
    struct TossNode *Next;
    struct ConfigNode *ConfigNode;
-   ushort Flags;
+   uint16_t Flags;
 };
 
 struct ImportNode
@@ -164,7 +164,7 @@ struct ConfigNode
    uchar ReadOnlyGroups[30];
    uchar AddGroups[30];
    uchar DefaultGroup;
-   ulong Flags;
+   uint32_t Flags;
    uchar SysopName[36];
    uchar EchomailPri;
    struct Node4D PktFrom;
@@ -178,17 +178,17 @@ struct ConfigNode
 	
    /* Stats */
 
-   ulong GotNetmails;
-   ulong GotNetmailBytes;
-   ulong SentNetmails;
-   ulong SentNetmailBytes;
+   uint32_t GotNetmails;
+   uint32_t GotNetmailBytes;
+   uint32_t SentNetmails;
+   uint32_t SentNetmailBytes;
 
-   ulong GotEchomails;
-   ulong GotEchomailBytes;
-   ulong SentEchomails;
-   ulong SentEchomailBytes;
+   uint32_t GotEchomails;
+   uint32_t GotEchomailBytes;
+   uint32_t SentEchomails;
+   uint32_t SentEchomailBytes;
 
-   ulong Dupes;
+   uint32_t Dupes;
 
    time_t FirstTime;
 };
@@ -259,7 +259,7 @@ struct Arealist
    struct Arealist *Next;
    struct ConfigNode *Node;
    uchar AreaFile[80];
-   ushort Flags;
+   uint16_t Flags;
    uchar Group;
 };
 
@@ -276,7 +276,7 @@ struct Arealist
 struct Command
 {
 	struct Command *Next;
-	ushort Cmd;
+	uint16_t Cmd;
 	uchar *string;
 	struct Node4D n4d;
 	struct Node4DPat n4ddestpat;
@@ -313,19 +313,19 @@ struct Config
    uchar cfg_DupeFile[100];
    uchar cfg_BeforeToss[80];
    uchar cfg_BeforePack[80];
-   ulong cfg_LogLevel;
-   ulong cfg_DupeSize;
-   ulong cfg_MaxPktSize;
-   ulong cfg_MaxBundleSize;
+   uint32_t cfg_LogLevel;
+   uint32_t cfg_DupeSize;
+   uint32_t cfg_MaxPktSize;
+   uint32_t cfg_MaxBundleSize;
    uchar cfg_AreaFixHelp[100];
    uchar cfg_Nodelist[100];
    struct Nodelist *cfg_NodelistType;
-   ulong cfg_AreaFixMaxLines;
+   uint32_t cfg_AreaFixMaxLines;
    uchar cfg_GroupNames[30][80];
-   ulong cfg_Flags;
-   ushort cfg_DupeMode;
-   ushort cfg_LoopMode;
-   ulong cfg_DefaultZone;
+   uint32_t cfg_Flags;
+   uint16_t cfg_DupeMode;
+   uint16_t cfg_LoopMode;
+   uint32_t cfg_DefaultZone;
    struct jbList AkaList;
    struct jbList AreaList;
    struct jbList CNodeList;
@@ -339,9 +339,9 @@ struct Config
    struct jbList FilterList;
 
 #ifdef PLATFORM_AMIGA
-   ulong cfg_amiga_LogBufferLines;
-   ulong cfg_amiga_LogBufferSecs;
-   ulong cfg_amiga_Flags;
+   uint32_t cfg_amiga_LogBufferLines;
+   uint32_t cfg_amiga_LogBufferSecs;
+   uint32_t cfg_amiga_Flags;
 #endif
 
 #ifdef MSGBASE_UMS
@@ -351,20 +351,20 @@ struct Config
    uchar cfg_ums_LoginPassword[80];
    uchar cfg_ums_LoginServer[80];
    uchar cfg_ums_GatewayName[36];
-   ulong cfg_ums_Flags;
+   uint32_t cfg_ums_Flags;
 #endif
 
 #ifdef MSGBASE_MSG
-   ulong cfg_msg_Flags;
+   uint32_t cfg_msg_Flags;
 #endif
 
 #ifdef MSGBASE_JAM
-   ulong cfg_jam_MaxOpen;
-   ulong cfg_jam_Flags;
+   uint32_t cfg_jam_MaxOpen;
+   uint32_t cfg_jam_Flags;
 #endif
 };
 
-bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,ulong *cfgline,uchar *cfgerr);
+bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,uint32_t *cfgline,uchar *cfgerr);
 bool UpdateConfig(struct Config *cfg,uchar *cfgerr);
 void InitConfig(struct Config *cfg);
 void FreeConfig(struct Config *cfg);

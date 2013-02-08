@@ -14,17 +14,17 @@ typedef void *osFile;
 #define OFFSET_BEGINNING -1
 #define OFFSET_END	 1 
 
-osFile osOpen(uchar *name,ulong mode);
+osFile osOpen(uchar *name,uint32_t mode);
 void osClose(osFile os);
 int osGetChar(osFile os);
-ulong osRead(osFile os,void *buf,ulong bytes);
-ulong osFGets(osFile os,uchar *str,ulong max);
-ulong osFTell(osFile os);
+uint32_t osRead(osFile os,void *buf,uint32_t bytes);
+uint32_t osFGets(osFile os,uchar *str,uint32_t max);
+uint32_t osFTell(osFile os);
 bool osPutChar(osFile os, uchar ch);
-bool osWrite(osFile os,const void *buf, ulong bytes);
+bool osWrite(osFile os,const void *buf, uint32_t bytes);
 bool osPuts(osFile os,uchar *str);
 bool osFPrintf(osFile os,uchar *fmt,...);
 bool osVFPrintf(osFile os,uchar *fmt,va_list args);
-void osSeek(osFile os,ulong offset,short mode);
+void osSeek(osFile os,uint32_t offset,short mode);
 
 #endif

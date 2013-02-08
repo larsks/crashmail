@@ -3,6 +3,6 @@
 
 #include "shared/types.h"
 
-void mystrncpy(uchar *dest,uchar *src,ulong len);
+void mystrncpy(uchar *dest,uchar *src,uint32_t len);
 
 #endif

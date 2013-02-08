@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 {
    osFile ifh,ofh;
    uchar sysopname[100],cfgword[30],buf[100];
-   ulong jbcpos;
+   uint32_t jbcpos;
    time_t t;
 
    if(!osInit())
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 	
 	if(!(ifh=osOpen(args[ARG_PREFSFILE].data,MODE_OLDFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       printf("Failed to open %s for reading\n",(char *)args[ARG_PREFSFILE].data);
 		printf("Error: %s",osErrorMsg(err));		
       osEnd();
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
 
    if(!(ofh=osOpen(args[ARG_OUTFILE].data,MODE_NEWFILE)))
    {
-		ulong err=osError();
+		uint32_t err=osError();
       printf("Failed to open %s for writing\n",(char *)args[ARG_OUTFILE].data);
 		printf("Error: %s",osErrorMsg(err));		
       osClose(ifh);

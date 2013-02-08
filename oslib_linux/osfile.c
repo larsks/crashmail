@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -7,7 +8,7 @@
 
 #include <oslib/osfile.h>
 
-osFile osOpen(uchar *name,ulong mode)
+osFile osOpen(uchar *name,uint32_t mode)
 {
    FILE *fh;
 
@@ -45,7 +46,7 @@ int osGetChar(osFile os)
    return(c);
 }
 
-ulong osRead(osFile os,void *buf,ulong bytes)
+uint32_t osRead(osFile os,void *buf,uint32_t bytes)
 {
    return fread(buf,1,bytes,(FILE *)os);
 }
@@ -58,7 +59,7 @@ bool osPutChar(osFile os, uchar ch)
 	return(TRUE);
 }
 
-bool osWrite(osFile os,const void *buf,ulong bytes)
+bool osWrite(osFile os,const void *buf,uint32_t bytes)
 {
    if(fwrite(buf,1,bytes,(FILE *)os)!=bytes)
 		return(FALSE);
@@ -74,7 +75,7 @@ bool osPuts(osFile os,uchar *str)
 	return(TRUE);
 }
 
-ulong osFGets(osFile os,uchar *str,ulong max)
+uint32_t osFGets(osFile os,uchar *str,uint32_t max)
 {
    char *s;
 
@@ -90,13 +91,13 @@ ulong osFGets(osFile os,uchar *str,ulong max)
          s[strlen(s)-1]=0;
       }
 
-      return (ulong)strlen(s);
+      return (uint32_t)strlen(s);
    }
 
    return(0);
 }
 
-ulong osFTell(osFile os)
+uint32_t osFTell(osFile os)
 {
    return ftell((FILE *)os);
 }
@@ -128,7 +129,7 @@ bool osVFPrintf(osFile os,uchar *fmt,va_list args)
 	return(TRUE);
 }
 
-void osSeek(osFile fh,ulong offset,short mode)
+void osSeek(osFile fh,uint32_t offset,short mode)
 {
    int md;
 
