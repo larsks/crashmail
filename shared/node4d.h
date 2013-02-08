@@ -5,7 +5,7 @@
 
 struct Node4D
 {
-   ushort Zone,Net,Node,Point;
+   uint16_t Zone,Net,Node,Point;
 };
 
 bool Parse4D(uchar *buf, struct Node4D *node);

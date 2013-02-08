@@ -1,12 +1,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "node4d.h"
 
 bool Parse4DTemplate(uchar *buf, struct Node4D *node,struct Node4D *tpl)
 {
-   ulong c,val;
+   uint32_t c,val;
    bool GotZone,GotNet,GotNode,GotVal;
 
 	GotZone=FALSE;
