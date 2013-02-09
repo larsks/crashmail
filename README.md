@@ -1,9 +1,16 @@
 CrashMail II
 ============
 
-This was originally Johan Billing's *CrashMail II* distribution.  I
-have introduced some minor bug fixes, and removed much of the
-non-Linux support.
+CrashMail II is a Fidonet tosser/scanner with a built-in AreaFix
+implementation, support for Binkley style outbound (BSO), and message
+filtering capabilities.
+
+This is a fork of Johan Billing's *CrashMail II* distribution.  Major
+changes in this fork include:
+
+- Support for 64-bit operating (POSIX) operating systems.
+- A revamped build system with integrated testing
+- No more support for non-POSIX operating systems.
 
 If you run into any problems with this code, plase report them to
 the [project bugtracker][bugs].
@@ -19,7 +26,12 @@ To run the test suite:
 
     make tests
 
-You will need [Roundup][] to run the tests.
+To install everything:
+
+    make install
+
+If you are building packages, the `Makefile` supports the standard
+`DESTDIR=` option.
 
 [bugs]: https://github.com/larsks/crashmail/issues
 [roundup]: http://bmizerany.github.com/roundup/
@@ -48,13 +60,10 @@ Then your pointlist could look like this:
     ,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
     Point,1,Test_Point_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 
-Or like this:
+Or like this (if you are running CrashMail > 0.86):
 
     Boss,99:99/1
     Point,1,Test_Point_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-
-The `Boss` directive is common in other FTN software but is only
-available in versions of Crashmail > 0.86.
 
 Author
 ======
