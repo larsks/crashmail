@@ -62,3 +62,13 @@ it_handles_bad_packets_successfully () {
 	test -f areas/bad/2.msg
 }
 
+it_detects_dupes_successfully () {
+	test -f 15bba400.pkt
+
+	cp 15bba400.pkt spool/inbound
+	../crashmail/crashmail settings crashmail.prefs toss
+	cp 15bba400.pkt spool/inbound
+	../crashmail/crashmail settings crashmail.prefs toss | tee $tmpfile
+	grep 'Duplicate message in testarea' $tmpfile
+}
+

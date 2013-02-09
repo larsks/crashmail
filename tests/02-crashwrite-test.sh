@@ -1,6 +1,6 @@
 #!/bin/sh
 
-describe "crashwrite tool"
+describe "crashwrite"
 
 . ./testcommon.sh
 

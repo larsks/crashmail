@@ -1,6 +1,6 @@
 #!/bin/sh
 
-describe "nodelist tools"
+describe "nodelist"
 
 . ./testcommon.sh
 
