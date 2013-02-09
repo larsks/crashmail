@@ -13,7 +13,7 @@
 #define VERSION "1.0"
 
 #ifdef PLATFORM_AMIGA
-uchar *ver="$VER: CrashCompileNL " VERSION " " __AMIGADATE__;
+char *ver="$VER: CrashCompileNL " VERSION " " __AMIGADATE__;
 #endif
 
 #define ARG_NODE      0
@@ -26,7 +26,7 @@ struct argument args[] =
 
 bool nomem,diskfull;
 
-void strip(uchar *str)
+void strip(char *str)
 {                                                                                  int c;
 
    for(c=strlen(str)-1;str[c] < 33 && c>=0;c--) str[c]=0;
@@ -35,7 +35,7 @@ void strip(uchar *str)
 int main(int argc, char **argv)
 {
 	osFile fh;
-	uchar line[200],*dir,*buf;
+	char line[200],*dir,*buf;
 	struct Node4D n4d;
 	struct cmnlIdx idx;
 		
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
    }
 
 	if(args[ARG_DIRECTORY].data)
-		dir=(uchar *)args[ARG_DIRECTORY].data;
+		dir=(char *)args[ARG_DIRECTORY].data;
 
 	else		
 		dir=getenv("CMNODELISTDIR");
@@ -74,9 +74,9 @@ int main(int argc, char **argv)
 		exit(OS_EXIT_ERROR);
 	}
 	
-	if(!Parse4D((uchar *)args[ARG_NODE].data,&n4d))
+	if(!Parse4D((char *)args[ARG_NODE].data,&n4d))
 	{
-		printf("Invalid node %s\n",(uchar *)args[ARG_NODE].data);
+		printf("Invalid node %s\n",(char *)args[ARG_NODE].data);
 		exit(OS_EXIT_ERROR);
 	}
 

@@ -20,10 +20,10 @@ bool HandleMessage(struct MemMessage *mm)
 
 /**************************** auto-add *****************************/
 
-bool GetDescription(uchar *area,struct ConfigNode *node,uchar *desc)
+bool GetDescription(char *area,struct ConfigNode *node,char *desc)
 {
    struct Arealist *arealist;
-   uchar buf[200];
+   char buf[200];
    uint32_t c,d;
    osFile fh;
 
@@ -94,10 +94,10 @@ bool AddTossNode(struct Area *area,struct ConfigNode *cnode,uint16_t flags)
 
 time_t lastt;
 
-void MakeDirectory(uchar *dest,uint32_t destsize,uchar *defdir,uchar *areaname)
+void MakeDirectory(char *dest,uint32_t destsize,char *defdir,char *areaname)
 {
    uint32_t c,d;
-   uchar lowercase[200],shortname[50];
+   char lowercase[200],shortname[50];
 
    /* Convert to lower case */
 
@@ -142,7 +142,7 @@ void MakeDirectory(uchar *dest,uint32_t destsize,uchar *defdir,uchar *areaname)
    dest[d]=0;
 }
 
-struct Area *AddArea(uchar *name,struct Node4D *node,struct Node4D *mynode,uint32_t active,uint32_t forcepassthru)
+struct Area *AddArea(char *name,struct Node4D *node,struct Node4D *mynode,uint32_t active,uint32_t forcepassthru)
 {
    struct Area *temparea,*defarea;
    struct Aka *tempaka;
@@ -176,7 +176,7 @@ struct Area *AddArea(uchar *name,struct Node4D *node,struct Node4D *mynode,uint3
 
    if(tempcnode && tempcnode->DefaultGroup)
    {
-      uchar groups[100];
+      char groups[100];
 
       for(defarea=(struct Area *)config.AreaList.First;defarea;defarea=defarea->Next)
          if(strnicmp(defarea->Tagname,"DEFAULT_",8)==0)
@@ -200,8 +200,8 @@ struct Area *AddArea(uchar *name,struct Node4D *node,struct Node4D *mynode,uint3
    {
       struct TossNode *tnode;
       uint32_t c;
-      uchar *forbiddenchars="\"#'`()*,./:;<>|";
-      uchar buf[100],buf2[100];
+      char *forbiddenchars="\"#'`()*,./:;<>|";
+      char buf[100],buf2[100];
 
       strcpy(buf,name);
 
@@ -288,7 +288,7 @@ bool FindNodes2D(struct jbList *list,struct Node4D *node)
    return(FALSE);
 }
 
-bool WriteBad(struct MemMessage *mm,uchar *reason)
+bool WriteBad(struct MemMessage *mm,char *reason)
 {
    struct Area *temparea;
    struct TextChunk *chunk;
@@ -383,7 +383,7 @@ bool WriteBad(struct MemMessage *mm,uchar *reason)
 
 bool AddNodePath(struct jbList *list,struct Node4D *node)
 {
-   uchar buf[40],buf2[10];
+   char buf[40],buf2[10];
    struct Path *path;
    struct Node4D n4d;
    uint16_t lastnet,num;
@@ -490,7 +490,7 @@ bool AddNodePath(struct jbList *list,struct Node4D *node)
    return(TRUE);
 }
 
-uchar *StripRe(uchar *str)
+char *StripRe(char *str)
 {
    for (;;)
    {
@@ -748,7 +748,7 @@ bool HandleEchomail(struct MemMessage *mm)
 
 /* For loop-mail checking */
 
-bool CheckFoundAka(uchar *str)
+bool CheckFoundAka(char *str)
 {
    struct Node4D via4d;
    struct Aka *aka;
@@ -787,7 +787,7 @@ bool IsLoopMail(struct MemMessage *mm)
          {
             /* Is ^aVia line */
 
-            uchar via[200];
+            char via[200];
 
             if(d-c<150) q=d-c;
             else        q=150;
@@ -799,7 +799,7 @@ bool IsLoopMail(struct MemMessage *mm)
             {
                /* Is created by CrashMail */
 
-               uchar destbuf[20];
+               char destbuf[20];
                uint16_t u,v;
 
                v=0;
@@ -838,9 +838,9 @@ bool IsLoopMail(struct MemMessage *mm)
 
 /* Bouncing and receipts */
 
-bool Bounce(struct MemMessage *mm,uchar *reason,bool headeronly)
+bool Bounce(struct MemMessage *mm,char *reason,bool headeronly)
 {
-   uchar buf[400],*tmpbuf;
+   char buf[400],*tmpbuf;
    uint32_t c;
    struct Route *tmproute;
    struct MemMessage *tmpmm;
@@ -945,7 +945,7 @@ bool Bounce(struct MemMessage *mm,uchar *reason,bool headeronly)
       {
          if(chunk->Length)
          {
-         	if(!(tmpbuf=(uchar *)osAlloc(chunk->Length)))
+         	if(!(tmpbuf=(char *)osAlloc(chunk->Length)))
          	{
          	   nomem=TRUE;
                mmFree(tmpmm);
@@ -978,7 +978,7 @@ bool Bounce(struct MemMessage *mm,uchar *reason,bool headeronly)
 
 bool AnswerReceipt(struct MemMessage *mm)
 {
-   uchar buf[400];
+   char buf[400];
    struct Route *tmproute;
    struct MemMessage *tmpmm;
 
@@ -1034,7 +1034,7 @@ bool AnswerReceipt(struct MemMessage *mm)
 
 bool AnswerAudit(struct MemMessage *mm)
 {
-   uchar buf[200],auditbuf[500];
+   char buf[200],auditbuf[500];
    struct Route *tmproute,*destroute;
    struct MemMessage *tmpmm;
    struct Node4D n4d;
@@ -1123,12 +1123,12 @@ bool HandleNetmail(struct MemMessage *mm)
    struct AreaFixName *areafixname;
    struct TextChunk *tmpchunk,*chunk;
    bool istext;
-   uchar buf[400],buf2[200],buf3[200],subjtemp[80];
+   char buf[400],buf2[200],buf3[200],subjtemp[80];
    uint32_t c,d,jbcpos;
    time_t t;
    struct tm *tp;
    uint32_t size;
-	uchar oldtype;
+	uint8_t oldtype;
    bool headeronly;
 
    /* Find orignode */
@@ -1344,7 +1344,7 @@ bool HandleNetmail(struct MemMessage *mm)
 		
 		if(mm->Type == PKTS_NORMAL)
 		{
-			uchar buf1[50],buf2[50],buf3[50];
+			char buf1[50],buf2[50],buf3[50];
 
 			Print4DPat(&tmproute->Pattern,buf1);
 			Print4DPat(&tmproute->DestPat,buf2);

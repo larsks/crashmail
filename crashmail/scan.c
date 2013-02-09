@@ -12,19 +12,19 @@ void LogScanResults(void)
 
    else
    {
-      LogWrite(2,TOSSINGINFO,"%lu messages exported",scan_total);
+      LogWrite(2,TOSSINGINFO,"%u messages exported",scan_total);
    }
 }
 
 bool ScanHandle(struct MemMessage *mm)
 {
-   uchar buf[50];
+   char buf[50];
 
    if(mm->Area[0]==0)
    {
       Print4D(&mm->DestNode,buf);
 
-      LogWrite(4,TOSSINGINFO,"Exporting message #%lu from \"%s\" to \"%s\" at %s",
+      LogWrite(4,TOSSINGINFO,"Exporting message #%u from \"%s\" to \"%s\" at %s",
          mm->msgnum,
          mm->From,
          mm->To,
@@ -32,7 +32,7 @@ bool ScanHandle(struct MemMessage *mm)
    }
    else
    {
-      LogWrite(4,TOSSINGINFO,"Exporting message #%lu from \"%s\" to \"%s\" in %s",
+      LogWrite(4,TOSSINGINFO,"Exporting message #%u from \"%s\" to \"%s\" in %s",
          mm->msgnum,
          mm->From,
          mm->To,
@@ -85,10 +85,10 @@ bool Scan(void)
    return(TRUE);
 }
 
-bool ScanList(uchar *file)
+bool ScanList(char *file)
 {
    osFile fh;
-   uchar buf[100];
+   char buf[100];
    struct Area *area;
    int res;
 
@@ -169,10 +169,10 @@ bool ScanList(uchar *file)
    return(TRUE);
 }
 
-bool ScanDotJam(uchar *file)
+bool ScanDotJam(char *file)
 {
    osFile fh;
-   uchar buf[100];
+   char buf[100];
    struct Area *area;
    int res;
 
@@ -256,7 +256,7 @@ bool ScanDotJam(uchar *file)
    return(TRUE);
 }
 
-bool ScanArea(uchar *tagname)
+bool ScanArea(char *tagname)
 {
    struct Area *area;
    int res;

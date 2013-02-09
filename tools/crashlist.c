@@ -22,7 +22,7 @@
 #define VERSION "1.0"
 
 #ifdef PLATFORM_AMIGA
-uchar *ver="$VER: CrashList " VERSION " " __AMIGADATE__;
+char *ver="$VER: CrashList " VERSION " " __AMIGADATE__;
 #endif
 
 #define ARG_DIRECTORY 0
@@ -39,13 +39,13 @@ struct idx
 
 bool nomem,diskfull;
 
-void putuword(uchar *buf,uint32_t offset,uint16_t num)
+void putuword(char *buf,uint32_t offset,uint16_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
 }
 
-void putuint32_t(uchar *buf,uint32_t offset,uint32_t num)
+void putulong(char *buf,uint32_t offset,uint32_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=(num / 256) % 256;
@@ -55,7 +55,7 @@ void putuint32_t(uchar *buf,uint32_t offset,uint32_t num)
 
 void WriteIdx(osFile fh,struct idx *idx)
 {
-	uchar binbuf[16];
+	char binbuf[16];
 
 	putuword(binbuf,0,idx->zone);
 	putuword(binbuf,2,idx->net);
@@ -63,16 +63,16 @@ void WriteIdx(osFile fh,struct idx *idx)
 	putuword(binbuf,6,idx->point);
 	putuword(binbuf,8,idx->region);
 	putuword(binbuf,10,idx->hub);
-	putuint32_t(binbuf,12,idx->offset);
+	putulong(binbuf,12,idx->offset);
 
 	osWrite(fh,binbuf,sizeof(binbuf));
 }
 
-uchar nlname[100];
-uchar *findfile,*finddir;
+char nlname[100];
+char *findfile,*finddir;
 time_t newest;
 
-bool isnodelistending(uchar *name)
+bool isnodelistending(char *name)
 {
    if(strlen(name)<4)   return(FALSE);
 
@@ -85,9 +85,9 @@ bool isnodelistending(uchar *name)
    return(TRUE);
 }
                                                  
-void scandirfunc(uchar *file)
+void scandirfunc(char *file)
 {
-	uchar buf[500];
+	char buf[500];
 	struct osFileEntry *fe;
 
 	if(isnodelistending(file))
@@ -110,7 +110,7 @@ void scandirfunc(uchar *file)
 	}
 }
 
-bool FindList(uchar *dir,uchar *file,uchar *dest)
+bool FindList(char *dir,char *file,char *dest)
 {
 	MakeFullPath(dir,file,dest,500);
 	
@@ -141,10 +141,10 @@ bool FindList(uchar *dir,uchar *file,uchar *dest)
 	return(TRUE);
 }
 
-void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
+void ProcessList(char *dir,char *file,osFile ifh,uint16_t defzone)
 {
 	struct idx idx;
-	uchar buf[500];
+	char buf[500];
 	osFile nfh;
 	int ispoint = 0;
 	
@@ -159,7 +159,7 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
 		return;
 	}
 
-	strcpy(buf,(uchar *)GetFilePart(buf));
+	strcpy(buf,(char *)GetFilePart(buf));
 	printf("Processing nodelist %s...\n",buf);
 	osWrite(ifh,buf,100);
 
@@ -289,7 +289,7 @@ void ProcessList(uchar *dir,uchar *file,osFile ifh,uint16_t defzone)
 int main(int argc, char **argv)
 {
    osFile lfh,ifh;
-   uchar *dir,buf[200],cfgbuf[200],file[100];
+   char *dir,buf[200],cfgbuf[200],file[100];
    uint32_t jbcpos,zone;  
 
    if(!osInit())
@@ -317,7 +317,7 @@ int main(int argc, char **argv)
 	dir=OS_CURRENT_DIR;
 	
    if(args[ARG_DIRECTORY].data)
-		dir=(uchar *)args[ARG_DIRECTORY].data;
+		dir=(char *)args[ARG_DIRECTORY].data;
 
 	MakeFullPath(dir,"cmnodelist.prefs",buf,200);
 		

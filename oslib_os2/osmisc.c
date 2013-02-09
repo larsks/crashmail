@@ -19,7 +19,7 @@
 #include <sys/nls.h>
 #include <sys/ead.h>
 
-void osSetComment(uchar *file,uchar *comment)
+void osSetComment(char *file,char *comment)
 {
    /* Modeled after
     * eatool.c (emx+gcc) -- Copyright (c) 1992-1995 by Eberhard Mattes
@@ -51,7 +51,7 @@ void osSetComment(uchar *file,uchar *comment)
 
 /* Returns -1 if dir was not found and errorlevel otherwise */
 
-int osChDirExecute(uchar *dir,uchar *cmd)
+int osChDirExecute(char *dir,char *cmd)
 {
    char olddir[300];
    int res;
@@ -70,12 +70,12 @@ int osChDirExecute(uchar *dir,uchar *cmd)
 }
 
 
-int osExecute(uchar *cmd)
+int osExecute(char *cmd)
 {
    return system(cmd);
 }
 
-bool osExists(uchar *file)
+bool osExists(char *file)
 {
    struct stat st;
 
@@ -85,7 +85,7 @@ bool osExists(uchar *file)
    return(FALSE);
 }
 
-bool osMkDir(uchar *dir)
+bool osMkDir(char *dir)
 {
    if(mkdir(dir, 0) != 0)
       return(FALSE);
@@ -94,7 +94,7 @@ bool osMkDir(uchar *dir)
 }
 
 
-bool osRename(uchar *oldfile,uchar *newfile)
+bool osRename(char *oldfile,char *newfile)
 {
 	if(rename(oldfile,newfile) == 0)
 		return(TRUE);
@@ -102,7 +102,7 @@ bool osRename(uchar *oldfile,uchar *newfile)
 	return(FALSE);
 }
 
-bool osDelete(uchar *file)
+bool osDelete(char *file)
 {
 	if(remove(file) == 0)
 		return(TRUE);
@@ -116,9 +116,9 @@ void osSleep(int secs)
 }
 
 
-uchar *osErrorMsg(ulong errnum)
+char *osErrorMsg(ulong errnum)
 {
-	return (uchar *)strerror(errnum);
+	return (char *)strerror(errnum);
 }
 
 ulong osError(void)

@@ -1,10 +1,10 @@
 #include "crashmail.h"
 
-bool Compare(uchar *str,uchar *recog)
+bool Compare(char *str,char *recog)
 {
    uint32_t c,d;
-   uchar comp;
-   uchar buf[5];
+   char comp;
+   char buf[5];
 
    d=0;
 
@@ -28,10 +28,10 @@ bool Compare(uchar *str,uchar *recog)
    return(TRUE);
 }
 
-struct Packer *DetectPacker(uchar *file)
+struct Packer *DetectPacker(char *file)
 {
    osFile fh;
-   uchar buf[40];
+   char buf[40];
    struct Packer *tmppacker;
 
    if(!(fh=osOpen(file,MODE_OLDFILE)))
@@ -63,10 +63,10 @@ void LogTossResults(void)
          return;
 
       if(area->NewDupes)
-         LogWrite(3,TOSSINGINFO,"Area %s -- %lu messages (%lu dupes)",area->Tagname,area->NewTexts,area->NewDupes);
+         LogWrite(3,TOSSINGINFO,"Area %s -- %u messages (%u dupes)",area->Tagname,area->NewTexts,area->NewDupes);
 
       else if(area->NewTexts)
-         LogWrite(3,TOSSINGINFO,"Area %s -- %lu messages",area->Tagname,area->NewTexts);
+         LogWrite(3,TOSSINGINFO,"Area %s -- %u messages",area->Tagname,area->NewTexts);
    }
 
    printf("\n");
@@ -78,10 +78,10 @@ void LogTossResults(void)
    printf("\n");
 }
 
-bool TossBundle(uchar *file,struct osFileEntry *fe)
+bool TossBundle(char *file,struct osFileEntry *fe)
 {
    struct Packer *tmppacker;
-   uchar buf[200],buf2[100];
+   char buf[200],buf2[100];
    struct jbList FEList;
    struct osFileEntry *pktfe,*safedel;
    int arcres;
@@ -117,7 +117,7 @@ bool TossBundle(uchar *file,struct osFileEntry *fe)
 
    if(arcres!=0)
    {
-      LogWrite(1,SYSTEMERR,"Unarchiving failed: %lu",arcres);
+      LogWrite(1,SYSTEMERR,"Unarchiving failed: %u",arcres);
       sprintf(buf2,"Unarchiving with %s failed: %u",tmppacker->Name,arcres);
       BadFile(file,buf2);
    }
@@ -166,12 +166,12 @@ bool TossBundle(uchar *file,struct osFileEntry *fe)
    return(TRUE);
 }
 
-bool TossDir(uchar *dir)
+bool TossDir(char *dir)
 {
    struct osFileEntry *fe;
    struct jbList PktFEList;
    struct jbList ArcFEList;
-   uchar buf[200];
+   char buf[200];
 
    LogWrite(3,ACTIONINFO,"Tossing files in %s...",dir);
 
@@ -275,7 +275,7 @@ bool TossDir(uchar *dir)
    return(TRUE);
 }
 
-bool TossFile(uchar *file)
+bool TossFile(char *file)
 {
    struct osFileEntry *fe;
 

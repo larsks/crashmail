@@ -2,11 +2,11 @@
 
 struct jbList ArcList;
 
-bool doAddFlow(uchar *filename,uchar *basename,uchar type,long mode);
+bool doAddFlow(char *filename,char *basename,char type,long mode);
 
-bool LockBasename(uchar *basename)
+bool LockBasename(char *basename)
 {
-	uchar buf[200];
+	char buf[200];
 	osFile fp;
 
 	strcpy(buf,basename);
@@ -28,9 +28,9 @@ bool LockBasename(uchar *basename)
 	return(TRUE);
 }
 
-void UnlockBasename(uchar *basename)
+void UnlockBasename(char *basename)
 {
-	uchar buf[200];
+	char buf[200];
 	
 	strcpy(buf,basename);
 	strcat(buf,".bsy");
@@ -38,14 +38,14 @@ void UnlockBasename(uchar *basename)
 	osDelete(buf);
 }
 
-void MakeBaseName(struct Node4D *n4d,uchar *basename)
+void MakeBaseName(struct Node4D *n4d,char *basename)
 {
    struct Aka *firstaka;
    struct Route *tmproute;
    bool samedomain;
-   uchar *ospathchars;
+   char *ospathchars;
    uint32_t num,c;
-   uchar buf[50];
+   char buf[50];
 
    ospathchars=OS_PATH_CHARS;
 
@@ -86,7 +86,7 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
 					num=0xfff;
 			}
 
-         sprintf(buf,".%03lx",num);
+         sprintf(buf,".%03x",num);
          strcat(basename,buf);
       }
    }
@@ -113,7 +113,7 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
 				num=0xfff;
 		}
 
-      sprintf(buf,".%03lx",num);
+      sprintf(buf,".%03x",num);
       strcat(basename,buf);
    }
 
@@ -155,7 +155,7 @@ void MakeBaseName(struct Node4D *n4d,uchar *basename)
 void WriteIndex(void)
 {
 	osFile fh;
-	uchar buf[200];
+	char buf[200];
 	struct ConfigNode *cnode;
 
 	MakeFullPath(config.cfg_PacketDir,"cmindex",buf,200);
@@ -178,7 +178,7 @@ void WriteIndex(void)
 void ReadIndex(void)
 {
 	osFile fh;
-	uchar buf[200],buf2[200];
+	char buf[200],buf2[200];
 	uint32_t jbcpos;
 	struct ConfigNode *cnode,*c1,*c2;
 	struct Node4D n4d;
@@ -238,11 +238,11 @@ void ReadIndex(void)
 
 bool ExistsBasenum(uint32_t num)
 {
-	uchar name[20];
+	char name[20];
 	struct osFileEntry *fe;
 	struct ConfigNode *cnode;
 
-	sprintf(name,"%08lx.",num);
+	sprintf(name,"%08x.",num);
 
 	for(fe=(struct osFileEntry *)ArcList.First;fe;fe=fe->Next)
 		if(IsArc(fe->Name) && hextodec(fe->Name) == num) return(TRUE);
@@ -255,11 +255,11 @@ bool ExistsBasenum(uint32_t num)
 
 bool ExistsBundle(uint32_t basenum,uint32_t num)
 {
-	uchar name[20];
+	char name[20];
 	struct osFileEntry *fe;
-	uchar *daynames[]={"su","mo","tu","we","th","fr","sa"};
+	char *daynames[]={"su","mo","tu","we","th","fr","sa"};
 	
-	sprintf(name,"%08lx.%s%ld",basenum,daynames[num/10],num%10);
+	sprintf(name,"%08x.%s%d",basenum,daynames[num/10],num%10);
 
 	for(fe=(struct osFileEntry *)ArcList.First;fe;fe=fe->Next)
 		if(stricmp(fe->Name,name)==0) return(TRUE);
@@ -267,13 +267,13 @@ bool ExistsBundle(uint32_t basenum,uint32_t num)
 	return(FALSE);
 }
 
-void MakeArcName(struct ConfigNode *cnode,uchar *dest)
+void MakeArcName(struct ConfigNode *cnode,char *dest)
 {
 	struct osFileEntry *fe,*foundfe;
-	uchar ext[10];
+	char ext[10];
 	uint32_t basenum;
-	long suffix,newsuffix,day,i;
-	uchar *daynames[]={"su","mo","tu","we","th","fr","sa"};
+	uint32_t suffix,newsuffix,day,i;
+	char *daynames[]={"su","mo","tu","we","th","fr","sa"};
 	time_t t;
 	struct tm *tp;
 
@@ -361,7 +361,7 @@ void MakeArcName(struct ConfigNode *cnode,uchar *dest)
 		}
 	}
 
-	sprintf(dest,"%08lx.%s%ld",basenum,daynames[newsuffix/10],newsuffix%10);
+	sprintf(dest,"%08x.%s%d",basenum,daynames[newsuffix/10],newsuffix%10);
 
 	if(stricmp(cnode->LastArcName,dest)!=0)
 	{
@@ -370,10 +370,10 @@ void MakeArcName(struct ConfigNode *cnode,uchar *dest)
 	}
 }
 
-void DeleteZero(uchar *dir,struct jbList *arclist)
+void DeleteZero(char *dir,struct jbList *arclist)
 {
    struct osFileEntry *fe,*fe2;
-   uchar buf[200];
+   char buf[200];
 
 	/* Delete zero length bundles for this node */
 
@@ -397,15 +397,15 @@ void DeleteZero(uchar *dir,struct jbList *arclist)
 	}
 }
 
-void HandleOrphan(uchar *name)
+void HandleOrphan(char *name)
 {
    osFile fh;
-   uchar buf[200],buf2[200];
+   char buf[200],buf2[200];
    char type;
    bool mode;
    uint32_t jbcpos;
    struct Node4D n4d;
-	uchar basename[200];
+	char basename[200];
 
    if(!(fh=osOpen(name,MODE_OLDFILE)))
    {
@@ -481,9 +481,9 @@ void HandleOrphan(uchar *name)
 	UnlockBasename(basename);
 }
 
-void MakeOrphan(uchar *file,struct Node4D *n4d,char type,long mode)
+void MakeOrphan(char *file,struct Node4D *n4d,char type,long mode)
 {
-   uchar buf[200];
+   char buf[200];
    osFile fh;
 
    strcpy(buf,file);
@@ -509,9 +509,9 @@ void MakeOrphan(uchar *file,struct Node4D *n4d,char type,long mode)
 
 /* Only call if file is already locked */
 /* MakeOrphan() should be called if necessary */
-bool doAddFlow(uchar *filename,uchar *basename,uchar type,long mode)
+bool doAddFlow(char *filename,char *basename,char type,long mode)
 {
-   uchar buf[200],letter,*prefix;
+   char buf[200],letter,*prefix;
    osFile fh;
 
    switch(type)
@@ -573,9 +573,9 @@ bool doAddFlow(uchar *filename,uchar *basename,uchar type,long mode)
 }
 
 /* Handles locking and MakeOrphan() */
-bool AddFlow(uchar *filename,struct Node4D *n4d,uchar type,long mode)
+bool AddFlow(char *filename,struct Node4D *n4d,char type,long mode)
 {
-	uchar basename[200];
+	char basename[200];
 
    MakeBaseName(n4d,basename);
 
@@ -594,9 +594,9 @@ bool AddFlow(uchar *filename,struct Node4D *n4d,uchar type,long mode)
 	return(TRUE);
 }
 
-bool MakePktTmp(uchar *name)
+bool MakePktTmp(char *name)
 {
-	uchar buf[200];
+	char buf[200];
 
 	MakeFullPath(config.cfg_PacketDir,GetFilePart(name),buf,200);
    strcpy(&buf[strlen(buf)-6],"pkttmp"); /* Change suffix */
@@ -610,7 +610,7 @@ bool MakePktTmp(uchar *name)
 	return(TRUE);
 }
 
-void UpdateFile(uchar *name)
+void UpdateFile(char *name)
 {
 	struct osFileEntry *newfe,*fe;
 
@@ -636,12 +636,12 @@ void UpdateFile(uchar *name)
 
 bool PackFile(char *file)
 {
-   uchar basename[200],arcname[200],pktname[200],buf[200],buf2[200],*copybuf;
+   char basename[200],arcname[200],pktname[200],buf[200],buf2[200],*copybuf;
    uint32_t jbcpos,readlen;
    int c,res;
    struct Node4D n4d;
    char type;
-	uchar letter;
+	char letter;
 	osFile ifh,ofh;
 
    /* Parse filename */
@@ -738,7 +738,7 @@ bool PackFile(char *file)
             if(res != 0)
             {
 	            osRename(pktname,file);
-               LogWrite(1,SYSTEMERR,"BEFOREPACK command failed: %lu",res);
+               LogWrite(1,SYSTEMERR,"BEFOREPACK command failed: %u",res);
 	   			UnlockBasename(basename);
    				return(FALSE);
             }
@@ -759,7 +759,7 @@ bool PackFile(char *file)
          else
          {
 	         osRename(pktname,file);
-            LogWrite(1,SYSTEMERR,"Packer failed: %lu",res);
+            LogWrite(1,SYSTEMERR,"Packer failed: %u",res);
 				UnlockBasename(basename);
 				return(FALSE);
          }
@@ -821,7 +821,7 @@ bool PackFile(char *file)
 			n4d.Point,
 			prinames[(int)type]);
 
-		if(!(copybuf=(uchar *)osAlloc(COPYBUFSIZE)))
+		if(!(copybuf=(char *)osAlloc(COPYBUFSIZE)))
 		{
 			nomem=TRUE;
 			UnlockBasename(basename);
@@ -893,7 +893,7 @@ bool ArchiveOutbound(void)
 {
    struct jbList PktList;
    struct osFileEntry *fe;
-   uchar buf[200];
+   char buf[200];
 
 	/* Orphan files */
 

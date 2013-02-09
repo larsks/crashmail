@@ -4,11 +4,11 @@
 
 struct DiskAreaStats
 {
-   uchar Tagname[80];
+   char Tagname[80];
    struct Node4D Aka;
 
-   uchar Group;
-   uchar fill_to_make_even; /* Just ignore this one */
+   char Group;
+   char fill_to_make_even; /* Just ignore this one */
 
    uint32_t TotalTexts;
    uint16_t Last8Days[8];
@@ -33,7 +33,7 @@ struct DiskNodeStats
    time_t FirstTime;
 };
 
-bool WriteStats(uchar *file)
+bool WriteStats(char *file)
 {
    struct Area *area;
    struct ConfigNode *cnode;
@@ -114,7 +114,7 @@ bool WriteStats(uchar *file)
    return(TRUE);
 }
 
-bool ReadStats(uchar *file)
+bool ReadStats(char *file)
 {
    struct Area *area;
    struct ConfigNode *cnode;
@@ -122,7 +122,7 @@ bool ReadStats(uchar *file)
    struct DiskNodeStats dnstat;
    uint32_t c,num;
    osFile fh;
-   uchar buf[5];
+   char buf[5];
 
    if(!(fh=osOpen(file,MODE_OLDFILE)))
       return(TRUE); /* No reason for exiting */

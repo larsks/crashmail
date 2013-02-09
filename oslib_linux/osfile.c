@@ -8,7 +8,7 @@
 
 #include <oslib/osfile.h>
 
-osFile osOpen(uchar *name,uint32_t mode)
+osFile osOpen(char *name,uint32_t mode)
 {
    FILE *fh;
 
@@ -51,7 +51,7 @@ uint32_t osRead(osFile os,void *buf,uint32_t bytes)
    return fread(buf,1,bytes,(FILE *)os);
 }
 
-bool osPutChar(osFile os, uchar ch)
+bool osPutChar(osFile os, char ch)
 {
    if(fputc(ch,(FILE *)os)==EOF)
 		return(FALSE);
@@ -67,7 +67,7 @@ bool osWrite(osFile os,const void *buf,uint32_t bytes)
 	return(TRUE);
 }
 
-bool osPuts(osFile os,uchar *str)
+bool osPuts(osFile os,char *str)
 {
    if(fputs(str,(FILE *)os)==EOF)
 		return(FALSE);
@@ -75,7 +75,7 @@ bool osPuts(osFile os,uchar *str)
 	return(TRUE);
 }
 
-uint32_t osFGets(osFile os,uchar *str,uint32_t max)
+uint32_t osFGets(osFile os,char *str,uint32_t max)
 {
    char *s;
 
@@ -102,7 +102,7 @@ uint32_t osFTell(osFile os)
    return ftell((FILE *)os);
 }
 
-bool osFPrintf(osFile os,uchar *fmt,...)
+bool osFPrintf(osFile os,char *fmt,...)
 {
    va_list args;
 	int res;
@@ -117,7 +117,7 @@ bool osFPrintf(osFile os,uchar *fmt,...)
 	return(TRUE);
 }
 
-bool osVFPrintf(osFile os,uchar *fmt,va_list args)
+bool osVFPrintf(osFile os,char *fmt,va_list args)
 {
 	int res;
 	

@@ -15,14 +15,14 @@
 
 #include <unistd.h>
 
-void osSetComment(uchar *file,uchar *comment)
+void osSetComment(char *file,char *comment)
 {
    /* Does not exist in this os */
 }
 
 /* Returns -1 if dir was not found and errorlevel otherwise */
 
-int osChDirExecute(uchar *dir,uchar *cmd)
+int osChDirExecute(char *dir,char *cmd)
 {
    char olddir[300];
    int res;
@@ -40,7 +40,7 @@ int osChDirExecute(uchar *dir,uchar *cmd)
    return(res);
 }
 
-int osExecute(uchar *cmd)
+int osExecute(char *cmd)
 {
    int res;
 	
@@ -49,7 +49,7 @@ int osExecute(uchar *cmd)
    return WEXITSTATUS(res);
 }
 
-bool osExists(uchar *file)
+bool osExists(char *file)
 {
    struct stat st;
 
@@ -59,7 +59,7 @@ bool osExists(uchar *file)
    return(FALSE);
 }
 
-bool osMkDir(uchar *dir)
+bool osMkDir(char *dir)
 {
    if(mkdir(dir,0777) != 0)
       return(FALSE);
@@ -67,7 +67,7 @@ bool osMkDir(uchar *dir)
    return(TRUE);
 }
 
-bool osRename(uchar *oldfile,uchar *newfile)
+bool osRename(char *oldfile,char *newfile)
 {
 	if(rename(oldfile,newfile) == 0)
 		return(TRUE);
@@ -75,7 +75,7 @@ bool osRename(uchar *oldfile,uchar *newfile)
 	return(FALSE);
 }
 
-bool osDelete(uchar *file)
+bool osDelete(char *file)
 {
 	if(remove(file) == 0)
 		return(TRUE);
@@ -88,9 +88,9 @@ void osSleep(int secs)
    sleep(secs);
 }
 
-uchar *osErrorMsg(uint32_t errnum)
+char *osErrorMsg(uint32_t errnum)
 {
-	return (uchar *)strerror(errnum);
+	return (char *)strerror(errnum);
 }
 
 uint32_t osError(void)

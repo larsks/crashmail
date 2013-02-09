@@ -69,7 +69,7 @@ bool parseargs(struct argument *arg,int argc, char **argv)
 void printargs(struct argument *arg)
 {
    int j;
-	uchar buf1[50],buf2[50];
+	char buf1[50],buf2[50];
 	
    printf("\nAvailable arguments:\n\n");
 

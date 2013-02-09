@@ -10,6 +10,6 @@
 #define ACTIONINFO   7
 #define USERERR      8
 
-bool OpenLogfile(uchar *filename);
+bool OpenLogfile(char *filename);
 void CloseLogfile(void);
-void LogWrite(uint32_t level,uint32_t category,uchar *fmt,...);
+void LogWrite(uint32_t level,uint32_t category,char *fmt,...);

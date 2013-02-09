@@ -146,7 +146,7 @@ s_JamSubfield* JAM_GetSubfield_R( s_JamSubPacket* SubPack_PS , uint32_t* Count_P
 int JAM_PutSubfield( s_JamSubPacket* SubPack_PS, s_JamSubfield* Field_PS )
 {
     s_JamSubfield* 	NewField_PS;
-    uchar*		NewBuf_PC;
+    char*		NewBuf_PC;
 
     /* do we have to expand the array? */
     if ( SubPack_PS->NumFields == SubPack_PS->NumAlloc ) {
@@ -173,7 +173,7 @@ int JAM_PutSubfield( s_JamSubPacket* SubPack_PS, s_JamSubfield* Field_PS )
 
     /* allocate a new buffer */
     if ( Field_PS->DatLen ) {
-	NewBuf_PC = (uchar*) malloc( Field_PS->DatLen );
+	NewBuf_PC = (char*) malloc( Field_PS->DatLen );
 	if ( !NewBuf_PC )  {
 	    free (NewField_PS);
 	    return JAM_NO_MEMORY;

@@ -1,7 +1,7 @@
 #include "crashmail.h"
 
 #ifdef PLATFORM_AMIGA
-const uchar ver[]="\0$VER: CrashMail II/" OS_PLATFORM_NAME " " VERSION " " __AMIGADATE__;
+const char ver[]="\0$VER: CrashMail II/" OS_PLATFORM_NAME " " VERSION " " __AMIGADATE__;
 #endif
 
 /*********************************** Global *******************************/
@@ -37,7 +37,7 @@ struct Config config;
 bool ctrlc;
 bool nodelistopen;
 
-uchar *prinames[]={"Normal","Hold","Normal","Direct","Crash"};
+char *prinames[]={"Normal","Hold","Normal","Direct","Crash"};
 
 /**************************** Local for this file ****************************/
 
@@ -147,7 +147,7 @@ void AfterScanToss(bool success)
 {
    struct Area *area;
    struct ConfigNode *cnode;
-   uchar errbuf[200];
+   char errbuf[200];
    uint32_t day,d,e,i;
 
    ClosePackets();
@@ -232,7 +232,7 @@ bool BeforeScanToss(void)
    struct Area *area;
    struct jbList NewPktFEList;
    struct osFileEntry *fe;
-   uchar buf[200];
+   char buf[200];
    int i;
 
    /* Open nodelist */
@@ -333,7 +333,7 @@ void Version(void)
       printf(" %-10.10s %s\n",AvailNodelists[i].name,AvailNodelists[i].desc);
 }
 
-bool Rescan(uchar *areaname,uchar *node,uint32_t max)
+bool Rescan(char *areaname,char *node,uint32_t max)
 {
    struct Area *area;
    struct ConfigNode *cnode;
@@ -391,14 +391,14 @@ bool Rescan(uchar *areaname,uchar *node,uint32_t max)
    RescanNode=NULL;
 
    if(success)
-      LogWrite(4,TOSSINGINFO,"Rescanned %lu messages",rescan_total);
+      LogWrite(4,TOSSINGINFO,"Rescanned %u messages",rescan_total);
 
    AfterScanToss(success);
 
    return(success);
 }
 
-bool SendAFList(uchar *node,short type)
+bool SendAFList(char *node,short type)
 {
    struct Node4D n4d;
    struct ConfigNode *cnode;
@@ -441,7 +441,7 @@ bool SendAFList(uchar *node,short type)
    return(TRUE);
 }
 
-bool RemoveArea(uchar *areaname)
+bool RemoveArea(char *areaname)
 {
    struct Area *area;
 
@@ -475,9 +475,9 @@ bool done_welcomemsg;
 bool done_init;
 bool done_lockconfig;
 
-bool LockConfig(uchar *file)
+bool LockConfig(char *file)
 {
-	uchar buf[200];
+	char buf[200];
 	osFile fp;
 	
 	strcpy(buf,file);
@@ -504,9 +504,9 @@ bool LockConfig(uchar *file)
 	return(TRUE);
 }
 
-void UnlockConfig(uchar *file)
+void UnlockConfig(char *file)
 {
-	uchar buf[200];
+	char buf[200];
 	
 	strcpy(buf,file);
 	strcat(buf,".busy");
@@ -541,10 +541,10 @@ void breakfunc(int x)
 
 int main(int argc, char **argv)
 {
-   uchar *cfg;
+   char *cfg;
    uint32_t cfgline;
    short seconderr;
-   uchar errorbuf[500];
+   char errorbuf[500];
 
    signal(SIGINT,breakfunc);
 
@@ -580,7 +580,7 @@ int main(int argc, char **argv)
 		cfg=OS_CONFIG_NAME;
 
    if(args[ARG_SETTINGS].data)
-      cfg=(uchar *)args[ARG_SETTINGS].data;
+      cfg=(char *)args[ARG_SETTINGS].data;
 
    if(args[ARG_LOCK].data)
    {
@@ -613,7 +613,7 @@ int main(int argc, char **argv)
    if(!ReadConfig(cfg,&config,&seconderr,&cfgline,errorbuf))
    {
       if(seconderr == READCONFIG_INVALID)
-         printf("Configuration error in %s on line %ld:\n%s\n",cfg,cfgline,errorbuf);
+         printf("Configuration error in %s on line %d:\n%s\n",cfg,cfgline,errorbuf);
 
       else if(seconderr == READCONFIG_NO_MEM)
          printf("Out of memory\n");
@@ -651,22 +651,22 @@ int main(int argc, char **argv)
       TossDir(config.cfg_Inbound);
 
    else if(args[ARG_TOSSFILE].data)
-      TossFile((uchar *)args[ARG_TOSSFILE].data);
+      TossFile((char *)args[ARG_TOSSFILE].data);
 
    if(args[ARG_TOSSDIR].data)
-      TossDir((uchar *)args[ARG_TOSSDIR].data);
+      TossDir((char *)args[ARG_TOSSDIR].data);
 
    else if(args[ARG_SCAN].data)
       Scan();
 
    else if(args[ARG_SCANAREA].data)
-      ScanArea((uchar *)args[ARG_SCANAREA].data);
+      ScanArea((char *)args[ARG_SCANAREA].data);
 
    else if(args[ARG_SCANLIST].data)
-      ScanList((uchar *)args[ARG_SCANLIST].data);
+      ScanList((char *)args[ARG_SCANLIST].data);
 
    else if(args[ARG_SCANDOTJAM].data)
-      ScanDotJam((uchar *)args[ARG_SCANDOTJAM].data);
+      ScanDotJam((char *)args[ARG_SCANDOTJAM].data);
 
    else if(args[ARG_RESCAN].data)
    {
@@ -675,32 +675,32 @@ int main(int argc, char **argv)
       num=0;
 
       if(args[ARG_RESCANMAX].data)
-         num=atoi((uchar *)args[ARG_RESCANMAX].data);
+         num=atoi((char *)args[ARG_RESCANMAX].data);
 
       if(!args[ARG_RESCANNODE].data)
          LogWrite(1,USERERR,"No RESCANNODE specified");
 
       else
-         Rescan((uchar *)args[ARG_RESCAN].data,(uchar *)args[ARG_RESCANNODE].data,num);
+         Rescan((char *)args[ARG_RESCAN].data,(char *)args[ARG_RESCANNODE].data,num);
    }
 
    else if(args[ARG_SENDLIST].data)
-   	SendAFList((uchar *)args[ARG_SENDLIST].data,SENDLIST_FULL);
+   	SendAFList((char *)args[ARG_SENDLIST].data,SENDLIST_FULL);
 
    else if(args[ARG_SENDQUERY].data)
-   	SendAFList((uchar *)args[ARG_SENDQUERY].data,SENDLIST_QUERY);
+   	SendAFList((char *)args[ARG_SENDQUERY].data,SENDLIST_QUERY);
 
    else if(args[ARG_SENDUNLINKED].data)
-   	SendAFList((uchar *)args[ARG_SENDUNLINKED].data,SENDLIST_UNLINKED);
+   	SendAFList((char *)args[ARG_SENDUNLINKED].data,SENDLIST_UNLINKED);
 
    else if(args[ARG_SENDHELP].data)
-   	SendAFList((uchar *)args[ARG_SENDHELP].data,SENDLIST_HELP);
+   	SendAFList((char *)args[ARG_SENDHELP].data,SENDLIST_HELP);
 
    else if(args[ARG_SENDINFO].data)
-   	SendAFList((uchar *)args[ARG_SENDINFO].data,SENDLIST_INFO);
+   	SendAFList((char *)args[ARG_SENDINFO].data,SENDLIST_INFO);
 
    else if(args[ARG_REMOVE].data)
-   	RemoveArea((uchar *)args[ARG_REMOVE].data);
+   	RemoveArea((char *)args[ARG_REMOVE].data);
 
    if(nomem)
       LogWrite(1,SYSTEMERR,"Out of memory");

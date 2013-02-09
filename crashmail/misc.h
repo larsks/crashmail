@@ -1,50 +1,50 @@
-void ExpandPacker(uchar *cmd,uchar *dest,uint32_t destsize,uchar *archive,uchar *file);
+void ExpandPacker(char *cmd,char *dest,uint32_t destsize,char *archive,char *file);
 
 bool SortFEList(struct jbList *list);
-void BadFile(uchar *filename,uchar *comment);
+void BadFile(char *filename,char *comment);
 
-bool IsArc(uchar *file);
-bool IsPkt(uchar *file);
-bool IsNewPkt(uchar *file);
-bool IsPktTmp(uchar *file);
-bool IsOrphan(uchar *file);
-bool IsBad(uchar *file);
+bool IsArc(char *file);
+bool IsPkt(char *file);
+bool IsNewPkt(char *file);
+bool IsPktTmp(char *file);
+bool IsOrphan(char *file);
+bool IsBad(char *file);
 
-void striptrail(uchar *str);
-void striplead(uchar *str);
-void stripleadtrail(uchar *str);
+void striptrail(char *str);
+void striplead(char *str);
+void stripleadtrail(char *str);
 
-bool MatchFlags(uchar group,uchar *node);
+bool MatchFlags(char group,char *node);
 
-void ExpandFilter(uchar *cmd,uchar *dest,uint32_t destsize,
-   uchar *rfc1,
-   uchar *rfc2,
-   uchar *msg,
-   uchar *area,
-   uchar *subj,
-   uchar *time,
-   uchar *from,
-   uchar *to,
-   uchar *orignode,
-   uchar *destnode);
+void ExpandFilter(char *cmd,char *dest,uint32_t destsize,
+   char *rfc1,
+   char *rfc2,
+   char *msg,
+   char *area,
+   char *subj,
+   char *time,
+   char *from,
+   char *to,
+   char *orignode,
+   char *destnode);
 
 
-void MakeFidoDate(time_t tim,uchar *dest);
+void MakeFidoDate(time_t tim,char *dest);
 bool AddTID(struct MemMessage *mm);
 
-bool movefile(uchar *file,uchar *newfile);
-bool copyfile(uchar *file,uchar *newfile);
+bool movefile(char *file,char *newfile);
+bool copyfile(char *file,char *newfile);
 
-uchar ChangeType(struct Node4D *dest,uchar pri);
+char ChangeType(struct Node4D *dest,char pri);
 bool MakeNetmailKludges(struct MemMessage *mm);
-time_t FidoToTime(uchar *date);
-bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain);
-bool ExtractAddress(uchar *origin, struct Node4D *n4d);
+time_t FidoToTime(char *date);
+bool Parse5D(char *buf, struct Node4D *n4d, char *domain);
+bool ExtractAddress(char *origin, struct Node4D *n4d);
 
 unsigned long hextodec(char *hex);
 
-bool WriteMSG(struct MemMessage *mm,uchar *file);
-bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr);
+bool WriteMSG(struct MemMessage *mm,char *file);
+bool WriteRFC(struct MemMessage *mm,char *name,bool rfcaddr);
 
 
 

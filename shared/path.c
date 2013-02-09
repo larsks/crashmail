@@ -5,7 +5,7 @@
 #include <shared/mystrncpy.h>
 #include <oslib/os.h>
 
-void MakeFullPath(uchar *path,uchar *file,uchar *dest,uint32_t destsize)
+void MakeFullPath(char *path,char *file,char *dest,uint32_t destsize)
 {
    int d;
    char *chr;
@@ -20,7 +20,7 @@ void MakeFullPath(uchar *path,uchar *file,uchar *dest,uint32_t destsize)
       if(!strchr(chr,dest[d-1]))
          if(d+1 < destsize)
          {
-            dest[d++]=(uchar)chr[0];
+            dest[d++]=(char)chr[0];
             dest[d]=0;
          }
    }
@@ -29,7 +29,7 @@ void MakeFullPath(uchar *path,uchar *file,uchar *dest,uint32_t destsize)
       mystrncpy(&dest[d],file,destsize-d-1);
 }
 
-uchar *GetFilePart(uchar *str)
+char *GetFilePart(char *str)
 {
    int d;
    char *chr,*ret;

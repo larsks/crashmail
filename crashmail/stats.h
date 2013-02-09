@@ -1,2 +1,2 @@
-bool ReadStats(uchar *file);
-bool WriteStats(uchar *file);
+bool ReadStats(char *file);
+bool WriteStats(char *file);

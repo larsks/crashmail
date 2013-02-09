@@ -84,6 +84,6 @@ extern bool nodelistopen;
 bool BeforeScanToss(void);
 void AfterScanToss(bool success);
 
-extern uchar *prinames[];
+extern char *prinames[];
 
 

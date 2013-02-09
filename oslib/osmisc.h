@@ -3,19 +3,19 @@
 
 #include "shared/types.h"
 
-void osSetComment(uchar *file,uchar *comment);
-bool osExists(uchar *file);
+void osSetComment(char *file,char *comment);
+bool osExists(char *file);
 
-int osChDirExecute(uchar *dir,uchar *cmd);
-int osExecute(uchar *cmd);
+int osChDirExecute(char *dir,char *cmd);
+int osExecute(char *cmd);
 
-bool osRename(uchar *oldfile,uchar *newfile);
-bool osDelete(uchar *file);
+bool osRename(char *oldfile,char *newfile);
+bool osDelete(char *file);
 
-bool osMkDir(uchar *dir);
+bool osMkDir(char *dir);
 void osSleep(int secs);
 
 uint32_t osError(void);
-uchar *osErrorMsg(uint32_t errnum);
+char *osErrorMsg(uint32_t errnum);
 
 #endif

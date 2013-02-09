@@ -1,11 +1,11 @@
 struct expr
 {
-   uchar *buf;
+   char *buf;
    int parsepos;
    int offset;
 };
 
-int expr_eval(struct expr *expr,int (*eval)(uchar *str,int *errpos,uchar **errstr),int *errpos,uchar **errstr);
-struct expr *expr_makeexpr(uchar *str);
+int expr_eval(struct expr *expr,int (*eval)(char *str,int *errpos,char **errstr),int *errpos,char **errstr);
+struct expr *expr_makeexpr(char *str);
 void expr_free(struct expr *expr);
 

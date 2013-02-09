@@ -5,7 +5,7 @@
 
 #include "node4d.h"
 
-bool Parse4DTemplate(uchar *buf, struct Node4D *node,struct Node4D *tpl)
+bool Parse4DTemplate(char *buf, struct Node4D *node,struct Node4D *tpl)
 {
    uint32_t c,val;
    bool GotZone,GotNet,GotNode,GotVal;
@@ -68,7 +68,7 @@ bool Parse4DTemplate(uchar *buf, struct Node4D *node,struct Node4D *tpl)
    return(TRUE);
 }
 
-bool Parse4D(uchar *buf, struct Node4D *node)
+bool Parse4D(char *buf, struct Node4D *node)
 {
 	struct Node4D tpl4d = { 0,0,0,0 };
 	
@@ -103,7 +103,7 @@ int Compare4D(struct Node4D *node1,struct Node4D *node2)
    return(0);
 }
 
-void Print4D(struct Node4D *n4d,uchar *dest)
+void Print4D(struct Node4D *n4d,char *dest)
 {
    if(n4d->Point)
       sprintf(dest,"%u:%u/%u.%u",n4d->Zone,

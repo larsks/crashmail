@@ -29,7 +29,7 @@
 #define TYPE_HOLD     3
 #define TYPE_REQUEST  4 
 
-uchar *type_names[] = { "Crash", "Direct", "Normal", "Hold", "Request" };
+char *type_names[] = { "Crash", "Direct", "Normal", "Hold", "Request" };
 
 uint32_t TotalFiles=0;
 uint32_t TotalBytes=0;
@@ -39,8 +39,8 @@ struct fileentry
 {
    struct fileentry *Next;
    struct Node4D Node;
-   uchar file[100];
-   uchar dir[100];
+   char file[100];
+   char dir[100];
    uint32_t size;
    time_t date;
    uint32_t type;
@@ -49,13 +49,13 @@ struct fileentry
 
 struct Node4DPat
 {
-   uchar Zone[10];
-   uchar Net[10];
-   uchar Node[10];
-   uchar Point[10];
+   char Zone[10];
+   char Net[10];
+   char Node[10];
+   char Point[10];
 };
 
-uchar *cfg_Dir;
+char *cfg_Dir;
 uint32_t cfg_Zone;
 struct Node4DPat cfg_Pattern;
 bool cfg_Verbose;
@@ -76,10 +76,10 @@ struct jbList list;
 
 /* Some stuff for node pattern (taken from CrashMail) */
 
-bool Parse4DPat(uchar *buf, struct Node4DPat *node)
+bool Parse4DPat(char *buf, struct Node4DPat *node)
 {
    uint32_t c=0,tempc=0;
-   uchar temp[10];
+   char temp[10];
    bool GotZone=FALSE,GotNet=FALSE,GotNode=FALSE;
 
    strcpy(node->Zone,"*");
@@ -142,9 +142,10 @@ bool Parse4DPat(uchar *buf, struct Node4DPat *node)
    return(TRUE);
 }
 
-int NodeCompare(uchar *pat,uint16_t num)
+int NodeCompare(char *pat,uint16_t num)
 {
-   uchar buf[10],c;
+   char buf[10];
+   uint8_t c;
    sprintf(buf,"%u",num);
 
    if(pat[0]==0) return(0);
@@ -175,12 +176,12 @@ int Compare4DPat(struct Node4DPat *nodepat,struct Node4D *node)
 
 /* Some other functions from CrashMail */
 
-char *unit(long i)
+char *unit(uint32_t i)
 {
    static char buf[20];
-   if ((i>10000000)||(i<-10000000)) sprintf(buf,"%luM",i/(1024*1024));
-   else if ((i>10000)||(i<-10000)) sprintf(buf,"%luK",i/1024);
-   else sprintf(buf,"%lu",i);
+   if ((i>10000000)||(i<-10000000)) sprintf(buf,"%uM",i/(1024*1024));
+   else if ((i>10000)||(i<-10000)) sprintf(buf,"%uK",i/1024);
+   else sprintf(buf,"%u",i);
    return buf;
 }
 
@@ -215,20 +216,20 @@ void strip(char *str)
 
 /* Display entries in the list */
 
-uchar *PrintNode(struct Node4D *node)
+char *PrintNode(struct Node4D *node)
 {
-   static uchar buf[50];
+   static char buf[50];
 
    Print4D(node,buf);
 
    return(buf);
 }
 
-uchar *PrintDate(time_t date)
+char *PrintDate(time_t date)
 {
-   static uchar buf[50];
+   static char buf[50];
    struct tm *tp;
-   uchar *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
+   char *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
 
    tp=localtime(&date);
 
@@ -242,10 +243,10 @@ uchar *PrintDate(time_t date)
    return(buf);
 }
 
-uchar *PrintFlowSize(struct fileentry *fe)
+char *PrintFlowSize(struct fileentry *fe)
 {
-   static uchar buf[50];
-   uchar fullfile[200],line[200];
+   static char buf[50];
+   char fullfile[200],line[200];
    osFile os;
    struct osFileEntry *osfe;
    uint32_t files,bytes;
@@ -297,15 +298,15 @@ uchar *PrintFlowSize(struct fileentry *fe)
 
    osClose(os);
 
-   sprintf(buf,"%s/%lu",unit(bytes),files);
+   sprintf(buf,"%s/%u",unit(bytes),files);
    
    return(buf);
 }
 
 void DisplayFlowContents(struct fileentry *fe)
 {
-   uchar size[40],*todo;
-   uchar fullfile[200],line[200];
+   char size[40],*todo;
+   char fullfile[200],line[200];
    osFile os;
    struct osFileEntry *osfe;
 
@@ -347,7 +348,7 @@ void DisplayFlowContents(struct fileentry *fe)
 
             if(osfe)
             {
-               sprintf(size,unit(osfe->Size));
+               sprintf(size, "%s", unit(osfe->Size));
                osFree(osfe);
             }
 
@@ -361,10 +362,10 @@ void DisplayFlowContents(struct fileentry *fe)
    printf("\n");
 }
 
-uchar *PrintReqNums(struct fileentry *fe)
+char *PrintReqNums(struct fileentry *fe)
 {
-   static uchar buf[50];
-   uchar fullfile[200],line[200];
+   static char buf[50];
+   char fullfile[200],line[200];
    osFile os;
    uint32_t reqs;
 
@@ -389,14 +390,14 @@ uchar *PrintReqNums(struct fileentry *fe)
       }
    }
 
-   sprintf(buf,"-/%lu",reqs);
+   sprintf(buf,"-/%u",reqs);
    
    return(buf);
 }
 
 void DisplayReqContents(struct fileentry *fe)
 {
-   uchar fullfile[200],line[200];
+   char fullfile[200],line[200];
    osFile os;
 
    MakeFullPath(cfg_Dir,fe->file,fullfile,200);
@@ -432,7 +433,7 @@ void DisplayFlow(struct fileentry *fe)
 
 void DisplayPkt(struct fileentry *fe)
 {
-   uchar buf[100];
+   char buf[100];
 
    sprintf(buf,"%s/1",unit(fe->size));
 
@@ -491,13 +492,13 @@ void sortlist(struct jbList *list)
    osFree(buf);
 }
 
-void addentry(uchar *dir,uchar *file,uint32_t type,struct Node4D *boss,bool flow)
+void addentry(char *dir,char *file,uint32_t type,struct Node4D *boss,bool flow)
 {
    struct osFileEntry *fe;
    struct fileentry *entry;
    struct Node4D n4d;
-   uchar buf[200];
-   uchar buf2[200];
+   char buf[200];
+   char buf2[200];
    uint32_t hex;
 
    hex=hextodec(file);
@@ -558,11 +559,11 @@ void addentry(uchar *dir,uchar *file,uint32_t type,struct Node4D *boss,bool flow
 }
 
 struct Node4D *scandir_boss;
-uchar *scandir_dir;
+char *scandir_dir;
 
-void scandirfunc(uchar *file)
+void scandirfunc(char *file)
 {
-   uchar *extptr;
+   char *extptr;
    uint32_t hex;
 
    if(strlen(file) != 12)
@@ -572,7 +573,7 @@ void scandirfunc(uchar *file)
 
    if(stricmp(extptr,".PNT")==0 && !scandir_boss)
    {
-      uchar buf[200];
+      char buf[200];
       struct Node4D n4d;
 
       hex=hextodec(file);
@@ -607,7 +608,7 @@ void scandirfunc(uchar *file)
 
 int main(int argc, char **argv)
 {
-   uchar *var;
+   char *var;
    struct fileentry *fe;
 
    if(!osInit())
@@ -643,7 +644,7 @@ int main(int argc, char **argv)
       cfg_Dir=OS_CURRENT_DIR;
 
    if(args[ARG_DIRECTORY].data)
-      cfg_Dir=(uchar *)args[ARG_DIRECTORY].data;
+      cfg_Dir=(char *)args[ARG_DIRECTORY].data;
 
    /* Get zone */
 
@@ -654,7 +655,7 @@ int main(int argc, char **argv)
       cfg_Zone=2;
 
    if(args[ARG_ZONE].data)
-      cfg_Zone=atoi((uchar *)args[ARG_ZONE].data);
+      cfg_Zone=atoi((char *)args[ARG_ZONE].data);
 
    /* Get pattern */
 
@@ -665,9 +666,9 @@ int main(int argc, char **argv)
 
    if(args[ARG_PATTERN].data)
    {
-      if(!Parse4DPat((uchar *)args[ARG_PATTERN].data,&cfg_Pattern))
+      if(!Parse4DPat((char *)args[ARG_PATTERN].data,&cfg_Pattern))
       {
-         printf("Invalid node pattern \"%s\"\n",(uchar *)args[ARG_PATTERN].data);
+         printf("Invalid node pattern \"%s\"\n",(char *)args[ARG_PATTERN].data);
          osEnd();
          exit(OS_EXIT_ERROR);
       }
@@ -710,7 +711,7 @@ int main(int argc, char **argv)
       }
 
       if(!cfg_Verbose) printf("\n");
-      printf("Totally %s bytes in %lu files to send, %lu requests.\n",unit(TotalBytes),TotalFiles,TotalRequests);
+      printf("Totally %s bytes in %u files to send, %u requests.\n",unit(TotalBytes),TotalFiles,TotalRequests);
    }
    else
    {

@@ -6,7 +6,7 @@
 #include <shared/types.h>
 #include <oslib/osfile.h>
 
-osFile osOpen(uchar *name,ulong mode)
+osFile osOpen(char *name,ulong mode)
 {
    FILE *fh;
 
@@ -49,7 +49,7 @@ ulong osRead(osFile os,void *buf,ulong bytes)
    return fread(buf,1,bytes,(FILE *)os);
 }
 
-bool osPutChar(osFile os, uchar ch)
+bool osPutChar(osFile os, char ch)
 {
    if(fputc(ch,(FILE *)os)==EOF)
 		return(FALSE);
@@ -65,7 +65,7 @@ bool osWrite(osFile os,const void *buf,ulong bytes)
 	return(TRUE);
 }
 
-bool osPuts(osFile os,uchar *str)
+bool osPuts(osFile os,char *str)
 {
    if(fputs(str,(FILE *)os)==EOF)
 		return(FALSE);
@@ -73,7 +73,7 @@ bool osPuts(osFile os,uchar *str)
 	return(TRUE);
 }
 
-ulong osFGets(osFile os,uchar *str,ulong max)
+ulong osFGets(osFile os,char *str,ulong max)
 {
    char *s;
 
@@ -101,7 +101,7 @@ ulong osFTell(osFile os)
 }
 
 
-bool osFPrintf(osFile os,uchar *fmt,...)
+bool osFPrintf(osFile os,char *fmt,...)
 {
    va_list args;
 	int res;
@@ -116,7 +116,7 @@ bool osFPrintf(osFile os,uchar *fmt,...)
 	return(TRUE);
 }
 
-bool osVFPrintf(osFile os,uchar *fmt,va_list args)
+bool osVFPrintf(osFile os,char *fmt,va_list args)
 {
 	int res;
 	

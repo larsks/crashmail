@@ -11,9 +11,9 @@ struct cmnlIdx
 #define CMNLERR_NODE_NOT_FOUND	4
 #define CMNLERR_NO_NODELIST		5
 
-osFile cmnlOpenNL(uchar *dir);
+osFile cmnlOpenNL(char *dir);
 void cmnlCloseNL(osFile nl);
-bool cmnlFindNL(osFile nl,uchar *dir,struct cmnlIdx *idx,uchar *line,uint32_t len);
-uchar *cmnlLastError(void);
+bool cmnlFindNL(osFile nl,char *dir,struct cmnlIdx *idx,char *line,uint32_t len);
+char *cmnlLastError(void);
 
 extern uint32_t cmnlerr;

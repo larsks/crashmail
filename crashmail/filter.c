@@ -4,7 +4,7 @@
 
 uint16_t bmstep[256];
 
-void bminit(uchar *pat)
+void bminit(char *pat)
 {
    int i,len;
 
@@ -20,7 +20,7 @@ void bminit(uchar *pat)
       if(bmstep[i] == 0) bmstep[i]=len;
 }
 
-long bmfind(uchar *pat,uchar *text,long textlen,long start)
+long bmfind(char *pat,char *text,long textlen,long start)
 {
    long i,j,end,len;
 
@@ -56,9 +56,9 @@ int filter_nllookup(struct Node4D *node)
    return (*config.cfg_NodelistType->nlCheckNode)(node);
 }
 
-int filter_comparenode(uchar *var,struct Node4D *node,uchar *operator,uchar *data,int opn,int datan,int *errpos,uchar **errstr)
+int filter_comparenode(char *var,struct Node4D *node,char *operator,char *data,int opn,int datan,int *errpos,char **errstr)
 {
-   static uchar errbuf[100];
+   static char errbuf[100];
    struct Node4DPat pat;
 
    if(operator[0]==0)
@@ -99,9 +99,9 @@ int filter_comparenode(uchar *var,struct Node4D *node,uchar *operator,uchar *dat
    return(0);
 }
 
-int filter_comparestring(uchar *var,uchar *str,uchar *operator,uchar *data,int opn,int datan,int *errpos,uchar **errstr)
+int filter_comparestring(char *var,char *str,char *operator,char *data,int opn,int datan,int *errpos,char **errstr)
 {
-   static uchar errbuf[100];
+   static char errbuf[100];
 
    if(operator[0]==0)
    {
@@ -144,9 +144,9 @@ int filter_comparestring(uchar *var,uchar *str,uchar *operator,uchar *data,int o
    }
 }
 
-int filter_comparebool(uchar *var,bool bl,uchar *operator,uchar *data,int opn,int datan,int *errpos,uchar **errstr)
+int filter_comparebool(char *var,bool bl,char *operator,char *data,int opn,int datan,int *errpos,char **errstr)
 {
-   static uchar errbuf[100];
+   static char errbuf[100];
 
    if(operator[0]==0)
    {
@@ -188,9 +188,9 @@ int filter_comparebool(uchar *var,bool bl,uchar *operator,uchar *data,int opn,in
    }
 }
 
-int filter_comparetext(uchar *var,struct MemMessage *mm,bool kludge,uchar *operator,uchar *data,int opn,int datan,int *errpos,uchar **errstr)
+int filter_comparetext(char *var,struct MemMessage *mm,bool kludge,char *operator,char *data,int opn,int datan,int *errpos,char **errstr)
 {
-   static uchar errbuf[100];
+   static char errbuf[100];
    struct TextChunk *chunk;
    long start,pos,c;
 
@@ -232,15 +232,15 @@ int filter_comparetext(uchar *var,struct MemMessage *mm,bool kludge,uchar *opera
    return(0);
 }
 
-int filter_evalfunc(uchar *str,int *errpos,uchar **errstr)
+int filter_evalfunc(char *str,int *errpos,char **errstr)
 {
-   uchar type[20],source[20];
-   static uchar errbuf[100];
+   char type[20],source[20];
+   static char errbuf[100];
    struct Aka *aka;
    struct ConfigNode *cnode;
    bool fileattach,tolocalaka,fromlocalaka,tolocalpoint,fromlocalpoint;
    bool existscfg_fromaddr,existscfg_fromboss,existscfg_toaddr,existscfg_toboss;
-   uchar var[100],operator[2],data[100];
+   char var[100],operator[2],data[100];
    int opn,datan,res;
    int c,d;
    struct Node4D from4d,fromboss,toboss;
@@ -488,7 +488,7 @@ int filter_evalfunc(uchar *str,int *errpos,uchar **errstr)
 
 bool Filter_Kill(struct MemMessage *mm)
 {
-   uchar buf[200];
+   char buf[200];
 
 	if(mm->Area[0] == 0)
 	{
@@ -512,7 +512,7 @@ bool Filter_Kill(struct MemMessage *mm)
 
 bool Filter_Twit(struct MemMessage *mm)
 {
-   uchar buf[200];
+   char buf[200];
 
 	if(mm->Area[0] == 0)
 	{
@@ -534,12 +534,12 @@ bool Filter_Twit(struct MemMessage *mm)
 	return(TRUE);
 }
 
-bool Filter_Copy(struct MemMessage *mm,uchar *tagname)
+bool Filter_Copy(struct MemMessage *mm,char *tagname)
 {
    struct Area *area;
    struct TextChunk *tmp;
    struct jbList oldlist;
-   uchar buf[200];
+   char buf[200];
 
    LogWrite(4,TOSSINGINFO,"Filter: Copying message to area %s",tagname);
 
@@ -576,17 +576,17 @@ bool Filter_Copy(struct MemMessage *mm,uchar *tagname)
    return(TRUE);
 }
 
-bool Filter_WriteBad(struct MemMessage *mm,uchar *reason)
+bool Filter_WriteBad(struct MemMessage *mm,char *reason)
 {
    LogWrite(4,TOSSINGINFO,"Filter: Writing message to BAD area (\"%s\")",reason);
 
    return WriteBad(mm,reason);
 }
 
-bool Filter_WriteLog(struct MemMessage *mm,uchar *cmd)
+bool Filter_WriteLog(struct MemMessage *mm,char *cmd)
 {
-   uchar buf[400];
-   uchar origbuf[30],destbuf[30];
+   char buf[400];
+   char origbuf[30],destbuf[30];
 
    if(mm->Area[0] == 0)
       Print4D(&mm->OrigNode,origbuf);
@@ -613,12 +613,12 @@ bool Filter_WriteLog(struct MemMessage *mm,uchar *cmd)
    return(TRUE);
 }
 
-bool Filter_Execute(struct MemMessage *mm,uchar *cmd)
+bool Filter_Execute(struct MemMessage *mm,char *cmd)
 {
    bool msg,rfc1,rfc2;
-   uchar msgbuf[L_tmpnam],rfcbuf1[L_tmpnam],rfcbuf2[L_tmpnam];
-   uchar origbuf[30],destbuf[30];
-   uchar buf[400];
+   char msgbuf[L_tmpnam],rfcbuf1[L_tmpnam],rfcbuf2[L_tmpnam];
+   char origbuf[30],destbuf[30];
+   char buf[400];
 	int arcres;
 
    msg=FALSE;
@@ -680,17 +680,17 @@ bool Filter_Execute(struct MemMessage *mm,uchar *cmd)
 
    if(arcres >= 20)
    {
-	   LogWrite(1,SYSTEMERR,"Filter: External command failed with error %lu, exiting...",arcres);
+	   LogWrite(1,SYSTEMERR,"Filter: External command failed with error %u, exiting...",arcres);
       return(FALSE);
    }
 
 	return(TRUE);
 }
 
-bool Filter_Bounce(struct MemMessage *mm,uchar *reason,bool headeronly)
+bool Filter_Bounce(struct MemMessage *mm,char *reason,bool headeronly)
 {
-   uchar reasonbuf[400];
-   uchar origbuf[30],destbuf[30];
+   char reasonbuf[400];
+   char origbuf[30],destbuf[30];
 
    if(mm->Area[0] == 0)
       Print4D(&mm->OrigNode,origbuf);
@@ -717,13 +717,13 @@ bool Filter_Bounce(struct MemMessage *mm,uchar *reason,bool headeronly)
    return Bounce(mm,reasonbuf,headeronly);
 }
 
-bool Filter_Remap(struct MemMessage *mm,uchar *namepat,struct Node4DPat *destpat)
+bool Filter_Remap(struct MemMessage *mm,char *namepat,struct Node4DPat *destpat)
 {
    struct Route *tmproute;
    struct jbList oldlist;
    struct TextChunk *tmp;
-   uchar buf[100];
-   uchar oldto[36],newto[36];
+   char buf[100];
+   char oldto[36],newto[36];
    struct Node4D olddest4d,newdest4d,my4d;
    uint32_t c,d;
 	bool skip;
@@ -837,7 +837,7 @@ bool Filter(struct MemMessage *mm)
    struct Filter *filter;
 	struct Command *command;
    struct expr *expr;
-   uchar *errstr;
+   char *errstr;
    int errpos,res;
 
    for(filter=(struct Filter *)config.FilterList.First;filter;filter=filter->Next)
@@ -926,10 +926,10 @@ bool Filter(struct MemMessage *mm)
    return(TRUE);
 }
 
-bool CheckFilter(uchar *filter,uchar *cfgerr)
+bool CheckFilter(char *filter,char *cfgerr)
 {
    struct expr *expr;
-   uchar *errstr;
+   char *errstr;
    int errpos,res;
    struct MemMessage *mm;
    int c;

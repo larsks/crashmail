@@ -8,14 +8,14 @@
 #include <oslib/osmisc.h>
 #include <oslib/osfile.h>
 
-void osSetComment(uchar *file,uchar *comment)
+void osSetComment(char *file,char *comment)
 {
    /* Does not exist in this os */
 }
 
 /* Returns -1 if dir was not found and errorlevel otherwise */
 
-int osChDirExecute(uchar *dir,uchar *cmd)
+int osChDirExecute(char *dir,char *cmd)
 {
    char olddir[300];
    int res;
@@ -34,12 +34,12 @@ int osChDirExecute(uchar *dir,uchar *cmd)
 }
 
 
-int osExecute(uchar *cmd)
+int osExecute(char *cmd)
 {
    return system(cmd);
 }
 
-bool osExists(uchar *file)
+bool osExists(char *file)
 {
    HANDLE hFind;
    WIN32_FIND_DATA FindFileData;
@@ -53,7 +53,7 @@ bool osExists(uchar *file)
    return(TRUE);
 }
 
-bool osMkDir(uchar *dir)
+bool osMkDir(char *dir)
 {
    if(CreateDirectory(dir,NULL))
       return(TRUE);
@@ -62,7 +62,7 @@ bool osMkDir(uchar *dir)
 }
 
 
-bool osRename(uchar *oldfile,uchar *newfile)
+bool osRename(char *oldfile,char *newfile)
 {
    if(MoveFile(oldfile,newfile))
 		return(TRUE);
@@ -70,7 +70,7 @@ bool osRename(uchar *oldfile,uchar *newfile)
 	return(FALSE);
 }
 
-bool osDelete(uchar *file)
+bool osDelete(char *file)
 {
    if(DeleteFile(file))
 		return(TRUE);
@@ -83,17 +83,17 @@ void osSleep(int secs)
    Sleep(secs*1000);
 }
 
-uchar *osErrorMsg(ulong errnum)
+char *osErrorMsg(ulong errnum)
 {
-   uchar charbuf[1000];
-   static uchar oembuf[1000];
+   char charbuf[1000];
+   static char oembuf[1000];
 
    FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_MAX_WIDTH_MASK,
                  NULL,(DWORD)errnum,0,charbuf,1000,NULL);
 
    CharToOem(charbuf,oembuf);
 
-   return (uchar *)oembuf;
+   return (char *)oembuf;
 }
 
 ulong osError(void)

@@ -1,6 +1,6 @@
 #include "crashmail.h"
 
-bool SafeDelete(uchar *file)
+bool SafeDelete(char *file)
 {
    struct osFileEntry *fe;
 

@@ -37,7 +37,7 @@ void win32finddata_to_fileentry(WIN32_FIND_DATA *w32,struct osFileEntry *fe)
       time(&fe->Date);
 }
 
-bool win32readdiraddfile(WIN32_FIND_DATA *FindFileData,struct jbList *filelist,bool (*acceptfunc)(uchar *filename))
+bool win32readdiraddfile(WIN32_FIND_DATA *FindFileData,struct jbList *filelist,bool (*acceptfunc)(char *filename))
 {
    bool add;
    struct osFileEntry *tmp;
@@ -60,7 +60,7 @@ bool win32readdiraddfile(WIN32_FIND_DATA *FindFileData,struct jbList *filelist,b
    return(TRUE);
 }
 
-bool osReadDir(uchar *dirname,struct jbList *filelist,bool (*acceptfunc)(uchar *filename))
+bool osReadDir(char *dirname,struct jbList *filelist,bool (*acceptfunc)(char *filename))
 {
    WIN32_FIND_DATA FindFileData;
    HANDLE hFind;
@@ -100,7 +100,7 @@ bool osReadDir(uchar *dirname,struct jbList *filelist,bool (*acceptfunc)(uchar *
    return(TRUE);
 }
 
-bool osScanDir(uchar *dirname,void (*func)(uchar *file))
+bool osScanDir(char *dirname,void (*func)(char *file))
 {
    WIN32_FIND_DATA FindFileData;
    HANDLE hFind;
@@ -128,7 +128,7 @@ bool osScanDir(uchar *dirname,void (*func)(uchar *file))
    return(TRUE);
 }
 
-struct osFileEntry *osGetFileEntry(uchar *file)
+struct osFileEntry *osGetFileEntry(char *file)
 {
    WIN32_FIND_DATA FindFileData;
    HANDLE hFind;

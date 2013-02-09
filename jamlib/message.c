@@ -180,7 +180,7 @@ int JAM_ReadMsgHeader( s_JamBase* 	Base_PS,
 int JAM_ReadMsgText( s_JamBase* Base_PS,
 		     uint32_t 	Offset_I,
 		     uint32_t 	Length_I,
-		     uchar* 	Buffer_PC )
+		     char* 	Buffer_PC )
 {
     if ( !Base_PS || !Buffer_PC )
 	return JAM_BAD_PARAM;
@@ -283,7 +283,7 @@ int JAM_ChangeMsgHeader( s_JamBase* 	 Base_PS,
 int JAM_AddMessage( s_JamBase* 		Base_PS,
 		    s_JamMsgHeader*	Header_PS,
 		    s_JamSubPacket*	SubPack_PS,
-		    uchar*		Text_PC,
+		    char*		Text_PC,
 		    uint32_t		TextLen_I )
 {
     s_JamBaseHeader 	BaseHeader_S;
@@ -399,7 +399,7 @@ int JAM_AddMessage( s_JamBase* 		Base_PS,
    /* write Subfields */
    if ( SubPack_PS ) {
 	s_JamSubfield*	Subfield_PS;
-	uchar 		User_AC[101];
+	char 		User_AC[101];
 
 	/* clear username */
 	User_AC[0] = 0;

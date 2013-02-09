@@ -1,4 +1,4 @@
 bool Filter(struct MemMessage *mm);
-bool CheckFilter(uchar *filter,uchar *cfgerr);
+bool CheckFilter(char *filter,char *cfgerr);
 
 

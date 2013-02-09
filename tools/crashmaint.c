@@ -24,7 +24,7 @@
 #define VERSION "1.2"
 
 #ifdef PLATFORM_AMIGA
-uchar *ver="$VER: CrashMaint "VERSION" ("__COMMODORE_DATE__")";
+char *ver="$VER: CrashMaint "VERSION" ("__COMMODORE_DATE__")";
 #endif
 
 static size_t ptrsize = sizeof(void *);
@@ -32,9 +32,9 @@ static size_t ptrsize = sizeof(void *);
 struct Area
 {
    struct Area *Next;
-   uchar Tagname[80];
-   uchar Path[80];
-	uchar Messagebase[20];
+   char Tagname[80];
+   char Path[80];
+	char Messagebase[20];
    uint32_t KeepNum,KeepDays;
 };
 
@@ -42,7 +42,7 @@ struct jbList AreaList;
 
 struct Messagebase
 {
-	uchar *Name;
+	char *Name;
 	bool (*processfunc)(struct Area *area,bool maint,bool pack,bool verbose);
 };
 
@@ -145,11 +145,11 @@ bool Sort(struct jbList *list)
    return(TRUE);
 }
 
-void MakeFidoDate(time_t tim,uchar *dest)
+void MakeFidoDate(time_t tim,char *dest)
 {
    struct tm *tp;
    time_t t;
-   uchar *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
+   char *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
 
    t=tim;
    tp=localtime(&t);
@@ -163,12 +163,12 @@ void MakeFidoDate(time_t tim,uchar *dest)
       tp->tm_sec);
 }
 
-uchar *scanfuncarea;
+char *scanfuncarea;
 bool nomem;
 
-void scanfunc(uchar *str)
+void scanfunc(char *str)
 {
-   uchar buf[200];
+   char buf[200];
    struct osFileEntry *fe;
    uint32_t num,day;
    struct Msg *msg;
@@ -208,7 +208,7 @@ bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose)
 {
    uint32_t today,num,del,highwater,oldhighwater;
    struct Msg *msg;
-   uchar buf[200],newbuf[200],buf2[100];
+   char buf[200],newbuf[200],buf2[100];
    struct StoredMsg StoredMsg;
    osFile fh;
 
@@ -283,14 +283,14 @@ bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose)
          while(msg->Num==0)
             msg=msg->Next;
 
-         sprintf(buf2,"%lu.msg",msg->Num);
+         sprintf(buf2,"%u.msg",msg->Num);
          MakeFullPath(area->Path,buf2,buf,200);
 
          if(msg->Num == highwater)
             highwater=0;
 
          if(verbose)
-            printf(" Deleting message #%lu by number\n",msg->Num);
+            printf(" Deleting message #%u by number\n",msg->Num);
 
          osDelete(buf);
 
@@ -305,7 +305,7 @@ bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose)
          return(TRUE);
       }
 
-      printf(" %lu messages deleted by number, %lu messages left\n",del,num);
+      printf(" %u messages deleted by number, %u messages left\n",del,num);
    }
 
    if(maint && area->KeepDays!=0)
@@ -319,14 +319,14 @@ bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose)
       {
          if(today - msg->Day > area->KeepDays && msg->Num!=0)
          {
-            sprintf(buf2,"%lu.msg",msg->Num);
+            sprintf(buf2,"%u.msg",msg->Num);
             MakeFullPath(area->Path,buf2,buf,200);
 
             if(msg->Num == highwater)
                highwater=0;
 
             if(verbose)
-               printf(" Deleting message #%lu by date\n",msg->Num);
+               printf(" Deleting message #%u by date\n",msg->Num);
 
             osDelete(buf);
             
@@ -345,7 +345,7 @@ bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose)
          return(TRUE);
       }
 
-      printf(" %lu messages deleted by date, %lu messages left\n",del,num);
+      printf(" %u messages deleted by date, %u messages left\n",del,num);
    }
 
    if(pack)
@@ -369,17 +369,17 @@ bool ProcessAreaMSG(struct Area *area,bool maint, bool pack, bool verbose)
       for(msg=(struct Msg *)MsgList.First;msg && !ctrlc;msg=msg->Next)
          if(msg->Num!=0 && msg->Num!=msg->NewNum)
          {
-            sprintf(buf2,"%lu.msg",msg->Num);
+            sprintf(buf2,"%u.msg",msg->Num);
 				MakeFullPath(area->Path,buf2,buf,200);
 
-            sprintf(buf2,"%lu.msg",msg->NewNum);
+            sprintf(buf2,"%u.msg",msg->NewNum);
 				MakeFullPath(area->Path,buf2,newbuf,200);
 
             if(highwater == msg->Num)
                highwater=msg->NewNum;
 
             if(verbose)
-               printf(" Renaming message %lu to %lu\n",msg->Num,msg->NewNum);
+               printf(" Renaming message %u to %u\n",msg->Num,msg->NewNum);
 
             osRename(buf,newbuf);
          }
@@ -445,9 +445,9 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
    s_JamMsgHeader	Header_S;
    s_JamSubPacket*	SubPacket_PS;
 	int res,res1,res2;
-	uchar buf[200],oldname[200],tmpname[200];
+	char buf[200],oldname[200],tmpname[200];
 	bool firstwritten;
-	uchar *msgtext;
+	char *msgtext;
 
    /* Some timezone tricks */
 
@@ -523,7 +523,7 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 					/* Not already deleted */
 
 		         if(verbose)
-      		      printf(" Deleting message #%lu by number\n",basenum+num);
+      		      printf(" Deleting message #%u by number\n",basenum+num);
 	
 					Header_S.Attribute |= MSG_DELETED;
 					JAM_ChangeMsgHeader(Base_PS,num,&Header_S);
@@ -546,7 +546,7 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
          return(TRUE);
       }
 
-      printf(" %lu messages deleted by number, %lu messages left\n",del,active);
+      printf(" %u messages deleted by number, %u messages left\n",del,active);
    }
 
    if(maint && area->KeepDays!=0)
@@ -577,7 +577,7 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 					/* Not already deleted and too old*/
 
 		         if(verbose)
-      		      printf(" Deleting message #%lu by date\n",basenum+num);
+      		      printf(" Deleting message #%u by date\n",basenum+num);
 	
 					Header_S.Attribute |= MSG_DELETED;
 					JAM_ChangeMsgHeader(Base_PS,num,&Header_S);
@@ -600,7 +600,7 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
          return(TRUE);
       }
 
-      printf(" %lu messages deleted by date, %lu messages left\n",del,active);
+      printf(" %u messages deleted by date, %u messages left\n",del,active);
    }
 
    if(pack)
@@ -654,7 +654,7 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 				}
 				else
 				{
-		      	printf(" Failed to read message %ld, cannot pack messagebase\n",num+basenum);
+		      	printf(" Failed to read message %d, cannot pack messagebase\n",num+basenum);
 					JAM_UnlockMB(Base_PS);
 					JAM_CloseMB(Base_PS);
 					JAM_UnlockMB(NewBase_PS);
@@ -705,7 +705,7 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 
 				   if(res)
 				   {
-			      	printf(" Failed to read message %ld, cannot pack messagebase\n",num+basenum);
+			      	printf(" Failed to read message %d, cannot pack messagebase\n",num+basenum);
 						JAM_UnlockMB(Base_PS);
 						JAM_CloseMB(Base_PS);
 						JAM_UnlockMB(NewBase_PS);
@@ -736,7 +736,7 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 
 				      if(res)
 				      {
-				      	printf(" Failed to read message %ld, cannot pack messagebase\n",num+basenum);
+				      	printf(" Failed to read message %d, cannot pack messagebase\n",num+basenum);
 				         JAM_DelSubPacket(SubPacket_PS);
 							JAM_UnlockMB(Base_PS);
 							JAM_CloseMB(Base_PS);
@@ -758,7 +758,7 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 
 					if(res)
 					{
-				      printf(" Failed to copy message %ld (disk full?), cannot pack messagebase\n",num+basenum);
+				      printf(" Failed to copy message %d (disk full?), cannot pack messagebase\n",num+basenum);
 						JAM_UnlockMB(Base_PS);
 						JAM_CloseMB(Base_PS);
 						JAM_UnlockMB(NewBase_PS);
@@ -838,7 +838,7 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 			return(FALSE);
 		}
 
-      printf(" %ld deleted messages removed from messagebase\n",del);
+      printf(" %d deleted messages removed from messagebase\n",del);
    }
 	else
 	{
@@ -853,13 +853,13 @@ bool ProcessAreaJAM(struct Area *area,bool maint, bool pack, bool verbose)
 
 /************************** end of messagebases *******************/
 
-uchar cfgbuf[4000];
+char cfgbuf[4000];
 
-bool ReadConfig(uchar *file)
+bool ReadConfig(char *file)
 {
    osFile fh;
-   uchar cfgword[20];
-   uchar tag[80],aka[80],path[80],mb[20];
+   char cfgword[20];
+   char tag[80],aka[80],path[80],mb[20];
    struct Area *tmparea,*LastArea;
    uint32_t jbcpos;
 
@@ -926,7 +926,7 @@ bool ReadConfig(uchar *file)
 int main(int argc, char **argv)
 {
    struct Area *area;
-   uchar *cfg;
+   char *cfg;
    bool maint,pack,verbose;
 	int i;
 		
@@ -978,9 +978,9 @@ int main(int argc, char **argv)
 
    if(args[ARG_PATTERN].data)
    {
-      if(!(osCheckPattern((uchar *)args[ARG_PATTERN].data)))
+      if(!(osCheckPattern((char *)args[ARG_PATTERN].data)))
       {
-         printf("Invalid pattern \"%s\"\n",(uchar *)args[ARG_PATTERN].data);
+         printf("Invalid pattern \"%s\"\n",(char *)args[ARG_PATTERN].data);
          osEnd();
          exit(OS_EXIT_ERROR);
       }
@@ -992,7 +992,7 @@ int main(int argc, char **argv)
 		cfg=OS_CONFIG_NAME;
 
    if(args[ARG_SETTINGS].data)
-      cfg=(uchar *)args[ARG_SETTINGS].data;
+      cfg=(char *)args[ARG_SETTINGS].data;
 
    if(!(ReadConfig(cfg)))
    {
@@ -1010,7 +1010,7 @@ int main(int argc, char **argv)
       if(!args[ARG_PATTERN].data)
          match=TRUE;
 
-      else if(osMatchPattern((uchar *)args[ARG_PATTERN].data,area->Tagname))
+      else if(osMatchPattern((char *)args[ARG_PATTERN].data,area->Tagname))
          match=TRUE;
 
       if(match)

@@ -1,10 +1,6 @@
 #ifndef SHARED_TYPES_H
 #define SHARED_TYPES_H
 
-#ifndef NO_TYPEDEF_UCHAR
-typedef unsigned char uchar;
-#endif
-
 #ifndef NO_TYPEDEF_BOOL
 typedef int bool;
 #endif

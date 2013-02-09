@@ -7,7 +7,7 @@
 #include <oslib/os.h>
 #include <oslib/osmem.h>
 
-struct expr *expr_get(struct expr *expr,int *errpos,uchar **errstr)
+struct expr *expr_get(struct expr *expr,int *errpos,char **errstr)
 {
    int c,d,len,start;
    bool hasnot,hasquote,stop;
@@ -146,7 +146,7 @@ struct expr *expr_get(struct expr *expr,int *errpos,uchar **errstr)
    return(res);
 }
 
-struct expr *expr_getrest(struct expr *expr,int *errpos,uchar **errstr)
+struct expr *expr_getrest(struct expr *expr,int *errpos,char **errstr)
 {
    int c,d,start,len;
    struct expr *res;
@@ -192,7 +192,7 @@ struct expr *expr_getrest(struct expr *expr,int *errpos,uchar **errstr)
    return(res);
 }
 
-struct expr *expr_makeexpr(uchar *str)
+struct expr *expr_makeexpr(char *str)
 {
    struct expr *expr;
 
@@ -218,7 +218,7 @@ void expr_free(struct expr *expr)
    osFree(expr);
 }
 
-int expr_eval(struct expr *expr,int (*eval)(uchar *str,int *errpos,uchar **errstr),int *errpos,uchar **errstr)
+int expr_eval(struct expr *expr,int (*eval)(char *str,int *errpos,char **errstr),int *errpos,char **errstr)
 {
    struct expr *e1,*e2,*e3;
 
