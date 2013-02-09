@@ -78,7 +78,7 @@ bool ReadPkt(char *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(st
    osFile fh;
    struct Aka *tmpaka;
    struct ConfigNode *tmpcnode;
-   uint32_t rlen,msgnum,msgoffset;
+   uint32_t msgnum,msgoffset;
    char buf[200];
    char PktHeader[SIZE_PKTHEADER];
    char PktMsgHeader[SIZE_PKTMSGHEADER];
@@ -396,7 +396,7 @@ bool ReadPkt(char *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(st
 
       messageend=FALSE;
 
-      rlen=ReadCR(buf,200,fh);
+      ReadCR(buf,200,fh);
 
       /* Echomail or netmail? */
 
@@ -419,7 +419,7 @@ bool ReadPkt(char *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(st
 
       while(!messageend)
       {
-         rlen=ReadCR(buf,200,fh);
+         ReadCR(buf,200,fh);
 
          if(shortread)
          {

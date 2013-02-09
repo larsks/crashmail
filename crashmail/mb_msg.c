@@ -167,7 +167,6 @@ bool msg_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
 
 bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct MemMessage *mm),bool isrescanning)
 {
-   uint32_t rlen;
    char buf[200],buf2[50];
    bool kludgeadd;
    osFile fh;
@@ -236,7 +235,7 @@ bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct M
 
    do
    {
-      rlen=msg_ReadCR(buf,200,fh);
+      msg_ReadCR(buf,200,fh);
 
       if(buf[0]!=1 && buf[0]!=10 && !kludgeadd)
       {
