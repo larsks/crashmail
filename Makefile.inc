@@ -4,5 +4,5 @@ STRIP = strip
 INSTALL = install
 
 CPPFLAGS = -DPLATFORM_LINUX -D__LINUX__ -I$(PWD) $(OPTCPPFLAGS)
-CFLAGS =
+CFLAGS = -Wall -Werror
 
