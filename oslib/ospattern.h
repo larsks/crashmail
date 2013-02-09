@@ -3,8 +3,8 @@
 
 #include "shared/types.h"
 
-bool osCheckPattern(uchar *pattern);
-bool osMatchPattern(uchar *pattern,uchar *str);
-bool osIsPattern(uchar *pattern);
+bool osCheckPattern(char *pattern);
+bool osMatchPattern(char *pattern,char *str);
+bool osIsPattern(char *pattern);
 
 #endif

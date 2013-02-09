@@ -61,14 +61,14 @@ struct v7p_datheader
    short Zone,Net,Node,HubNode;
    short CallCost,MsgFee,NodeFlags;
 
-   uchar ModemType;
-   uchar Phone_len;
-   uchar Password_len;
-   uchar Bname_len;
-   uchar Sname_len;
-   uchar Cname_len;
-   uchar pack_len;
-   uchar BaudRate;
+   char ModemType;
+   char Phone_len;
+   char Password_len;
+   char Bname_len;
+   char Sname_len;
+   char Cname_len;
+   char pack_len;
+   char BaudRate;
 };
 
 osFile v7p_ndxfh;
@@ -80,12 +80,12 @@ uint16_t v7p_ndxrecsize;
 struct v7p_ndxcontrol v7p_ndxcontrol;
 struct v7p_datheader v7p_datheader;
 
-uchar v7p_ndxbuf[V7P_NDXBUFSIZE];
+char v7p_ndxbuf[V7P_NDXBUFSIZE];
 
-int v7p_ndxcompare(uchar *d1,uchar *d2,int len)
+int v7p_ndxcompare(char *d1,char *d2,int len)
 {
    struct Node4D n1,n2;
-   /* uchar b1[100],b2[100]; */
+   /* char b1[100],b2[100]; */
 
    if(len != 8 && len != 6)
       return(-1); /* Weird, but definitely not a match */
@@ -133,7 +133,7 @@ bool v7p_findoffset(struct Node4D *node,uint32_t *offset)
       {
          v7p_ndxindexkey=(struct v7p_ndxindexkey *)(v7p_ndxbuf+sizeof(struct v7p_ndxindex)+i*sizeof(struct v7p_ndxindexkey));
 
-         if(v7p_ndxcompare(v7p_ndxbuf+v7p_ndxindexkey->offset,(uchar *)node,v7p_ndxindexkey->len) > 0)
+         if(v7p_ndxcompare(v7p_ndxbuf+v7p_ndxindexkey->offset,(char *)node,v7p_ndxindexkey->len) > 0)
             break;
       }
 
@@ -160,7 +160,7 @@ bool v7p_findoffset(struct Node4D *node,uint32_t *offset)
    {
       v7p_ndxleafkey=(struct v7p_ndxleafkey *)(v7p_ndxbuf+sizeof(struct v7p_ndxleaf)+i*sizeof(struct v7p_ndxleafkey));
 
-      res=v7p_ndxcompare(v7p_ndxbuf+v7p_ndxleafkey->offset,(uchar *)node,v7p_ndxleafkey->len);
+      res=v7p_ndxcompare(v7p_ndxbuf+v7p_ndxleafkey->offset,(char *)node,v7p_ndxleafkey->len);
 
       if(res > 0)
       {
@@ -179,11 +179,11 @@ bool v7p_findoffset(struct Node4D *node,uint32_t *offset)
    return(TRUE);
 }
 
-uint32_t v7p_unpack(uchar *dest,uchar *pack,uint32_t size)
+uint32_t v7p_unpack(char *dest,char *pack,uint32_t size)
 {
    uint32_t c,d;
    uint16_t w;
-   uchar *table=" EANROSTILCHBDMUGPKYWFVJXZQ-'0123456789";
+   char *table=" EANROSTILCHBDMUGPKYWFVJXZQ-'0123456789";
 
    d=0;
 
@@ -209,7 +209,7 @@ uint32_t v7p_unpack(uchar *dest,uchar *pack,uint32_t size)
 bool v7p_gethubregion(uint32_t datoffset,uint32_t *hub,uint32_t *region)
 {
    uint32_t dtpoffset,sum;
-   uchar *junk,*unpacked;
+   char *junk,*unpacked;
    int sz,d,c;
 
    osSeek(v7p_datfh,datoffset,OFFSET_BEGINNING);
@@ -300,9 +300,9 @@ bool v7p_gethubregion(uint32_t datoffset,uint32_t *hub,uint32_t *region)
    return(TRUE);
 }
 
-bool v7p_nlStart(uchar *errbuf)
+bool v7p_nlStart(char *errbuf)
 {
-   uchar ndxname[120],datname[120],dtpname[120];
+   char ndxname[120],datname[120],dtpname[120];
 
 	MakeFullPath(config.cfg_Nodelist,V7P_NDXFILENAME,ndxname,120);
 	MakeFullPath(config.cfg_Nodelist,V7P_DATFILENAME,datname,120);
@@ -340,7 +340,7 @@ bool v7p_nlStart(uchar *errbuf)
 
    if(v7p_ndxrecsize > V7P_NDXBUFSIZE)
    {
-      sprintf(errbuf,"Record size of V7+ nodelist is too big (%d uchars, max is %d uchars)",v7p_ndxrecsize,V7P_NDXBUFSIZE);
+      sprintf(errbuf,"Record size of V7+ nodelist is too big (%d chars, max is %d chars)",v7p_ndxrecsize,V7P_NDXBUFSIZE);
       osClose(v7p_ndxfh);
       osClose(v7p_datfh);
       osClose(v7p_dtpfh);
@@ -413,7 +413,7 @@ long v7p_nlGetRegion(struct Node4D *node)
 /* for testing
 int main(int argc, char **argv)
 {
-   uchar err[200];
+   char err[200];
    struct Node4D n;
 
    nlname=argv[1];
@@ -426,9 +426,9 @@ int main(int argc, char **argv)
 
    Parse4D(argv[2],&n);
 
-   printf(" check: %ld\n",v7p_nlCheckNode(&n));
-   printf("   hub: %ld\n",v7p_nlGetHub(&n));
-   printf("region: %ld\n",v7p_nlGetRegion(&n));
+   printf(" check: %d\n",v7p_nlCheckNode(&n));
+   printf("   hub: %d\n",v7p_nlGetHub(&n));
+   printf("region: %d\n",v7p_nlGetRegion(&n));
 
    v7p_nlEnd();
 

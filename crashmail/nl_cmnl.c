@@ -3,7 +3,7 @@
 
 osFile nlfh;
 
-bool cmnl_nlStart(uchar *errbuf)
+bool cmnl_nlStart(char *errbuf)
 {
 	if(!(nlfh=cmnlOpenNL(config.cfg_Nodelist)))
    {

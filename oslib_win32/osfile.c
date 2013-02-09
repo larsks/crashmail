@@ -16,7 +16,7 @@
 struct osfile
 {
    HANDLE h;
-   uchar *buf;
+   char *buf;
    int lastaccessmode;
    ulong bufmax;
    ulong buflen;
@@ -92,7 +92,7 @@ bool win32setmodewrite(struct osfile *osf)
    return(TRUE);
 }
 
-osFile osOpen(uchar *name,ulong mode)
+osFile osOpen(char *name,ulong mode)
 {
    DWORD desiredaccess;
    DWORD sharemode;
@@ -229,7 +229,7 @@ int osGetChar(osFile os)
    return(osf->buf[osf->bufpos++]);
 }
 
-ulong osFGets(osFile os,uchar *str,ulong max)
+ulong osFGets(osFile os,char *str,ulong max)
 {
    ulong d;
    int ch;
@@ -306,7 +306,7 @@ bool osWrite(osFile os,const void *buf,ulong bytes)
    return(TRUE);
 }
 
-bool osPutChar(osFile os, uchar ch)
+bool osPutChar(osFile os, char ch)
 {
    struct osfile *osf=(struct osfile *)os;
 
@@ -324,7 +324,7 @@ bool osPutChar(osFile os, uchar ch)
    return(TRUE);
 }
 
-bool osPuts(osFile os,uchar *str)
+bool osPuts(osFile os,char *str)
 {
    if(osWrite(os,str,strlen(str))!=strlen(str))
 		return(FALSE);
@@ -332,10 +332,10 @@ bool osPuts(osFile os,uchar *str)
 	return(TRUE);
 }
 
-bool osFPrintf(osFile os,uchar *fmt,...)
+bool osFPrintf(osFile os,char *fmt,...)
 {
    va_list args;
-   uchar buf[1000];
+   char buf[1000];
 	
    va_start(args, fmt);
    vsprintf(buf,fmt,args);
@@ -344,9 +344,9 @@ bool osFPrintf(osFile os,uchar *fmt,...)
    return osPuts(os,buf);
 }
 
-bool osVFPrintf(osFile os,uchar *fmt,va_list args)
+bool osVFPrintf(osFile os,char *fmt,va_list args)
 {
-   uchar buf[1000];
+   char buf[1000];
 	
    vsprintf(buf,fmt,args);
 

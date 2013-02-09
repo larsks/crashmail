@@ -1,9 +1,9 @@
 #include "crashmail.h"
 
-bool rawParse4DPat(uchar *buf, struct Node4DPat *node)
+bool rawParse4DPat(char *buf, struct Node4DPat *node)
 {
    uint32_t c=0,tempc=0;
-   uchar temp[10];
+   char temp[10];
    bool GotZone=FALSE,GotNet=FALSE,GotNode=FALSE;
 
    strcpy(node->Zone,"*");
@@ -66,7 +66,7 @@ bool rawParse4DPat(uchar *buf, struct Node4DPat *node)
    return(TRUE);
 }
 
-bool Parse4DPat(uchar *buf, struct Node4DPat *node)
+bool Parse4DPat(char *buf, struct Node4DPat *node)
 {
    bool res;
 
@@ -119,7 +119,7 @@ bool Parse4DPat(uchar *buf, struct Node4DPat *node)
    return(res);
 }
 
-bool Parse4DDestPat(uchar *buf, struct Node4DPat *node)
+bool Parse4DDestPat(char *buf, struct Node4DPat *node)
 {
    bool res;
 
@@ -159,9 +159,10 @@ bool Parse4DDestPat(uchar *buf, struct Node4DPat *node)
    return(res);
 }
 
-int NodeCompare(uchar *pat,uint16_t num)
+int NodeCompare(char *pat,uint16_t num)
 {
-   uchar buf[10],c;
+   char buf[10];
+   uint8_t c;
    sprintf(buf,"%u",num);
 
    if(pat[0]==0) return(0);
@@ -253,7 +254,7 @@ int Compare4DPat(struct Node4DPat *nodepat,struct Node4D *node)
 	return(1);
 }
 
-void Print4DPat(struct Node4DPat *pat,uchar *dest)
+void Print4DPat(struct Node4DPat *pat,char *dest)
 {
    switch(pat->Type)
    {
@@ -278,7 +279,7 @@ void Print4DPat(struct Node4DPat *pat,uchar *dest)
    }
 }
 
-void Print4DDestPat(struct Node4DPat *pat,uchar *dest)
+void Print4DDestPat(struct Node4DPat *pat,char *dest)
 {
    switch(pat->Type)
    {
@@ -311,10 +312,10 @@ bool Check4DPatNodelist(struct Node4DPat *pat)
    return(TRUE);
 }
 
-bool Parse2DPat(uchar *buf, struct Node2DPat *node)
+bool Parse2DPat(char *buf, struct Node2DPat *node)
 {
    uint32_t c=0,tempc=0;
-   uchar temp[10];
+   char temp[10];
    bool GotNet=FALSE;
 
    strcpy(node->Net,"*");
@@ -356,7 +357,7 @@ int Compare2DPat(struct Node2DPat *nodepat,uint16_t net,uint16_t node)
 
 /* Expand destpat */
 
-bool iswildcard(uchar *str)
+bool iswildcard(char *str)
 {
    int c;
 

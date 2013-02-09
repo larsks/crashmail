@@ -24,7 +24,7 @@
 #define VERSION_MINOR 1
 
 #ifdef PLATFORM_AMIGA
-uchar *ver="$VER: CrashWrite "VERSION" ("__COMMODORE_DATE__")";
+char *ver="$VER: CrashWrite "VERSION" ("__COMMODORE_DATE__")";
 #endif
 
 #define DEFAULT_TONAME "All"
@@ -64,27 +64,27 @@ struct argument args[] =
      { ARGTYPE_STRING, "PASSWORD",      0,                 NULL },
      { ARGTYPE_END,     NULL,           0,                 0    } };
 
-uchar PktMsgHeader[SIZE_PKTMSGHEADER];
-uchar PktHeader[SIZE_PKTHEADER];
+char PktMsgHeader[SIZE_PKTMSGHEADER];
+char PktHeader[SIZE_PKTHEADER];
 
 bool nomem,diskfull;
 
-uint16_t getuword(uchar *buf,uint32_t offset)
+uint16_t getuword(char *buf,uint32_t offset)
 {
    return (uint16_t)(buf[offset]+256*buf[offset+1]);
 }
 
-void putuword(uchar *buf,uint32_t offset,uint16_t num)
+void putuword(char *buf,uint32_t offset,uint16_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
 }
 
-void MakeFidoDate(time_t tim,uchar *dest)
+void MakeFidoDate(time_t tim,char *dest)
 {
    struct tm *tp;
    time_t t;
-   uchar *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
+   char *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
 
    t=tim;
    tp=localtime(&t);
@@ -98,7 +98,7 @@ void MakeFidoDate(time_t tim,uchar *dest)
       tp->tm_sec);
 }
 
-void WriteNull(osFile ofh,uchar *str)
+void WriteNull(osFile ofh,char *str)
 {
    osWrite(ofh,str,(uint32_t)(strlen(str)+1));
 }
@@ -111,8 +111,8 @@ int main(int argc, char **argv)
 	struct tm *tp;
 	uint32_t pktnum,c,serial;
 	uint16_t attr;
-	uchar fromname[36],toname[36],subject[72],datetime[20],origin[80];
-	uchar pktname[30],fullname[200],readbuf[100];
+	char fromname[36],toname[36],subject[72],datetime[20],origin[80];
+	char pktname[30],fullname[200],readbuf[100];
 	int i;
 	
 	from4d.Zone=0;
@@ -149,9 +149,9 @@ int main(int argc, char **argv)
 
    if(args[ARG_FROMADDR].data)
    {
-      if(!(Parse4D((uchar *)args[ARG_FROMADDR].data,&from4d)))
+      if(!(Parse4D((char *)args[ARG_FROMADDR].data,&from4d)))
       {
-         printf("Invalid address \"%s\"\n",(uchar *)args[ARG_FROMADDR].data);
+         printf("Invalid address \"%s\"\n",(char *)args[ARG_FROMADDR].data);
 			osEnd();
 			exit(OS_EXIT_ERROR);
       }
@@ -159,9 +159,9 @@ int main(int argc, char **argv)
 
    if(args[ARG_TOADDR].data)
    {
-      if(!(Parse4D((uchar *)args[ARG_TOADDR].data,&to4d)))
+      if(!(Parse4D((char *)args[ARG_TOADDR].data,&to4d)))
       {
-         printf("Invalid address \"%s\"\n",(uchar *)args[ARG_TOADDR].data);
+         printf("Invalid address \"%s\"\n",(char *)args[ARG_TOADDR].data);
 			osEnd();
 			exit(OS_EXIT_ERROR);
       }
@@ -172,9 +172,9 @@ int main(int argc, char **argv)
 
    if(args[ARG_PKTFROMADDR].data)
    {
-      if(!(Parse4D((uchar *)args[ARG_PKTFROMADDR].data,&pktfrom4d)))
+      if(!(Parse4D((char *)args[ARG_PKTFROMADDR].data,&pktfrom4d)))
       {
-         printf("Invalid address \"%s\"\n",(uchar *)args[ARG_PKTFROMADDR].data);
+         printf("Invalid address \"%s\"\n",(char *)args[ARG_PKTFROMADDR].data);
 			osEnd();
 			exit(OS_EXIT_ERROR);
       }
@@ -182,9 +182,9 @@ int main(int argc, char **argv)
 
    if(args[ARG_PKTTOADDR].data)
    {
-      if(!(Parse4D((uchar *)args[ARG_PKTTOADDR].data,&pktto4d)))
+      if(!(Parse4D((char *)args[ARG_PKTTOADDR].data,&pktto4d)))
       {
-         printf("Invalid address \"%s\"\n",(uchar *)args[ARG_PKTTOADDR].data);
+         printf("Invalid address \"%s\"\n",(char *)args[ARG_PKTTOADDR].data);
 			osEnd();
 			exit(OS_EXIT_ERROR);
       }
@@ -254,10 +254,10 @@ int main(int argc, char **argv)
 	mystrncpy(subject,DEFAULT_SUBJECT,72);
 	mystrncpy(origin,DEFAULT_ORIGIN,80);
 	
-	if(args[ARG_FROMNAME].data) mystrncpy(fromname,(uchar *)args[ARG_FROMNAME].data,36);
-	if(args[ARG_TONAME].data)   mystrncpy(toname,(uchar *)args[ARG_TONAME].data,36);
-	if(args[ARG_SUBJECT].data)  mystrncpy(subject,(uchar *)args[ARG_SUBJECT].data,72);
-	if(args[ARG_ORIGIN].data)   mystrncpy(origin,(uchar *)args[ARG_ORIGIN].data,80);
+	if(args[ARG_FROMNAME].data) mystrncpy(fromname,(char *)args[ARG_FROMNAME].data,36);
+	if(args[ARG_TONAME].data)   mystrncpy(toname,(char *)args[ARG_TONAME].data,36);
+	if(args[ARG_SUBJECT].data)  mystrncpy(subject,(char *)args[ARG_SUBJECT].data,72);
+	if(args[ARG_ORIGIN].data)   mystrncpy(origin,(char *)args[ARG_ORIGIN].data,80);
 
 	MakeFidoDate(t,datetime);
 
@@ -304,29 +304,29 @@ int main(int argc, char **argv)
    else
    {
       if(from4d.Point)
-         osFPrintf(ofh,"\x01" "FMPT %ld\x0d",from4d.Point);
+         osFPrintf(ofh,"\x01" "FMPT %d\x0d",from4d.Point);
 
       if(to4d.Point)
-         osFPrintf(ofh,"\x01" "TOPT %ld\x0d",to4d.Point);
+         osFPrintf(ofh,"\x01" "TOPT %d\x0d",to4d.Point);
 
-      osFPrintf(ofh,"\x01" "INTL %lu:%lu/%lu %lu:%lu/%lu\x0d",to4d.Zone,to4d.Net,to4d.Node,
+      osFPrintf(ofh,"\x01" "INTL %u:%u/%u %u:%u/%u\x0d",to4d.Zone,to4d.Net,to4d.Node,
 																			  from4d.Zone,from4d.Net,from4d.Node);
    }
 
    if(!args[ARG_NOMSGID].data)
    {
-      osFPrintf(ofh,"\x01" "MSGID: %u:%u/%u.%u %08lx\x0d",
+      osFPrintf(ofh,"\x01" "MSGID: %u:%u/%u.%u %08x\x0d",
          from4d.Zone,from4d.Net,from4d.Node,from4d.Point,pktnum);
 	}
 
 	if(args[ARG_TEXT].data)
 	{
-		printf("Appending %s...\n",(uchar *)args[ARG_TEXT].data);
+		printf("Appending %s...\n",(char *)args[ARG_TEXT].data);
 		
-	   if(!(ifh=osOpen((uchar *)args[ARG_TEXT].data,MODE_OLDFILE)))
+	   if(!(ifh=osOpen((char *)args[ARG_TEXT].data,MODE_OLDFILE)))
    	{
 			uint32_t err=osError();
-      	printf("Unable to open \"%s\" for reading\n",(uchar *)args[ARG_TEXT].data);
+      	printf("Unable to open \"%s\" for reading\n",(char *)args[ARG_TEXT].data);
 			printf("Error: %s\n",osErrorMsg(err));		
 			osClose(ofh);
 			osDelete(fullname);

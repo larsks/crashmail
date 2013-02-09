@@ -72,13 +72,13 @@ struct Area
    struct Area *Next;
    bool changed;
    struct Aka  *Aka;
-   uchar Flags;
-   uchar AreaType;
-   uchar Tagname[80];
-   uchar Description[80];
+   char Flags;
+   char AreaType;
+   char Tagname[80];
+   char Description[80];
    struct Messagebase *Messagebase;
-   uchar Path[80];
-   uchar Group;
+   char Path[80];
+   char Group;
 
    struct jbList TossNodes;
    struct jbList BannedNodes;
@@ -106,7 +106,7 @@ struct Aka
 {
    struct Aka *Next;
    struct Node4D Node;
-   uchar Domain[20];
+   char Domain[20];
    struct jbList AddList;
    struct jbList RemList;
 };
@@ -148,7 +148,7 @@ struct BannedNode
 struct RemoteAFCommand
 {
    struct RemoteAFCommand *Next;
-   uchar Command[80];
+   char Command[80];
 };
 
 struct ConfigNode
@@ -156,25 +156,25 @@ struct ConfigNode
    struct ConfigNode *Next;
    bool changed;
    struct Node4D Node;
-   uchar PacketPW[9];
+   char PacketPW[9];
    struct Packer *Packer;
    bool IsInSeenBy;
-   uchar AreafixPW[40];
-   uchar Groups[30];
-   uchar ReadOnlyGroups[30];
-   uchar AddGroups[30];
-   uchar DefaultGroup;
+   char AreafixPW[40];
+   char Groups[30];
+   char ReadOnlyGroups[30];
+   char AddGroups[30];
+   char DefaultGroup;
    uint32_t Flags;
-   uchar SysopName[36];
-   uchar EchomailPri;
+   char SysopName[36];
+   char EchomailPri;
    struct Node4D PktFrom;
 	
-   uchar RemoteAFName[36];
-   uchar RemoteAFPw[72];
+   char RemoteAFName[36];
+   char RemoteAFPw[72];
 
    struct jbList RemoteAFList;
 
-   uchar LastArcName[12];
+   char LastArcName[12];
 	
    /* Stats */
 
@@ -196,10 +196,10 @@ struct ConfigNode
 struct Packer
 {
    struct Packer *Next;
-   uchar Name[10];
-   uchar Packer[80];
-   uchar Unpacker[80];
-   uchar Recog[80];
+   char Name[10];
+   char Packer[80];
+   char Unpacker[80];
+   char Recog[80];
 };
 
 struct AddNode
@@ -242,13 +242,13 @@ struct Change
    bool ChangeCrash;
    bool ChangeDirect;
    bool ChangeHold;
-   uchar DestPri;
+   char DestPri;
 };
 
 struct AreaFixName
 {
    struct AreaFixName *Next;
-   uchar Name[36];
+   char Name[36];
 };
 
 #define AREALIST_DESC     1
@@ -258,9 +258,9 @@ struct Arealist
 {
    struct Arealist *Next;
    struct ConfigNode *Node;
-   uchar AreaFile[80];
+   char AreaFile[80];
    uint16_t Flags;
-   uchar Group;
+   char Group;
 };
 
 #define COMMAND_KILL 		  1
@@ -277,7 +277,7 @@ struct Command
 {
 	struct Command *Next;
 	uint16_t Cmd;
-	uchar *string;
+	char *string;
 	struct Node4D n4d;
 	struct Node4DPat n4ddestpat;
 };
@@ -285,7 +285,7 @@ struct Command
 struct Filter
 {
    struct Filter *Next;
-   uchar Filter[400];
+   char Filter[400];
 	struct jbList CommandList;
 };
 
@@ -300,28 +300,28 @@ struct Filter
 struct Config
 {
    bool changed;
-   uchar filename[100];
+   char filename[100];
    
-   uchar cfg_Sysop[36];
-   uchar cfg_Inbound[100];
-   uchar cfg_Outbound[100];
-   uchar cfg_TempDir[100];
-   uchar cfg_PacketCreate[100];
-   uchar cfg_PacketDir[100];
-   uchar cfg_LogFile[100];
-   uchar cfg_StatsFile[100];
-   uchar cfg_DupeFile[100];
-   uchar cfg_BeforeToss[80];
-   uchar cfg_BeforePack[80];
+   char cfg_Sysop[36];
+   char cfg_Inbound[100];
+   char cfg_Outbound[100];
+   char cfg_TempDir[100];
+   char cfg_PacketCreate[100];
+   char cfg_PacketDir[100];
+   char cfg_LogFile[100];
+   char cfg_StatsFile[100];
+   char cfg_DupeFile[100];
+   char cfg_BeforeToss[80];
+   char cfg_BeforePack[80];
    uint32_t cfg_LogLevel;
    uint32_t cfg_DupeSize;
    uint32_t cfg_MaxPktSize;
    uint32_t cfg_MaxBundleSize;
-   uchar cfg_AreaFixHelp[100];
-   uchar cfg_Nodelist[100];
+   char cfg_AreaFixHelp[100];
+   char cfg_Nodelist[100];
    struct Nodelist *cfg_NodelistType;
    uint32_t cfg_AreaFixMaxLines;
-   uchar cfg_GroupNames[30][80];
+   char cfg_GroupNames[30][80];
    uint32_t cfg_Flags;
    uint16_t cfg_DupeMode;
    uint16_t cfg_LoopMode;
@@ -345,12 +345,12 @@ struct Config
 #endif
 
 #ifdef MSGBASE_UMS
-   uchar cfg_ums_RFCGatewayName[40];
+   char cfg_ums_RFCGatewayName[40];
    struct Node4D cfg_ums_RFCGatewayNode;
-   uchar cfg_ums_LoginName[80];
-   uchar cfg_ums_LoginPassword[80];
-   uchar cfg_ums_LoginServer[80];
-   uchar cfg_ums_GatewayName[36];
+   char cfg_ums_LoginName[80];
+   char cfg_ums_LoginPassword[80];
+   char cfg_ums_LoginServer[80];
+   char cfg_ums_GatewayName[36];
    uint32_t cfg_ums_Flags;
 #endif
 
@@ -364,12 +364,12 @@ struct Config
 #endif
 };
 
-bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,uint32_t *cfgline,uchar *cfgerr);
-bool UpdateConfig(struct Config *cfg,uchar *cfgerr);
+bool ReadConfig(char *filename,struct Config *cfg,short *seconderr,uint32_t *cfgline,char *cfgerr);
+bool UpdateConfig(struct Config *cfg,char *cfgerr);
 void InitConfig(struct Config *cfg);
 void FreeConfig(struct Config *cfg);
 
-bool CheckConfig(struct Config *cfg,uchar *cfgerr);
+bool CheckConfig(struct Config *cfg,char *cfgerr);
 /* Should not be called in prefs */
 
 #endif

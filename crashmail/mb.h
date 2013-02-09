@@ -7,8 +7,8 @@
 
 struct Messagebase
 {
-   uchar *name;
-   uchar *desc;
+   char *name;
+   char *desc;
    bool active;
    bool (*beforefunc)(void);
    bool (*afterfunc)(bool success);

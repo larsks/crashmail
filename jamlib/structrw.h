@@ -81,6 +81,6 @@ int freadjamlastread(FILE *fp,s_JamLastRead *s_JamLastRead);
 int fwritejamlastread(FILE *fp,s_JamLastRead *s_JamLastRead);
 
 int fwritejamsavesubfield(FILE *fp,s_JamSaveSubfield *s_JamSaveSubfield);
-void getjamsubfield(uchar *buf,s_JamSubfield *Subfield_S);
+void getjamsubfield(char *buf,s_JamSubfield *Subfield_S);
 
 

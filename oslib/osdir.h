@@ -8,13 +8,13 @@
 struct osFileEntry
 {
    struct osFileEntry *Next;
-   uchar Name[100];
+   char Name[100];
    time_t Date;
    uint32_t Size;
 };
 
-bool osReadDir(uchar *dir,struct jbList *filelist,bool (*acceptfunc)(uchar *filename));
-bool osScanDir(uchar *dir,void (*func)(uchar *file));
-struct osFileEntry *osGetFileEntry(uchar *file);
+bool osReadDir(char *dir,struct jbList *filelist,bool (*acceptfunc)(char *filename));
+bool osScanDir(char *dir,void (*func)(char *file));
+struct osFileEntry *osGetFileEntry(char *file);
 
 #endif

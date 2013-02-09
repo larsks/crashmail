@@ -21,7 +21,7 @@
 #define COPYRIGHT "1998"
 
 #ifdef PLATFORM_AMIGA
-uchar *ver="$VER: CrashStats "VERSION" ("__COMMODORE_DATE__")";
+char *ver="$VER: CrashStats "VERSION" ("__COMMODORE_DATE__")";
 #endif
 
 #define STATS_IDENTIFIER   "CST3"
@@ -30,11 +30,11 @@ static size_t ptrsize = sizeof(void *);
 
 struct DiskAreaStats
 {
-   uchar Tagname[80];
+   char Tagname[80];
    struct Node4D Aka;
 
-   uchar Group;
-   uchar fill_to_make_even; /* Just ignore this one */
+   char Group;
+   char fill_to_make_even; /* Just ignore this one */
 
    uint32_t TotalTexts;
    uint16_t Last8Days[8];
@@ -62,7 +62,7 @@ struct DiskNodeStats
 struct StatsNode
 {
    struct StatsNode *Next;
-   uchar Tagname[80];
+   char Tagname[80];
    uint32_t Average;
    uint32_t Total;
    uint32_t Dupes;
@@ -176,7 +176,7 @@ int CompareLastTime(const void *a1,const void *a2)
    return(0);
 }
 
-bool Sort(struct jbList *list,uchar sortmode)
+bool Sort(struct jbList *list,char sortmode)
 {
    uint32_t nc;
    struct StatsNode *sn,**buf,**work;
@@ -271,16 +271,16 @@ bool SortNodes(struct jbList *list)
 	return(TRUE);
 }
 
-char *unit(long i)
+char *unit(uint32_t i)
 {
    static char buf[40];
-   if ((i>10000000)||(i<-10000000)) sprintf(buf,"%ld MB",i/(1024*1024));
-   else if ((i>10000)||(i<-10000)) sprintf(buf,"%ld KB",i/1024);
-   else sprintf(buf,"%ld bytes",i);
+   if ((i>10000000)||(i<-10000000)) sprintf(buf,"%d MB",i/(1024*1024));
+   else if ((i>10000)||(i<-10000)) sprintf(buf,"%d KB",i/1024);
+   else sprintf(buf,"%d bytes",i);
    return buf;
 }
 
-bool CheckFlags(uchar group,uchar *node)
+bool CheckFlags(char group,char *node)
 {
    int c;
 
@@ -335,7 +335,7 @@ int main(int argc, char **argv)
    uint32_t total,areas,totaldupes;
    time_t firsttime,t;
    uint32_t DayStatsWritten;
-   uchar buf[200],date[30],date2[30];
+   char buf[200],date[30],date2[30];
    struct DiskAreaStats dastat;
    struct DiskNodeStats dnstat;
    struct StatsNode *sn;
@@ -344,9 +344,9 @@ int main(int argc, char **argv)
    struct jbList NodesList;
    uint32_t c,num,tot;
    uint16_t total8days[8];
-   uchar sortmode;
+   char sortmode;
    struct tm *tp;
-   uchar *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
+   char *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
 
    signal(SIGINT,breakfunc);
          
@@ -375,7 +375,7 @@ int main(int argc, char **argv)
    sortmode='a';
    
    if(args[ARG_SORT].data)
-      sortmode=tolower(((uchar *)args[ARG_SORT].data)[0]);
+      sortmode=tolower(((char *)args[ARG_SORT].data)[0]);
       
    if(!strchr("amtdlu",sortmode))
    {
@@ -558,7 +558,7 @@ int main(int argc, char **argv)
                for(c=1;c<8;c++)
                   tot+=sn->Last8Days[c];
 
-               printf("%-33.33s %4d %4d %4d %4d %4d %4d %4d : %5ld\n",
+               printf("%-33.33s %4d %4d %4d %4d %4d %4d %4d : %5d\n",
                   sn->Tagname,
                   sn->Last8Days[1],
                   sn->Last8Days[2],
@@ -583,9 +583,9 @@ int main(int argc, char **argv)
                   tot+=total8days[c];
 
                printf("=============================================================================\n");
-               sprintf(buf,"Totally in all %lu areas",areas);
+               sprintf(buf,"Totally in all %u areas",areas);
 
-               printf("%-33.33s %4d %4d %4d %4d %4d %4d %4d : %5ld\n",
+               printf("%-33.33s %4d %4d %4d %4d %4d %4d %4d : %5d\n",
                   buf,
                   total8days[1],
                   total8days[2],
@@ -634,15 +634,15 @@ int main(int argc, char **argv)
                totaldupes+=sn->Dupes;
                areas++;
 
-               printf("%-30.30s %-9.9s %-9.9s %7ld   %7ld %7ld\n",sn->Tagname,date,date2,sn->Total,sn->Average,sn->Dupes);
+               printf("%-29.30s %-9.9s %-9.9s %7d   %7d %7d\n",sn->Tagname,date,date2,sn->Total,sn->Average,sn->Dupes);
             }
          }
 
          if(!ctrlc)
          {
             printf("============================================================================\n");
-            sprintf(buf,"Totally in all %lu areas",areas);
-            printf("%-42s         %7ld   %7ld %7ld\n",
+            sprintf(buf,"Totally in all %u areas",areas);
+            printf("%-42s         %7d   %7d %7d\n",
                buf,
                total,
                CalculateAverage(&total8days[0],total,DayStatsWritten,firsttime / (24*60*60)),
@@ -674,11 +674,11 @@ int main(int argc, char **argv)
          sprintf(buf,"%u:%u/%u.%u",nsn->Node.Zone,nsn->Node.Net,nsn->Node.Node,nsn->Node.Point);
 
 			printf("%-30.40s Statistics since: %s\n\n",buf,date);
-			printf("                                  Sent netmails: %lu/%s\n",nsn->SentNetmails,unit(nsn->SentNetmailBytes));
-			printf("                              Received netmails: %lu/%s\n",nsn->GotNetmails,unit(nsn->GotNetmailBytes));
-			printf("                                 Sent echomails: %lu/%s\n",nsn->SentEchomails,unit(nsn->SentEchomailBytes));
-			printf("                             Received echomails: %lu/%s\n",nsn->GotEchomails,unit(nsn->GotEchomailBytes));
-			printf("                                          Dupes: %lu\n",nsn->Dupes);
+			printf("                                  Sent netmails: %u/%s\n",nsn->SentNetmails,unit(nsn->SentNetmailBytes));
+			printf("                              Received netmails: %u/%s\n",nsn->GotNetmails,unit(nsn->GotNetmailBytes));
+			printf("                                 Sent echomails: %u/%s\n",nsn->SentEchomails,unit(nsn->SentEchomailBytes));
+			printf("                             Received echomails: %u/%s\n",nsn->GotEchomails,unit(nsn->GotEchomailBytes));
+			printf("                                          Dupes: %u\n",nsn->Dupes);
          printf("\n");
       }
    }

@@ -10,27 +10,27 @@
 
 struct Node4DPat
 {
-   uchar Type;
-   uchar Zone[10];
-   uchar Point[10];
-   uchar Net[10];
-   uchar Node[10];
+   char Type;
+   char Zone[10];
+   char Point[10];
+   char Net[10];
+   char Node[10];
 };
 
 struct Node2DPat
 {
-   uchar Net[10];
-   uchar Node[10];
+   char Net[10];
+   char Node[10];
 };
 
-bool Parse4DPat(uchar *buf, struct Node4DPat *node);
-bool Parse4DDestPat(uchar *buf, struct Node4DPat *node);
+bool Parse4DPat(char *buf, struct Node4DPat *node);
+bool Parse4DDestPat(char *buf, struct Node4DPat *node);
 int Compare4DPat(struct Node4DPat *nodepat,struct Node4D *node);
-void Print4DPat(struct Node4DPat *pat,uchar *dest);
-void Print4DDestPat(struct Node4DPat *pat,uchar *dest);
+void Print4DPat(struct Node4DPat *pat,char *dest);
+void Print4DDestPat(struct Node4DPat *pat,char *dest);
 bool Check4DPatNodelist(struct Node4DPat *pat);
 
-bool Parse2DPat(uchar *buf, struct Node2DPat *node);
+bool Parse2DPat(char *buf, struct Node2DPat *node);
 int Compare2DPat(struct Node2DPat *nodepat,uint16_t net,uint16_t node);
 void ExpandNodePat(struct Node4DPat *temproute,struct Node4D *dest,struct Node4D *sendto);
 

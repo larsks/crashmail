@@ -12,8 +12,8 @@ struct msg_Area
 
 bool msg_GetHighLowMsg(struct msg_Area *area);
 bool msg_WriteHighWater(struct msg_Area *area);
-bool msg_WriteMSG(struct MemMessage *mm,uchar *file);
-uint32_t msg_ReadCR(uchar *buf, uint32_t maxlen, osFile fh);
+bool msg_WriteMSG(struct MemMessage *mm,char *file);
+uint32_t msg_ReadCR(char *buf, uint32_t maxlen, osFile fh);
 bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct MemMessage *mm),bool isrescanning);
 
 struct jbList msg_AreaList;
@@ -68,7 +68,7 @@ bool msg_afterfunc(bool success)
 
 bool msg_importfunc(struct MemMessage *mm,struct Area *area)
 {
-   uchar buf[200],buf2[20];
+   char buf[200],buf2[20];
    struct msg_Area *ma;
 
    if(!(ma=msg_getarea(area)))
@@ -76,13 +76,13 @@ bool msg_importfunc(struct MemMessage *mm,struct Area *area)
 
    ma->HighMsg++;
 
-   sprintf(buf2,"%lu.msg",ma->HighMsg);
+   sprintf(buf2,"%u.msg",ma->HighMsg);
    MakeFullPath(ma->area->Path,buf2,buf,200);
 
    while(osExists(buf))
    {
       ma->HighMsg++;
-      sprintf(buf2,"%lu.msg",ma->HighMsg);
+      sprintf(buf2,"%u.msg",ma->HighMsg);
       MakeFullPath(ma->area->Path,buf2,buf,200);
    }
 
@@ -119,7 +119,7 @@ bool msg_rescanfunc(struct Area *area,uint32_t max,bool (*handlefunc)(struct Mem
 bool msg_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
 {
    uint32_t start;
-   uchar buf[200];
+   char buf[200];
    struct StoredMsg Msg;
    osFile fh;
    struct msg_Area *ma;
@@ -168,7 +168,7 @@ bool msg_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
 bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct MemMessage *mm),bool isrescanning)
 {
    uint32_t rlen;
-   uchar buf[200],buf2[50];
+   char buf[200],buf2[50];
    bool kludgeadd;
    osFile fh;
    struct StoredMsg Msg;
@@ -182,7 +182,7 @@ bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct M
    if(!(mm=mmAlloc()))
       return(FALSE);
 
-   sprintf(buf2,"%lu.msg",num);
+   sprintf(buf2,"%u.msg",num);
    MakeFullPath(area->Path,buf2,buf,200);
 
    if(!(fh=osOpen(buf,MODE_OLDFILE)))
@@ -304,7 +304,7 @@ bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct M
    {
       scan_total++;
 
-      sprintf(buf2,"%lu.msg",num);
+      sprintf(buf2,"%u.msg",num);
       MakeFullPath(area->Path,buf2,buf,200);
 
 		if((config.cfg_Flags & CFG_ALLOWKILLSENT) && (oldattr & FLAG_KILLSENT) && (area->AreaType == AREATYPE_NETMAIL))
@@ -344,7 +344,7 @@ bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct M
 uint32_t msg_templowmsg;
 uint32_t msg_temphighmsg;
 
-void msg_scandirfunc(uchar *file)
+void msg_scandirfunc(char *file)
 {
    if(strlen(file) > 4)
    {
@@ -402,7 +402,7 @@ bool msg_GetHighLowMsg(struct msg_Area *area)
 bool msg_WriteHighWater(struct msg_Area *area)
 {
    osFile fh;
-   uchar buf[200];
+   char buf[200];
    struct StoredMsg Msg;
 
    if(area->HighWater > 65535)
@@ -457,7 +457,7 @@ bool msg_WriteHighWater(struct msg_Area *area)
    return(TRUE);
 }
 
-bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
+bool msg_WriteMSG(struct MemMessage *mm,char *file)
 {
    struct StoredMsg Msg;
    struct TextChunk *chunk;
@@ -524,7 +524,7 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
 
    if((config.cfg_Flags & CFG_IMPORTSEENBY) && mm->Area[0]!=0)
    {
-      uchar *sbbuf;
+      char *sbbuf;
 
       if(!(sbbuf=mmMakeSeenByBuf(&mm->SeenBy)))
       {
@@ -568,7 +568,7 @@ bool msg_WriteMSG(struct MemMessage *mm,uchar *file)
    return(TRUE);
 }
 
-uint32_t msg_ReadCR(uchar *buf, uint32_t maxlen, osFile fh)
+uint32_t msg_ReadCR(char *buf, uint32_t maxlen, osFile fh)
 {
    /* Reads from fh until buffer full or CR */
 

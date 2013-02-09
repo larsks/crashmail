@@ -37,7 +37,7 @@ unsigned long cm_crc32tab[] = { /* CRC polynomial 0xedb88320 */
 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
 
-uint32_t calcstringcrc(uchar *str)
+uint32_t calcstringcrc(char *str)
 {
    uint32_t crc;
    int c;
@@ -78,7 +78,7 @@ void adddupeindex(uint32_t offset,uint32_t crc32)
 
 void copydupe(uint16_t c,osFile oldfh,osFile newfh)
 {
-   uchar buf[300];
+   char buf[300];
    uint16_t size;
 
    osSeek(oldfh,dupebuf[c].offset,OFFSET_BEGINNING);
@@ -108,7 +108,7 @@ void copydupe(uint16_t c,osFile oldfh,osFile newfh)
 
 bool OpenDupeDB(void)
 {
-   uchar buf[300];
+   char buf[300];
    uint32_t offset,crc32,*crc32p;
    uint16_t size,res;
 
@@ -185,7 +185,7 @@ void CloseDupeDB(void)
 {
    osFile newfh;
    uint32_t c;
-   uchar duptemp[200];
+   char duptemp[200];
 
    if(!dupechanged)
    {
@@ -228,9 +228,8 @@ void CloseDupeDB(void)
    return;
 }
 
-void AddDupeBuf(uchar *buf,uint16_t size)
+void AddDupeBuf(char *buf,uint16_t size)
 {
-   uint32_t crc;
    uint32_t offset;
    uint32_t crc32,*crc32p;
 
@@ -256,12 +255,12 @@ void AddDupeBuf(uchar *buf,uint16_t size)
       return;
    }
 
-   adddupeindex(offset,crc);
+   adddupeindex(offset,crc32);
 
    dupechanged=TRUE;
 }
 
-int dupecomp(uchar *d1,uchar *d2,uint32_t len)
+int dupecomp(char *d1,char *d2,uint32_t len)
 {
    uint32_t c;
 
@@ -275,7 +274,7 @@ bool CheckDupe(struct MemMessage *mm)
 {
    uint32_t c,crc32,*crc32p;
    uint16_t size,dsize;
-   uchar dbuf[300],buf[300];
+   char dbuf[300],buf[300];
 
    if(mm->MSGID[0] == 0)
       return(FALSE); /* No dupechecking for messages without MSGID */

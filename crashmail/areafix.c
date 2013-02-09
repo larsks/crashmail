@@ -3,29 +3,29 @@
 static size_t ptrsize = sizeof(void *);
 
 void SendRemoteAreafix(void);
-struct Arealist *FindForward(uchar *tagname,uchar *flags);
-void RemoteAreafixAdd(uchar *area,struct ConfigNode *node);
-void RemoteAreafixRemove(uchar *area,struct ConfigNode *node);
-bool CheckFlags(uchar group,uchar *node);
+struct Arealist *FindForward(char *tagname,char *flags);
+void RemoteAreafixAdd(char *area,struct ConfigNode *node);
+void RemoteAreafixRemove(char *area,struct ConfigNode *node);
+bool CheckFlags(char group,char *node);
 
 struct afReply
 {
    struct MemMessage *mm;
-	uchar subject[72];
+	char subject[72];
 	uint32_t lines;
 	uint32_t part;
 };
 
-struct afReply *afInitReply(uchar *fromname,struct Node4D *from4d,uchar *toname,struct Node4D *to4d,uchar *subject);
+struct afReply *afInitReply(char *fromname,struct Node4D *from4d,char *toname,struct Node4D *to4d,char *subject);
 void afFreeReply(struct afReply *af);
-void afAddLine(struct afReply *af,uchar *fmt,...);
+void afAddLine(struct afReply *af,char *fmt,...);
 void afSendMessage(struct afReply *af);
 
-void AddCommandReply(struct afReply *af,uchar *cmd,uchar *reply);
+void AddCommandReply(struct afReply *af,char *cmd,char *reply);
 
-void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode);
-void rawSendHelp(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode);
-void rawSendInfo(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode);
+void rawSendList(short type,struct Node4D *from4d,char *toname,struct ConfigNode *cnode);
+void rawSendHelp(struct Node4D *from4d,char *toname,struct ConfigNode *cnode);
+void rawSendInfo(struct Node4D *from4d,char *toname,struct ConfigNode *cnode);
 
 void SendRemoveMessages(struct Area *area);
 void RemoveDeletedAreas(void);
@@ -43,10 +43,10 @@ bool AreaFix(struct MemMessage *mm)
    struct BannedNode *bannednode;
    struct TextChunk *chunk;
    uint32_t c,d,q,jbcpos;
-   uchar password[100],buf[100],buf2[100];
+   char password[100],buf[100],buf2[100];
    bool stop,sendareaquery,sendarealist,sendareaunlinked,sendhelp,sendinfo,done,iswild;
    bool globalrescan,wasfeed;
-   uchar *opt,areaname[100],command;
+   char *opt,areaname[100],command;
    struct Route *tmproute;
    struct afReply *afr;
 		
@@ -588,8 +588,8 @@ bool AreaFix(struct MemMessage *mm)
 	                              return(FALSE);
 										}
 
-                              LogWrite(4,AREAFIX,"AreaFix: Rescanned %lu messages",rescan_total);
-                              afAddLine(afr,"%-30.30s Rescanned %lu messages","",rescan_total);
+                              LogWrite(4,AREAFIX,"AreaFix: Rescanned %u messages",rescan_total);
+                              afAddLine(afr,"%-30.30s Rescanned %u messages","",rescan_total);
                            }
                         }
                         else
@@ -619,7 +619,7 @@ bool AreaFix(struct MemMessage *mm)
 
                                  if(arealist)
                                  {
-												uchar buf2[100];
+												char buf2[100];
 
                                     LogWrite(3,AREAFIX,"AreaFix: %s requested from %u:%u/%u.%u",areaname,arealist->Node->Node.Zone,arealist->Node->Node.Net,arealist->Node->Node.Node,arealist->Node->Node.Point);
 
@@ -732,7 +732,7 @@ bool AreaFix(struct MemMessage *mm)
 void SendRemoveMessages(struct Area *area)
 {
    struct TossNode *tn;
-   uchar buf[100];
+   char buf[100];
    struct MemMessage *mm;
 	
    for(tn=(struct TossNode *)area->TossNodes.First;tn;tn=tn->Next)
@@ -849,9 +849,9 @@ void RemoveDeletedAreas(void)
 struct StatsNode
 {
    struct StatsNode *Next;
-   uchar *Tagname;
-   uchar *Desc;
-   uchar Group;
+   char *Tagname;
+   char *Desc;
+   char Group;
    bool Attached;
    bool Feed;
    uint32_t WeekKB; /* -1 means unknown */
@@ -859,13 +859,13 @@ struct StatsNode
 
 struct jbList SortList;
 
-bool AddSortList(uchar *tagname,uchar *desc,uchar group,bool attached,bool feed,long weekkb)
+bool AddSortList(char *tagname,char *desc,char group,bool attached,bool feed,long weekkb)
 {
-   uchar *mtagname,*mdesc;
+   char *mtagname,*mdesc;
    struct StatsNode *ss;
 
-   mtagname=(uchar *)osAlloc(strlen(tagname)+1);
-   mdesc=(uchar *)osAlloc(strlen(desc)+1);
+   mtagname=(char *)osAlloc(strlen(tagname)+1);
+   mdesc=(char *)osAlloc(strlen(desc)+1);
    ss=(struct StatsNode *)osAlloc(sizeof(struct StatsNode));
 
    if(!mtagname || !mdesc || !ss)
@@ -989,8 +989,8 @@ bool AddForwardList(struct Arealist *arealist)
 {
    bool res;
    osFile fh;
-   uchar buf[200];
-   uchar desc[100];
+   char buf[200];
+   char desc[100];
    uint32_t c,d;
    struct Area *area;
    struct StatsNode *ss;
@@ -1055,7 +1055,7 @@ bool AddForwardList(struct Arealist *arealist)
    return(TRUE);
 }
 
-void AddCommandReply(struct afReply *afr,uchar *cmd,uchar *reply)
+void AddCommandReply(struct afReply *afr,char *cmd,char *reply)
 {
 	if(strlen(cmd) <= 30)
 	{
@@ -1068,15 +1068,15 @@ void AddCommandReply(struct afReply *afr,uchar *cmd,uchar *reply)
 	}	
 }
 
-void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
+void rawSendList(short type,struct Node4D *from4d,char *toname,struct ConfigNode *cnode)
 {
-   uchar buf[50];
+   char buf[50];
    struct TossNode *tn;
    struct Area *area;
    struct StatsNode *ss,*lastss;
    struct Arealist *arealist;
    short sendlisttotal,sendlistlinked;
-   uchar ast;
+   char ast;
    struct afReply *afr;
    /* Log action */
 
@@ -1257,7 +1257,7 @@ void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNod
          strcpy(buf,"?");
 
       else
-         sprintf(buf,"%ld",ss->WeekKB);
+         sprintf(buf,"%d",ss->WeekKB);
 
       if(strlen(ss->Tagname)<=28)
       {
@@ -1274,16 +1274,16 @@ void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNod
    switch(type)
    {
       case SENDLIST_QUERY:
-         afAddLine(afr,"\x0d%lu linked areas.",sendlisttotal);
+         afAddLine(afr,"\x0d%u linked areas.",sendlisttotal);
          afAddLine(afr,"A '%%' means that you are the feed for the area.");
          break;
 
       case SENDLIST_UNLINKED:
-         afAddLine(afr,"\x0d%lu unlinked areas.",sendlisttotal);
+         afAddLine(afr,"\x0d%u unlinked areas.",sendlisttotal);
          break;
 
       case SENDLIST_FULL:
-         afAddLine(afr,"\x0dTotally %lu areas, you are connected to %lu of them.",sendlisttotal,sendlistlinked);
+         afAddLine(afr,"\x0dTotally %u areas, you are connected to %u of them.",sendlisttotal,sendlistlinked);
          afAddLine(afr,"A '*' means that you are connected to the area.");
          afAddLine(afr,"A '%%' means that you are the feed for the area.");
          break;
@@ -1294,9 +1294,9 @@ void rawSendList(short type,struct Node4D *from4d,uchar *toname,struct ConfigNod
    FreeSortList();
 }
 
-void rawSendHelp(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
+void rawSendHelp(struct Node4D *from4d,char *toname,struct ConfigNode *cnode)
 {
-   uchar helpbuf[100];
+   char helpbuf[100];
    osFile fh;
 	struct afReply *afr;
 	
@@ -1333,7 +1333,7 @@ void rawSendHelp(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
 	afFreeReply(afr);
 }
 
-void rawSendInfo(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
+void rawSendInfo(struct Node4D *from4d,char *toname,struct ConfigNode *cnode)
 {
    int c;
 	struct afReply *afr;
@@ -1426,7 +1426,7 @@ void rawSendInfo(struct Node4D *from4d,uchar *toname,struct ConfigNode *cnode)
 
 void afRawPrepareMessage(void);
 
-struct afReply *afInitReply(uchar *fromname,struct Node4D *from4d,uchar *toname,struct Node4D *to4d,uchar *subject)
+struct afReply *afInitReply(char *fromname,struct Node4D *from4d,char *toname,struct Node4D *to4d,char *subject)
 {
 	struct afReply *afr;
 	
@@ -1465,17 +1465,17 @@ void afFreeReply(struct afReply *afr)
 	mmFree(afr->mm);
 }
 
-void afAddLine(struct afReply *afr,uchar *fmt,...)
+void afAddLine(struct afReply *afr,char *fmt,...)
 {
    va_list args;
-   uchar buf[200];
+   char buf[200];
 
    if(afr->lines >= config.cfg_AreaFixMaxLines-2 && config.cfg_AreaFixMaxLines!=0)
    {
       strcpy(buf,"\x0d(Continued in next message)\x0d");
 		mmAddLine(afr->mm,buf);
 
-      sprintf(afr->mm->Subject,"%s (part %ld)",afr->subject,afr->part);
+      sprintf(afr->mm->Subject,"%s (part %d)",afr->subject,afr->part);
       afSendMessage(afr);
       jbFreeList(&afr->mm->TextChunks);
 
@@ -1503,7 +1503,7 @@ void afAddLine(struct afReply *afr,uchar *fmt,...)
 void afSendMessage(struct afReply *afr)
 {
    if(afr->part != 1) 
-		sprintf(afr->mm->Subject,"%s (part %ld)",afr->subject,afr->part);
+		sprintf(afr->mm->Subject,"%s (part %d)",afr->subject,afr->part);
 
 	else					
 		strcpy(afr->mm->Subject,afr->subject);
@@ -1512,7 +1512,7 @@ void afSendMessage(struct afReply *afr)
 }
 
 
-void RemoteAreafixAdd(uchar *area,struct ConfigNode *node)
+void RemoteAreafixAdd(char *area,struct ConfigNode *node)
 {
    struct RemoteAFCommand *cmd;
 
@@ -1532,7 +1532,7 @@ void RemoteAreafixAdd(uchar *area,struct ConfigNode *node)
    jbAddNode(&node->RemoteAFList,(struct jbNode *)cmd);
 }
 
-void RemoteAreafixRemove(uchar *area,struct ConfigNode *node)
+void RemoteAreafixRemove(char *area,struct ConfigNode *node)
 {
    struct RemoteAFCommand *cmd;
 
@@ -1553,7 +1553,7 @@ void SendRemoteAreafix(void)
    struct Route *tmproute;
    struct ConfigNode *node;
    struct RemoteAFCommand *cmd;
-   uchar buf[200];
+   char buf[200];
    struct MemMessage *mm;
 
    for(node=(struct ConfigNode *)config.CNodeList.First;node;node=node->Next)
@@ -1602,9 +1602,9 @@ void SendRemoteAreafix(void)
       }
 }
 
-bool CheckFlags(uchar group,uchar *node)
+bool CheckFlags(char group,char *node)
 {
-   uchar c;
+   uint8_t c;
 
    for(c=0;c<strlen(node);c++)
    {
@@ -1615,10 +1615,10 @@ bool CheckFlags(uchar group,uchar *node)
    return(FALSE);
 }
 
-struct Arealist *FindForward(uchar *tagname,uchar *flags)
+struct Arealist *FindForward(char *tagname,char *flags)
 {
    struct Arealist *arealist;
-   uchar buf[200];
+   char buf[200];
    uint32_t c;
    osFile fh;
 

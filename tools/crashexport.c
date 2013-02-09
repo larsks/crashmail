@@ -16,12 +16,12 @@
 #define VERSION "1.0"
 
 #ifdef PLATFORM_AMIGA
-uchar *ver="$VER: CrashExport " VERSION " " __AMIGADATE__;
+char *ver="$VER: CrashExport " VERSION " " __AMIGADATE__;
 #endif
 
 bool diskfull;
 
-uchar cfgbuf[4000];
+char cfgbuf[4000];
 
 #define AREATYPE_NETMAIL	1
 #define AREATYPE_ECHOMAIL  2
@@ -29,8 +29,8 @@ uchar cfgbuf[4000];
 #define AREATYPE_BAD       4
 #define AREATYPE_LOCAL     5
 
-uchar tagname[100],desc[100],msgbase[10],path[100],export[1000],aka[50];
-uchar group,areatype;
+char tagname[100],desc[100],msgbase[10],path[100],export[1000],aka[50];
+char group,areatype;
 bool unconfirmed;
 
 #define ARG_PREFSFILE    0
@@ -53,7 +53,7 @@ struct argument args[] =
 
 int format;
 
-bool CheckFlags(uchar group,uchar *node)
+bool CheckFlags(char group,char *node)
 {
    int c;
 
@@ -69,12 +69,12 @@ bool CheckFlags(uchar group,uchar *node)
 void writearea(osFile fh)
 {
 	int c;
-   uchar escdesc[100];
+   char escdesc[100];
 
-	uchar *gedmsgbase,*gedtype,*gedflags;
-   uchar gedgroupbuf[10];
+	char *gedmsgbase,*gedtype,*gedflags;
+   char gedgroupbuf[10];
 
-   uchar *timflags,*timkeyword;
+   char *timflags,*timkeyword;
 
 	/* Never write unconfirmed areas to output file */
 	
@@ -167,7 +167,7 @@ void writearea(osFile fh)
 int main(int argc, char **argv)
 {
    osFile ifh,ofh;
-   uchar sysopname[100],cfgword[30],buf[100];
+   char sysopname[100],cfgword[30],buf[100];
    uint32_t jbcpos;
    time_t t;
 
@@ -193,29 +193,29 @@ int main(int argc, char **argv)
       exit(OS_EXIT_ERROR);
    }
    	
-	if(stricmp((uchar *)args[ARG_FORMAT].data,"areasbbs")==0)
+	if(stricmp((char *)args[ARG_FORMAT].data,"areasbbs")==0)
 	{
 		format=FORMAT_AREASBBS;
 	}
-	else if(stricmp((uchar *)args[ARG_FORMAT].data,"forward")==0)
+	else if(stricmp((char *)args[ARG_FORMAT].data,"forward")==0)
 	{
 		format=FORMAT_FORWARD;
 	}
-	else if(stricmp((uchar *)args[ARG_FORMAT].data,"forwardnodesc")==0)
+	else if(stricmp((char *)args[ARG_FORMAT].data,"forwardnodesc")==0)
 	{
 		format=FORMAT_FORWARDNODESC;
 	}
-	else if(stricmp((uchar *)args[ARG_FORMAT].data,"golded")==0)
+	else if(stricmp((char *)args[ARG_FORMAT].data,"golded")==0)
 	{
 		format=FORMAT_GOLDED;
 	}
-   else if(stricmp((uchar *)args[ARG_FORMAT].data,"timed")==0)
+   else if(stricmp((char *)args[ARG_FORMAT].data,"timed")==0)
 	{
       format=FORMAT_TIMED;
 	}
 	else
    {
-      printf("Unknown format \"%s\"\n",(uchar *)args[ARG_FORMAT].data);
+      printf("Unknown format \"%s\"\n",(char *)args[ARG_FORMAT].data);
       osEnd();
       exit(OS_EXIT_ERROR);
    }

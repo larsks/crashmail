@@ -27,19 +27,19 @@
 #include "jam.h"
 #include "structrw.h"
 
-uint16_t jamgetuword(uchar *buf,uint32_t offset)
+uint16_t jamgetuword(char *buf,uint32_t offset)
 {
    return (uint16_t) buf[offset]+
                    buf[offset+1]*256;
 }
 
-void jamputuword(uchar *buf,uint32_t offset,uint16_t num)
+void jamputuword(char *buf,uint32_t offset,uint16_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
 }
 
-void jamputuint32_t(uchar *buf,uint32_t offset,uint32_t num)
+void jamputuint32_t(char *buf,uint32_t offset,uint32_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=(num / 256) % 256;
@@ -47,7 +47,7 @@ void jamputuint32_t(uchar *buf,uint32_t offset,uint32_t num)
    buf[offset+3]=(num / 256 / 256 / 256) % 256;
 }
 
-uint32_t jamgetuint32_t(uchar *buf,uint32_t offset)
+uint32_t jamgetuint32_t(char *buf,uint32_t offset)
 {
    return (uint32_t) buf[offset]+
                   buf[offset+1]*256+
@@ -57,7 +57,7 @@ uint32_t jamgetuint32_t(uchar *buf,uint32_t offset)
 
 int freadjambaseheader(FILE *fp,s_JamBaseHeader *s_JamBaseHeader)
 {
-   uchar buf[SIZE_JAMBASEHEADER];
+   char buf[SIZE_JAMBASEHEADER];
 
    if(fread(buf,SIZE_JAMBASEHEADER,1,fp) != 1)
       return 0;
@@ -77,7 +77,7 @@ int freadjambaseheader(FILE *fp,s_JamBaseHeader *s_JamBaseHeader)
 
 int fwritejambaseheader(FILE *fp,s_JamBaseHeader *s_JamBaseHeader)
 {
-   uchar buf[SIZE_JAMBASEHEADER];
+   char buf[SIZE_JAMBASEHEADER];
 
    memcpy(&buf[JAMBASEHEADER_SIGNATURE],s_JamBaseHeader->Signature,4);
 
@@ -97,7 +97,7 @@ int fwritejambaseheader(FILE *fp,s_JamBaseHeader *s_JamBaseHeader)
 
 int freadjammsgheader(FILE *fp,s_JamMsgHeader *s_JamMsgHeader)
 {
-   uchar buf[SIZE_JAMMSGHEADER];
+   char buf[SIZE_JAMMSGHEADER];
 
    if(fread(buf,SIZE_JAMMSGHEADER,1,fp) != 1)
       return 0;
@@ -129,7 +129,7 @@ int freadjammsgheader(FILE *fp,s_JamMsgHeader *s_JamMsgHeader)
 
 int fwritejammsgheader(FILE *fp,s_JamMsgHeader *s_JamMsgHeader)
 {
-   uchar buf[SIZE_JAMMSGHEADER];
+   char buf[SIZE_JAMMSGHEADER];
 
    memcpy(&buf[JAMMSGHEADER_SIGNATURE],s_JamMsgHeader->Signature,4);
 
@@ -161,7 +161,7 @@ int fwritejammsgheader(FILE *fp,s_JamMsgHeader *s_JamMsgHeader)
 
 int freadjamindex(FILE *fp,s_JamIndex *s_JamIndex)
 {
-   uchar buf[SIZE_JAMINDEX];
+   char buf[SIZE_JAMINDEX];
 
    if(fread(buf,SIZE_JAMINDEX,1,fp) != 1)
       return 0;
@@ -174,7 +174,7 @@ int freadjamindex(FILE *fp,s_JamIndex *s_JamIndex)
 
 int fwritejamindex(FILE *fp,s_JamIndex *s_JamIndex)
 {
-   uchar buf[SIZE_JAMINDEX];
+   char buf[SIZE_JAMINDEX];
 
    jamputuint32_t(buf,JAMINDEX_USERCRC,   s_JamIndex->UserCRC);
    jamputuint32_t(buf,JAMINDEX_HDROFFSET, s_JamIndex->HdrOffset);
@@ -187,7 +187,7 @@ int fwritejamindex(FILE *fp,s_JamIndex *s_JamIndex)
 
 int freadjamlastread(FILE *fp,s_JamLastRead *s_JamLastRead)
 {
-   uchar buf[SIZE_JAMLASTREAD];
+   char buf[SIZE_JAMLASTREAD];
 
    if(fread(buf,SIZE_JAMLASTREAD,1,fp) != 1)
       return 0;
@@ -202,7 +202,7 @@ int freadjamlastread(FILE *fp,s_JamLastRead *s_JamLastRead)
 
 int fwritejamlastread(FILE *fp,s_JamLastRead *s_JamLastRead)
 {
-   uchar buf[SIZE_JAMLASTREAD];
+   char buf[SIZE_JAMLASTREAD];
 
    jamputuint32_t(buf,JAMLASTREAD_USERCRC,s_JamLastRead->UserCRC);
    jamputuint32_t(buf,JAMLASTREAD_USERID,s_JamLastRead->UserID);
@@ -217,7 +217,7 @@ int fwritejamlastread(FILE *fp,s_JamLastRead *s_JamLastRead)
 
 int fwritejamsavesubfield(FILE *fp,s_JamSaveSubfield *s_JamSaveSubfield)
 {
-   uchar buf[SIZE_JAMLASTREAD];
+   char buf[SIZE_JAMLASTREAD];
 
    jamputuword(buf,JAMSAVESUBFIELD_LOID,   s_JamSaveSubfield->LoID);
    jamputuword(buf,JAMSAVESUBFIELD_HIID,   s_JamSaveSubfield->HiID);
@@ -229,11 +229,11 @@ int fwritejamsavesubfield(FILE *fp,s_JamSaveSubfield *s_JamSaveSubfield)
    return 1;
 }
 
-void getjamsubfield(uchar *buf,s_JamSubfield *Subfield_S)
+void getjamsubfield(char *buf,s_JamSubfield *Subfield_S)
 {
    Subfield_S->LoID   = jamgetuword(buf,JAMSAVESUBFIELD_LOID);
    Subfield_S->HiID   = jamgetuword(buf,JAMSAVESUBFIELD_HIID);
    Subfield_S->DatLen = jamgetuint32_t(buf,JAMSAVESUBFIELD_DATLEN);
 
-   Subfield_S->Buffer = (uchar *) buf + SIZE_JAMSAVESUBFIELD;
+   Subfield_S->Buffer = (char *) buf + SIZE_JAMSAVESUBFIELD;
 }

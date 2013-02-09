@@ -1,3 +1,3 @@
-bool TossFile(uchar *file);
-bool TossDir(uchar *dir);
+bool TossFile(char *file);
+bool TossDir(char *dir);
 

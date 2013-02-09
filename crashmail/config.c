@@ -1,8 +1,8 @@
 #include "crashmail.h"
 
-extern uchar *config_version;
+extern char *config_version;
 
-bool CorrectFlags(uchar *flags)
+bool CorrectFlags(char *flags)
 {
    uint32_t c;
 
@@ -17,11 +17,11 @@ bool CorrectFlags(uchar *flags)
    return(TRUE);
 }
 
-uchar cfgbuf[4000];
+char cfgbuf[4000];
 
-bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,uint32_t *cfgline,uchar *cfgerr)
+bool ReadConfig(char *filename,struct Config *cfg,short *seconderr,uint32_t *cfgline,char *cfgerr)
 {
-   uchar buf2[200],cfgword[30];
+   char buf2[200],cfgword[30];
    uint32_t c,d,jbcpos;
    osFile cfgfh;
    
@@ -1468,7 +1468,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,uint32_t *cf
             return(FALSE);
          }
 
-         if(!(tmpcommand->string=(uchar *)osAlloc(strlen(buf2)+1)))
+         if(!(tmpcommand->string=(char *)osAlloc(strlen(buf2)+1)))
          {
             *seconderr=READCONFIG_NO_MEM;
             osClose(cfgfh);
@@ -1504,7 +1504,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,uint32_t *cf
             return(FALSE);
          }
 
-         if(!(tmpcommand->string=(uchar *)osAlloc(strlen(buf2)+1)))
+         if(!(tmpcommand->string=(char *)osAlloc(strlen(buf2)+1)))
          {
             *seconderr=READCONFIG_NO_MEM;
             osClose(cfgfh);
@@ -1777,7 +1777,7 @@ bool ReadConfig(uchar *filename,struct Config *cfg,short *seconderr,uint32_t *cf
    return(TRUE);
 }
 
-bool CheckConfig(struct Config *cfg,uchar *cfgerr)
+bool CheckConfig(struct Config *cfg,char *cfgerr)
 {
    struct Area *a1,*a2;
    struct PatternNode *patternnode;
@@ -1785,7 +1785,7 @@ bool CheckConfig(struct Config *cfg,uchar *cfgerr)
    struct Change *change;
    struct Filter *filter;
    struct Command *command;
-   uchar buf[50];
+   char buf[50];
 
    if(cfg->cfg_TempDir[0]==0)      strcpy(cfg->cfg_TempDir,cfg->cfg_Inbound);
    if(cfg->cfg_PacketCreate[0]==0) strcpy(cfg->cfg_PacketCreate,cfg->cfg_Outbound);
@@ -1922,9 +1922,9 @@ void InitConfig(struct Config *cfg)
    jbNewList(&cfg->FilterList);
 }
 
-void WriteSafely(osFile fh,uchar *str)
+void WriteSafely(osFile fh,char *str)
 {
-   uchar buf[300];
+   char buf[300];
    uint16_t c,d;
 
    d=0;
@@ -1947,10 +1947,10 @@ void WriteNode4D(osFile fh,struct Node4D *n4d)
    osFPrintf(fh,"%u:%u/%u.%u",n4d->Zone,n4d->Net,n4d->Node,n4d->Point);
 }
 
-uchar *nodekeywords[]={"DEFAULTGROUP","REMOTESYSOP","REMOTEAF",
+char *nodekeywords[]={"DEFAULTGROUP","REMOTESYSOP","REMOTEAF",
                        "AREAFIXINFO","NODE","PKTFROM",NULL};
 
-uchar *areakeywords[]={"IGNORESEENBY","IGNOREDUPES","DEFREADONLY",
+char *areakeywords[]={"IGNORESEENBY","IGNOREDUPES","DEFREADONLY",
                        "MANDATORY","UNCONFIRMED","KEEPNUM","KEEPDAYS",
                        "GROUP","DESCRIPTION","BANNED","EXPORT","IMPORT",
                        "AREA","NETMAIL",NULL};
@@ -2161,10 +2161,10 @@ void WriteArea(struct Area *tmparea,osFile osfh)
       osFPrintf(osfh,"GROUP %lc\n",tmparea->Group);
 
    if(tmparea->KeepNum)
-      osFPrintf(osfh,"KEEPNUM %lu\n",tmparea->KeepNum);
+      osFPrintf(osfh,"KEEPNUM %u\n",tmparea->KeepNum);
 
    if(tmparea->KeepDays)
-      osFPrintf(osfh,"KEEPDAYS %lu\n",tmparea->KeepDays);
+      osFPrintf(osfh,"KEEPDAYS %u\n",tmparea->KeepDays);
 
    if(tmparea->Flags & AREA_UNCONFIRMED)
       osFPrintf(osfh,"UNCONFIRMED\n");
@@ -2182,10 +2182,10 @@ void WriteArea(struct Area *tmparea,osFile osfh)
       osFPrintf(osfh,"IGNORESEENBY\n");
 }
 
-bool UpdateConfig(struct Config *cfg,uchar *cfgerr)
+bool UpdateConfig(struct Config *cfg,char *cfgerr)
 {
-   uchar cfgtemp[110],cfgbak[110];
-   uchar cfgword[30],buf[100];
+   char cfgtemp[110],cfgbak[110];
+   char cfgword[30],buf[100];
    osFile oldfh,newfh;
    bool skiparea,skipnode,dontwrite,copyres;
    struct ConfigNode    *cnode;

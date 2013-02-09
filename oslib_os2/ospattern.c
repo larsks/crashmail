@@ -4,12 +4,12 @@
 #include <string.h>
 #include <ctype.h>
 
-bool osCheckPattern(uchar *pattern)
+bool osCheckPattern(char *pattern)
 {
    return(TRUE);
 }
 
-bool osMatchPattern(uchar *pattern,uchar *str)
+bool osMatchPattern(char *pattern,char *str)
 {
    int c;
 
@@ -32,7 +32,7 @@ bool osMatchPattern(uchar *pattern,uchar *str)
 }
 
 
-bool osIsPattern(uchar *pat)
+bool osIsPattern(char *pat)
 {
    if(strchr(pat,'?') || strchr(pat,'*'))
       return(TRUE);

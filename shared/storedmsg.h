@@ -1,9 +1,9 @@
 struct StoredMsg
 {
-   uchar From[36];
-   uchar To[36];
-   uchar Subject[72];
-   uchar DateTime[20];
+   char From[36];
+   char To[36];
+   char Subject[72];
+   char DateTime[20];
    UINT16 TimesRead;
    UINT16 DestNode;
    UINT16 OrigNode;

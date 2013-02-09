@@ -1,6 +1,6 @@
 #include "crashmail.h"
 
-void ExpandPacker(uchar *cmd,uchar *dest,uint32_t destsize,uchar *arc,uchar *file)
+void ExpandPacker(char *cmd,char *dest,uint32_t destsize,char *arc,char *file)
 {
    uint32_t c,d;
 
@@ -31,17 +31,17 @@ void ExpandPacker(uchar *cmd,uchar *dest,uint32_t destsize,uchar *arc,uchar *fil
    dest[d]=0;
 }
 
-void ExpandFilter(uchar *cmd,uchar *dest,uint32_t destsize,
-   uchar *rfc1,
-	uchar *rfc2,
-   uchar *msg,
-   uchar *area,
-   uchar *subj,
-   uchar *date,
-   uchar *from,
-   uchar *to,
-   uchar *orignode,
-   uchar *destnode)
+void ExpandFilter(char *cmd,char *dest,uint32_t destsize,
+   char *rfc1,
+	char *rfc2,
+   char *msg,
+   char *area,
+   char *subj,
+   char *date,
+   char *from,
+   char *to,
+   char *orignode,
+   char *destnode)
 {
    uint32_t c,d;
 
@@ -176,10 +176,10 @@ bool SortFEList(struct jbList *list)
 	return(TRUE);
 }
 
-bool IsArc(uchar *file)
+bool IsArc(char *file)
 {
    int c;
-   uchar ext[4];
+   char ext[4];
 
    if(strlen(file)!=12) return(FALSE);
    if(file[8]!='.')     return(FALSE);
@@ -201,7 +201,7 @@ bool IsArc(uchar *file)
    return(FALSE);
 }
 
-bool IsPkt(uchar *file)
+bool IsPkt(char *file)
 {
    if(strlen(file)!=12)             return(FALSE);
    if(file[8]!='.')                 return(FALSE);
@@ -210,7 +210,7 @@ bool IsPkt(uchar *file)
    return(TRUE);
 }
 
-bool IsNewPkt(uchar *file)
+bool IsNewPkt(char *file)
 {
    if(strlen(file) < 7)
       return(FALSE);
@@ -221,7 +221,7 @@ bool IsNewPkt(uchar *file)
    return(TRUE);
 }
 
-bool IsPktTmp(uchar *file)
+bool IsPktTmp(char *file)
 {
    if(strlen(file) < 7)
       return(FALSE);
@@ -232,7 +232,7 @@ bool IsPktTmp(uchar *file)
    return(TRUE);
 }
 
-bool IsOrphan(uchar *file)
+bool IsOrphan(char *file)
 {
    if(strlen(file) < 7)
       return(FALSE);
@@ -243,7 +243,7 @@ bool IsOrphan(uchar *file)
    return(TRUE);
 }
 
-bool IsBad(uchar *file)
+bool IsBad(char *file)
 {
    if(strlen(file)>4 && stricmp(&file[strlen(file)-4],".bad")==0)
       return(TRUE);
@@ -251,7 +251,7 @@ bool IsBad(uchar *file)
    return(FALSE);
 }
 
-void striptrail(uchar *str)
+void striptrail(char *str)
 {
    int c;
 
@@ -260,7 +260,7 @@ void striptrail(uchar *str)
 }
 
 
-void striplead(uchar *str)
+void striplead(char *str)
 {
    int c;
 
@@ -272,15 +272,15 @@ void striplead(uchar *str)
 	strcpy(str,&str[c]);
 }
 
-void stripleadtrail(uchar *str)
+void stripleadtrail(char *str)
 {
 	striplead(str);
 	striptrail(str);
 }	
 
-void BadFile(uchar *filename,uchar *comment)
+void BadFile(char *filename,char *comment)
 {
-   uchar destname[100],numbuf[10];
+   char destname[100],numbuf[10];
    uint32_t num;
 
    LogWrite(3,TOSSINGERR,"Renaming %s to .bad",filename);
@@ -294,7 +294,7 @@ void BadFile(uchar *filename,uchar *comment)
 
       if(num != 0)
       {
-         sprintf(numbuf,",%ld",num);
+         sprintf(numbuf,",%d",num);
          strcat(destname,numbuf);
       }
 
@@ -313,9 +313,9 @@ void BadFile(uchar *filename,uchar *comment)
    osSetComment(destname,comment);
 }
 
-bool MatchFlags(uchar group,uchar *node)
+bool MatchFlags(char group,char *node)
 {
-   uchar c;
+   uint8_t c;
 
    for(c=0;c<strlen(node);c++)
    {
@@ -328,18 +328,18 @@ bool MatchFlags(uchar group,uchar *node)
 
 bool AddTID(struct MemMessage *mm)
 {
-   uchar buf[100];
+   char buf[100];
 
    strcpy(buf,"\x01" "TID: CrashMail II/" OS_PLATFORM_NAME " " TID_VERSION "\x0d");
 
    return mmAddLine(mm,buf);
 }
 
-void MakeFidoDate(time_t tim,uchar *dest)
+void MakeFidoDate(time_t tim,char *dest)
 {
    struct tm *tp;
    time_t t;
-   uchar *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
+   char *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
 
    t=tim;
    tp=localtime(&t);
@@ -355,13 +355,13 @@ void MakeFidoDate(time_t tim,uchar *dest)
 
 #define COPYBUFSIZE 5000
 
-bool copyfile(uchar *file,uchar *newfile)
+bool copyfile(char *file,char *newfile)
 {
    osFile ifh,ofh;
    uint32_t len;
-   uchar *copybuf;
+   char *copybuf;
 
-   if(!(copybuf=(uchar *)malloc(COPYBUFSIZE)))
+   if(!(copybuf=(char *)malloc(COPYBUFSIZE)))
 	{
 		nomem=TRUE;
       return(FALSE);
@@ -400,7 +400,7 @@ bool copyfile(uchar *file,uchar *newfile)
    return(TRUE);
 }
 
-bool movefile(uchar *file,uchar *newfile)
+bool movefile(char *file,char *newfile)
 {
    if(osRename(file,newfile))
       return(TRUE); /* rename was enough */
@@ -412,10 +412,10 @@ bool movefile(uchar *file,uchar *newfile)
    return(TRUE);    
 }
 
-uchar ChangeType(struct Node4D *dest,uchar pri)
+char ChangeType(struct Node4D *dest,char pri)
 {
    struct Change *change;
-   uchar newpri;
+   char newpri;
    bool ispattern;
 
    newpri=pri;
@@ -448,7 +448,7 @@ uchar ChangeType(struct Node4D *dest,uchar pri)
 
 bool MakeNetmailKludges(struct MemMessage *mm)
 {
-   uchar buf[100];
+   char buf[100];
 
    if(mm->OrigNode.Point)
    {
@@ -482,7 +482,7 @@ bool MakeNetmailKludges(struct MemMessage *mm)
 /*                                   */
 /*************************************/
 
-time_t FidoToTime(uchar *date)
+time_t FidoToTime(char *date)
 {
    uint32_t month;
    struct tm tm;
@@ -551,10 +551,10 @@ time_t FidoToTime(uchar *date)
    return(t);
 }
 
-bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain)
+bool Parse5D(char *buf, struct Node4D *n4d, char *domain)
 {
    uint32_t c=0;
-   uchar buf2[100];
+   char buf2[100];
 
    domain[0]=0;
 
@@ -572,11 +572,11 @@ bool Parse5D(uchar *buf, struct Node4D *n4d, uchar *domain)
    return Parse4D(buf2,n4d);
 }
 
-bool ExtractAddress(uchar *origin, struct Node4D *n4d)
+bool ExtractAddress(char *origin, struct Node4D *n4d)
 {
    uint32_t pos,e;
-   uchar addr[50];
-	uchar domain[20];
+   char addr[50];
+	char domain[20];
 
    pos=strlen(origin);
 
@@ -624,9 +624,9 @@ unsigned long hextodec(char *hex)
 
 /* WriteRFC and WriteMSG */
 
-void MakeRFCAddr(uchar *dest,uchar *nam,struct Node4D *node,uchar *dom)
+void MakeRFCAddr(char *dest,char *nam,struct Node4D *node,char *dom)
 {
-	uchar domain[50],name[50];
+	char domain[50],name[50];
 	int j;
 	
 	/* Prepare domain */
@@ -666,14 +666,14 @@ void MakeRFCAddr(uchar *dest,uchar *nam,struct Node4D *node,uchar *dom)
 			domain);
 }
 
-bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
+bool WriteRFC(struct MemMessage *mm,char *name,bool rfcaddr)
 {
    osFile fh;
-   uchar *domain;
+   char *domain;
    struct Aka *aka;
    struct TextChunk *tmp;
    uint32_t c,d,lastspace;
-   uchar buffer[100],fromaddr[100],toaddr[100];
+   char buffer[100],fromaddr[100],toaddr[100];
 
    for(aka=(struct Aka *)config.AkaList.First;aka;aka=aka->Next)
       if(Compare4D(&mm->DestNode,&aka->Node)==0) break;
@@ -821,7 +821,7 @@ bool WriteRFC(struct MemMessage *mm,uchar *name,bool rfcaddr)
 	return(TRUE);
 }
 
-bool WriteMSG(struct MemMessage *mm,uchar *file)
+bool WriteMSG(struct MemMessage *mm,char *file)
 {
    struct StoredMsg Msg;
    struct TextChunk *chunk;
@@ -891,7 +891,7 @@ bool WriteMSG(struct MemMessage *mm,uchar *file)
 
    if((config.cfg_Flags & CFG_IMPORTSEENBY) && mm->Area[0]!=0)
    {
-      uchar *sbbuf;
+      char *sbbuf;
 
       if(!(sbbuf=mmMakeSeenByBuf(&mm->SeenBy)))
       {

@@ -13,7 +13,7 @@
 struct argument
 {
    uint16_t type;
-   uchar *name;
+   char *name;
 	uint16_t flags;
    void *data;
 };

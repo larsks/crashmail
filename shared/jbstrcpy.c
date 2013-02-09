@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "shared/types.h"
 
-bool jbstrcpy(uchar *dest,uchar *src,uint32_t maxlen,uint32_t *jbc)
+bool jbstrcpy(char *dest,char *src,uint32_t maxlen,uint32_t *jbc)
 {
    uint32_t d=0;
    uint32_t stopchar1,stopchar2;
@@ -49,7 +49,7 @@ bool jbstrcpy(uchar *dest,uchar *src,uint32_t maxlen,uint32_t *jbc)
 }
 
 
-bool jbstrcpyrest(uchar *dest,uchar *src,uint32_t maxlen,uint32_t *jbc)
+bool jbstrcpyrest(char *dest,char *src,uint32_t maxlen,uint32_t *jbc)
 {
    uint32_t d=0;
    uint32_t jbcpos;
