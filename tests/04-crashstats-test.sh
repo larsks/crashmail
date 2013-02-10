@@ -2,33 +2,44 @@
 
 describe "crashstats"
 
+. ./testcommon.sh
+
+before () {
+	setup_crashmail_env
+	cp $__topdir__/crashmail.stats .
+}
+
+after () {
+	clean_crashmail_env
+}
+
 it_generates_alpha_sorted_stats () {
 	test -f crashmail.stats
-	../tools/crashstats crashmail.stats sort a
+	$__tools__/crashstats crashmail.stats sort a
 }
 
 it_generates_message_sorted_stats () {
 	test -f crashmail.stats
-	../tools/crashstats crashmail.stats sort t
+	$__tools__/crashstats crashmail.stats sort t
 }
 
 it_generates_byday_sorted_stats () {
 	test -f crashmail.stats
-	../tools/crashstats crashmail.stats sort m
+	$__tools__/crashstats crashmail.stats sort m
 }
 
 it_generates_byfirstimport_sorted_stats () {
 	test -f crashmail.stats
-	../tools/crashstats crashmail.stats sort d
+	$__tools__/crashstats crashmail.stats sort d
 }
 
 it_generates_bylastimport_sorted_stats () {
 	test -f crashmail.stats
-	../tools/crashstats crashmail.stats sort l
+	$__tools__/crashstats crashmail.stats sort l
 }
 
 it_generates_bydupes_sorted_stats () {
 	test -f crashmail.stats
-	../tools/crashstats crashmail.stats sort u
+	$__tools__/crashstats crashmail.stats sort u
 }
 

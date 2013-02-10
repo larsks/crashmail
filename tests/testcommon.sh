@@ -1,35 +1,30 @@
 #!/bin/sh
 
+setup_sandbox () {
+	__topdir__=$PWD
+	__testdir__=$(mktemp -d testXXXXXX)
+	__tools__=$PWD/../tools
+	__crashmail__=$PWD/../crashmail/crashmail
+
+	cd $__testdir__
+}
+
+clean_sandbox () {
+	cd $__topdir__
+	rm -rf $__testdir__
+}
+
 setup_crashmail_env () {
-	cp crashmail.prefs.in crashmail.prefs
+	setup_sandbox
 
-	rm -rf spool
 	mkdir -p spool/{inbound,outbound,temp,packets}
-
-	rm -rf areas
 	mkdir -p areas/netmail areas/testarea areas/bad
-
 	mkdir -p nodelist
-	cat > nodelist/nodelist.txt <<-EOF
-	Zone,99,Test_Zone,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	Host,99,Test_Net,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	,99,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	EOF
 
-	cat > nodelist/pointlist.txt <<-EOF
-	Zone,99,Test_Zone,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	Host,99,Test_Net,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	Point,1,Test_Point_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
-	EOF
+	cp $__topdir__/crashmail.prefs crashmail.prefs
+	cp $__topdir__/{nodelist.txt,pointlist.txt,cmnodelist.prefs} nodelist/
 
-	cat > nodelist/cmnodelist.prefs <<-EOF
-	nodelist.txt
-	pointlist.txt
-	EOF
-
-	../tools/crashlist nodelist
+	$__topdir__/../tools/crashlist nodelist
 }
 
 setup_tmpfile () {
@@ -41,9 +36,6 @@ clean_tmpfile () {
 }
 
 clean_crashmail_env () {
-	rm -rf nodelist areas spool
-	rm -f dupes
-	rm -f crashmail.prefs crashmail.prefs.bak
-	rm -f crashmail.log
+	clean_sandbox
 }
 

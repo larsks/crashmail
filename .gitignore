@@ -9,4 +9,3 @@ tools/crashmaint
 tools/crashstats
 tools/crashwrite
 tags
-tests/crashmail.stats

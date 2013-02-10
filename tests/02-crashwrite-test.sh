@@ -13,7 +13,7 @@ after () {
 }
 
 it_generates_a_packet () {
-	../tools/crashwrite DIR spool/temp \
+	$__tools__/crashwrite DIR spool/temp \
 		FROMNAME "Test Sysop" \
 		FROMADDR "99:99/1" \
 		TONAME "Test User" \
