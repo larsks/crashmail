@@ -15,7 +15,7 @@ after () {
 }
 
 it_runs_successfully () {
-	$__crashmail__ settings crashmail.prefs | tee $tmpfile
+	$__crashmail__ | tee $tmpfile
 	grep '^CrashMail II .* started successfully' $tmpfile
 	grep '^CrashMail end' $tmpfile
 }
@@ -28,7 +28,7 @@ it_tosses_netmail_successfully () {
 		subject "Test netmail message" \
 		text /dev/stdin
 
-	$__crashmail__ settings crashmail.prefs toss
+	$__crashmail__ toss
 
 	test -f areas/netmail/2.msg
 }
@@ -42,7 +42,7 @@ it_tosses_echos_successfully () {
 		area testarea \
 		text /dev/stdin
 
-	$__crashmail__ settings crashmail.prefs toss
+	$__crashmail__ toss
 
 	test -f areas/testarea/2.msg
 }
@@ -56,16 +56,16 @@ it_handles_bad_packets_successfully () {
 		area testarea \
 		text /dev/stdin
 
-	$__crashmail__ settings crashmail.prefs toss
+	$__crashmail__ toss
 
 	test -f areas/bad/2.msg
 }
 
 it_detects_dupes_successfully () {
 	cp $__topdir__/15bba400.pkt spool/inbound
-	$__crashmail__ settings crashmail.prefs toss
+	$__crashmail__ toss
 	cp $__topdir__/15bba400.pkt spool/inbound
-	$__crashmail__ settings crashmail.prefs toss | tee $tmpfile
+	$__crashmail__ toss | tee $tmpfile
 	grep 'Duplicate message in testarea' $tmpfile
 }
 

@@ -22,7 +22,7 @@ it_generates_area_list () {
 		subject "TESTPASS" \
 		text /dev/stdin
 
-	$__crashmail__ settings crashmail.prefs toss | tee $tmpfile
+	$__crashmail__ toss | tee $tmpfile
 	grep 'AreaFix: Sending list of areas to 99:99/88.0' $tmpfile
 	test -f spool/outbound/00630058.out
 }
@@ -35,7 +35,7 @@ it_subscribes_node () {
 		subject "TESTPASS" \
 		text /dev/stdin
 
-	$__crashmail__ settings crashmail.prefs toss | tee $tmpfile
+	$__crashmail__ toss | tee $tmpfile
 	grep 'AreaFix: Request from 99:99/88' $tmpfile
 	grep 'AreaFix: Attached to TESTAREA' $tmpfile
 	test -f spool/outbound/00630058.out

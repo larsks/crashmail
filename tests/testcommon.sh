@@ -4,7 +4,7 @@ setup_sandbox () {
 	__topdir__=$PWD
 	__testdir__=$(mktemp -d testXXXXXX)
 	__tools__=$PWD/../tools
-	__crashmail__=$PWD/../crashmail/crashmail
+	__crashmail__="$PWD/../crashmail/crashmail settings crashmail.prefs"
 
 	cd $__testdir__
 }
