@@ -3,10 +3,12 @@
 describe "crashstats"
 
 . ./testcommon.sh
+. ./03-crashmail-test.sh
 
 before () {
 	setup_crashmail_env
-	cp $__topdir__/crashmail.stats .
+	it_tosses_netmail_successfully
+	it_tosses_echos_successfully
 }
 
 after () {
