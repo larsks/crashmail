@@ -7,6 +7,9 @@ describe "crashstats"
 
 before () {
 	setup_crashmail_env
+
+	# Uses tests from 03-crashmail-tests.sh to generate
+	# crashmail.stats before each test.
 	it_tosses_netmail_successfully
 	it_tosses_echos_successfully
 }
