@@ -2,6 +2,7 @@ Zone,99,Test_Zone_99,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 Host,99,Test_Net,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 ,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 ,99,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
+,999,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 Zone,88,Test_Zone_88,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 Host,99,Test_Net,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
 ,1,Test_Host_1,Test_Locale,Test_Sysop,0-000-000-0000,300,INA:localhost,IBN
