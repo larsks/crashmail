@@ -23,7 +23,7 @@ it_runs_successfully () {
 it_tosses_netmail_successfully () {
 	echo This is a test netmail message. |
 	$__tools__/crashwrite dir spool/inbound \
-		fromname "Test User" fromaddr 99:99/99 \
+		fromname "Test User" fromaddr 99:99/999 \
 		toname "Test Sysop" toaddr 99:99/1 \
 		subject "Test netmail message" \
 		text /dev/stdin
@@ -36,7 +36,7 @@ it_tosses_netmail_successfully () {
 it_tosses_echos_successfully () {
 	echo This is a test netmail message. |
 	$__tools__/crashwrite dir spool/inbound \
-		fromname "Test User" fromaddr 99:99/99 \
+		fromname "Test User" fromaddr 99:99/999 \
 		toname "Test Sysop" toaddr 99:99/1 \
 		subject "Test netmail message" \
 		area testarea \
@@ -62,9 +62,21 @@ it_handles_bad_packets_successfully () {
 }
 
 it_detects_dupes_successfully () {
-	cp $__topdir__/15bba400.pkt spool/inbound
+	mkdir spool/temp/newpacket
+
+	echo 'This is a test.' |
+	$__tools__/crashwrite dir spool/temp/newpacket \
+		fromname "Test User" fromaddr 99:99/99 \
+		toname "Test Sysop" toaddr 99:99/1 \
+		subject "Test netmail message" \
+		area testarea \
+		text /dev/stdin
+
+	pkt=$(find spool/temp/newpacket -type f)
+
+	cp $pkt spool/inbound
 	$__crashmail__ toss
-	cp $__topdir__/15bba400.pkt spool/inbound
+	cp $pkt spool/inbound
 	$__crashmail__ toss | tee $tmpfile
 	grep 'Duplicate message in testarea' $tmpfile
 }
