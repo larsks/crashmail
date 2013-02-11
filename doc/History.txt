@@ -1,8 +1,71 @@
+History
+=======
+
+Changes in version 0.88
+-----------------------
+
+- Fix integer sign error affecting `osSeek` and `osTell`.
+- Additional tests in test suite.
+
+Changes in version 0.87
+-----------------------
+
+- Many fixes for building on 64-bit systems.
+- Introduce support for [FTS-5002][] `Boss` pointlist format.
+
+[FTS-5002]: http://ftsc.org/docs/fts-5002.002
+
+Changes in version 0.86
+-----------------------
+
+- Use of `stdint.h` integer types throughout the code.
+- All tools now pass the test suite on 64-bit systems.
+
+Changes in version 0.85
+-----------------------
+
+- Correct pointer size assumptions
+- Areafix is now working on 64-bit systems.
+
+Changes in version 0.84
+-----------------------
+
+- `crashstats` now runs correctly on 64-bit systems.
+
+Changes in version 0.83
+-----------------------
+
+- Integrate patches from Debian project
+- Introduce test suite
+
+Changes in version 0.82
+-----------------------
+
+- Additional Makefile corrections
+
+Changes in version 0.81
+-----------------------
+
+- Correct Makefile errors introduced in previous release
+
+Changes in version 0.8
+-----------------------
+
+- Initial fork of Crashmail II 0.71.
+- Reorganize project Makefiles
+
+Version 0.71 and earlier
+========================
+
+> Version 0.71 was the last version released by Johan Billing.  The
+> following text is the original changelog included in that release:
+
 Version 0.7 was probably the last major revision of CrashMail. If you 
 are using CrashMail, please send me an e-mail (billing@df.lth.se).
 I am curious about how many CrashMail users there still are...
 
 Changes in version 0.71
+-----------------------
 
  - Fixed a bug that could cause CrashMail to crash when exporting messages 
    from a JAM area with deleted messages. 
@@ -13,14 +76,15 @@ Changes in version 0.71
    gcc-2.95-mingw32.
 
 Changes in version 0.7
+----------------------
 
  - Implemented a message filter. Using this feature, you can filter out messages
    that match specified criteria and perform a number of commands on them. This
    filter will for example copy echomail messages addressed to me to a special
    area (the area needs to be configured as a local area using LOCALAREA):
 
-    FILTER SOURCE=TOSSED and TYPE=ECHOMAIL and TONAME="Johan Billing"
-    COPY PERSONAL_MESSAGES
+         FILTER SOURCE=TOSSED and TYPE=ECHOMAIL and TONAME="Johan Billing"
+         COPY PERSONAL_MESSAGES
 
    See doc/filter.txt for a complete description of the new message filter.
 
@@ -29,18 +93,18 @@ Changes in version 0.7
 
    Replacement for ROBOTNAME <name> <command>:
 
-    FILTER TYPE=NETMAIL and TOLOCALAKA and TONAME=<name>
-    EXECUTE <command>
+         FILTER TYPE=NETMAIL and TOLOCALAKA and TONAME=<name>
+         EXECUTE <command>
 
    Replacement for REMAP <pattern> <new name> <destination pattern>
 
-    FILTER TYPE=NETMAIL and TOLOCALAKA and TONAME=<pattern>
-    REMAPMSG <new name> <destination pattern>
+         FILTER TYPE=NETMAIL and TOLOCALAKA and TONAME=<pattern>
+         REMAPMSG <new name> <destination pattern>
 
    Replacement for REMAPNODE <node pattern> <destination pattern>
 
-    FILTER TYPE=NETMAIL and TOADDR=<node pattern>
-    REMAPMSG "*" <destination pattern>
+         FILTER TYPE=NETMAIL and TOADDR=<node pattern>
+         REMAPMSG "*" <destination pattern>
 
  - Rewrote the dupe-checking. CrashMail now no longer needs to load the entire
    dupe buffer into memory. This means that you now can keep a much large dupe
@@ -107,6 +171,7 @@ Changes in version 0.7
  
 
 Changes in version 0.62:
+------------------------
 
  CrashMail
 
@@ -135,8 +200,9 @@ Changes in version 0.62:
 
 
 Changes in version 0.61:
+------------------------
 
- CrashMail:
+### CrashMail:
 
  - CrashMail incorrectly bounced netmails to nodes listed as hold in the
    nodelist are no longer bounced. Fixed. Netmails to nodes listed as down
@@ -157,7 +223,7 @@ Changes in version 0.61:
 
  - CrashMail had problems with backslashes in file-attaches. Fixed.
 
- JAMLIB
+### JAMLIB
 
  - Changed to latest version of JAMLIB.
 
@@ -167,10 +233,10 @@ Changes in version 0.61:
 
  - CrashWrite had problems with paragraphs longer than 100 characters. Fixed.
 
-
 Changes in version 0.6
+----------------------
 
- CrashMail:
+### CrashMail:
 
  - The AreaFix no longer truncates area names longer than 30 characters in
    the response messages.
@@ -201,7 +267,7 @@ Changes in version 0.6
    LOCALAREA. Local areas are not used by CrashMail, but are included in config
    files created by CrashExport and are maintained when running CrashMaint.
 
- CrashWrite:
+### CrashWrite:
 
  - There are two new options PKTFROMADDR and PKTTOADDR that can be used to
    set the origin and destination address to something other than the origin
@@ -210,7 +276,7 @@ Changes in version 0.6
  - A new option PASSWORD that can be used to set the password of the created
    packet.
 
- JAMLIB:
+### JAMLIB:
 
  - JAMLIB could crash on corrupt messagebases. Fixed.
 
@@ -218,7 +284,7 @@ Changes in version 0.6
    makes JAMLIB even more portable and ensures that the Intel byte-order will
 	be used on all platforms regardless of the processor used.
 
- All programs:
+### All programs:
 
  - The Win32 version of CrashMail did not work if you were tossing mail to
    many downlinks since you could only open a limited number of files with
@@ -242,8 +308,9 @@ Changes in version 0.6
 
 
 Changes in version 0.52
+-----------------------
 
- CrashMail:
+### CrashMail:
 
  - Three new flags for the NODE keyword: CRASH, DIRECT and HOLD. With these
    flags, you can set the priority for packed and unpacked netmail.
@@ -291,7 +358,7 @@ Changes in version 0.52
 
  - CrashMail would incorrectly import FMPT kludges to JAM areas. Fixed.
 
- CrashExport:
+### CrashExport:
  
  - CrashExport did not write netmail areas correctly to a GoldED configuration
    file. This has now been fixed.
@@ -300,18 +367,18 @@ Changes in version 0.52
 
  - CrashExport no longer exports areas with the UNCONFIRMED keyword.
  
- CrashStats:
+### CrashStats:
  
  - The total number of messages per day were not calculated correctly in the
    LAST7 mode, instead a random number would be shown. The average total number 
    of messages per day was also incorrect.  These bugs have now been fixed.
 
- CrashMaint:
+### CrashMaint:
 
  - You can now use the environment variable CMCONFIGFILE to set the default
    configuration file for CrashMail.
 
- All programs:
+### All programs:
  
  - The argument parsing has been improved. The main change for the user is that
    "programname ?" now gives a more helpful output.
@@ -327,8 +394,9 @@ Changes in version 0.52
 
 
 Changes in version 0.5
+----------------------
 
- CrashMail:
+### CrashMail:
 
  - Because of a bug in the pattern matching, an empty string would match any
    pattern. Fixed.
@@ -362,7 +430,7 @@ Changes in version 0.5
    intended to be used together with TOSSFILE/TOSSDIR and packets
    generated by CrashWrite.
 	
- CrashMaint:
+### CrashMaint:
 
  - CrashMaint no longer checks the ActiveMsgs counter in the JAM messagebase
    to determine if the area needs to be packed. This check did not always work,
@@ -380,12 +448,12 @@ Changes in version 0.5
  - Improved the error handling a bit in CrashMaint. Now you get an error if 
    an area couldn't be updated since it was in use by another program.
 
- CrashWrite:
+### CrashWrite:
  
  - Included CrashWrite, a new tool for CrashMail. CrashWrite reads a text
    file and then creates a packet file that can be tossed by CrashMail.
 
- CrashExport:
+### CrashExport:
 
  - CrashAreasBBS and CrashForward have been replaced by the new program
    CrashExport. In addition to the old formats, CrashExport can also
@@ -394,6 +462,7 @@ Changes in version 0.5
 
 
 Changes in version 0.42
+-----------------------
 
  - Fixed bug that occurred when sending mail to nodes with long addresses
    (e.g. 9999:8888/7777.6666)
@@ -429,7 +498,9 @@ Changes in version 0.42
 
 
 Changes in version 0.4
+----------------------
 
  - First public release
 
+<!-- vim: set ft=markdown : -->
 

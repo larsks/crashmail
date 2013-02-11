@@ -97,9 +97,9 @@ uint32_t osFGets(osFile os,char *str,uint32_t max)
    return(0);
 }
 
-uint32_t osFTell(osFile os)
+off_t osFTell(osFile os)
 {
-   return ftell((FILE *)os);
+   return ftello((FILE *)os);
 }
 
 bool osFPrintf(osFile os,char *fmt,...)
@@ -129,7 +129,7 @@ bool osVFPrintf(osFile os,char *fmt,va_list args)
 	return(TRUE);
 }
 
-void osSeek(osFile fh,uint32_t offset,short mode)
+void osSeek(osFile fh,off_t offset,short mode)
 {
    int md;
 
@@ -139,5 +139,5 @@ void osSeek(osFile fh,uint32_t offset,short mode)
    if(mode == OFFSET_END)
       md=SEEK_END;
 
-   fseek((FILE *)fh,offset,md);
+   fseeko((FILE *)fh,offset,md);
 }

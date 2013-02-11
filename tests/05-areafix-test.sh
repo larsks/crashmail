@@ -14,6 +14,8 @@ after () {
 	clean_tmpfile
 }
 
+# Tests that crashmail returns an area list in
+# response to a %LIST request.
 it_generates_area_list () {
 	echo %LIST |
 	$__tools__/crashwrite dir spool/inbound \
@@ -27,6 +29,8 @@ it_generates_area_list () {
 	test -f spool/outbound/00630058.out
 }
 
+# Test that crashmail links an area in response to a
+# link request.
 it_subscribes_node () {
 	echo TESTAREA |
 	$__tools__/crashwrite dir spool/inbound \
