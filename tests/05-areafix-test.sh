@@ -46,13 +46,3 @@ it_subscribes_node () {
 	grep '^EXPORT .* 99:99/88.0' crashmail.prefs
 }
 
-# This catches a problem in which appending new messages to a packet
-# resulted in an invalid packet size.
-it_builds_packets () {
-	$__crashmail__ sendinfo 99:99/99
-	$__crashmail__ sendlist 99:99/99
-
-	size=$(wc -c < spool/outbound/00630063.out)
-	[ "$size" -le 1024 ]
-}
-
