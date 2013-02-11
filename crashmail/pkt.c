@@ -11,12 +11,12 @@
 bool messageend;
 bool shortread,longread;
 
-uint16_t getuword(char *buf,uint32_t offset)
+uint16_t getuword(uint8_t *buf,uint32_t offset)
 {
    return (uint16_t)(buf[offset]+256*buf[offset+1]);
 }
 
-void putuword(char *buf,uint32_t offset,uint16_t num)
+void putuword(uint8_t *buf,uint32_t offset,uint16_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
@@ -80,8 +80,8 @@ bool ReadPkt(char *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(st
    struct ConfigNode *tmpcnode;
    uint32_t msgnum,msgoffset;
    char buf[200];
-   char PktHeader[SIZE_PKTHEADER];
-   char PktMsgHeader[SIZE_PKTMSGHEADER];
+   uint8_t PktHeader[SIZE_PKTHEADER];
+   uint8_t PktMsgHeader[SIZE_PKTMSGHEADER];
    struct Node4D PktOrig,PktDest;
    char *monthnames[]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec","???"};
    struct MemMessage *mm;
@@ -268,7 +268,7 @@ bool ReadPkt(char *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(st
    {
       char domain[10];
 
-      mystrncpy(domain,&PktHeader[PKTHEADER45_ORIGDOMAIN],9);
+      mystrncpy(domain,(char *)&PktHeader[PKTHEADER45_ORIGDOMAIN],9);
 
       LogWrite(1,ACTIONINFO,"Tossing %s (%uK) from %d:%d/%d.%d@%s %s",
                                                               fe->Name,
@@ -307,7 +307,7 @@ bool ReadPkt(char *pkt,struct osFileEntry *fe,bool bundled,bool (*handlefunc)(st
 
    if(tmpcnode)
    {
-      strncpy(buf,&PktHeader[PKTHEADER_PASSWORD],8);
+      strncpy(buf,(char *)&PktHeader[PKTHEADER_PASSWORD],8);
       buf[8]=0;
 
       if(tmpcnode->PacketPW[0]!=0 && stricmp(buf,tmpcnode->PacketPW)!=0 && !no_security)
@@ -527,7 +527,7 @@ struct Pkt
    struct Node4D Orig;
 };
 
-void pktWrite(struct Pkt *pkt,char *buf,uint32_t len)
+void pktWrite(struct Pkt *pkt,uint8_t *buf,uint32_t len)
 {
    if(!osWrite(pkt->fh,buf,len))
 		{ ioerror=TRUE; ioerrornum=osError(); }
@@ -537,7 +537,7 @@ void pktWrite(struct Pkt *pkt,char *buf,uint32_t len)
 
 void WriteNull(struct Pkt *pkt,char *str)
 {
-   pktWrite(pkt,str,(uint32_t)(strlen(str)+1));
+   pktWrite(pkt,(uint8_t *)str,(uint32_t)(strlen(str)+1));
 }
 
 struct Pkt *FindPkt(struct Node4D *node,struct Node4D *mynode,uint16_t type)
@@ -561,7 +561,7 @@ struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Node4D 
    uint32_t num,c;
    time_t t;
    struct tm *tp;
-   char PktHeader[SIZE_PKTHEADER];
+   uint8_t PktHeader[SIZE_PKTHEADER];
 
    do
    {
@@ -635,7 +635,7 @@ struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Node4D 
       PktHeader[PKTHEADER_PASSWORD+c]=0;
 
    if(node)
-      strncpy(&PktHeader[PKTHEADER_PASSWORD],node->PacketPW,8);
+      strncpy((char *)&PktHeader[PKTHEADER_PASSWORD],node->PacketPW,8);
 
    pktWrite(pkt,PktHeader,SIZE_PKTHEADER);
 
@@ -651,8 +651,8 @@ struct Pkt *CreatePkt(struct Node4D *dest,struct ConfigNode *node,struct Node4D 
 
 void FinishPacket(struct Pkt *pkt)
 {
-   pktWrite(pkt,"",1);
-   pktWrite(pkt,"",1);
+   pktWrite(pkt,(uint8_t *)"",1);
+   pktWrite(pkt,(uint8_t *)"",1);
    osClose(pkt->fh);
 
    if(pkt->hexnum)
@@ -715,7 +715,7 @@ void ClosePackets(void)
 
 bool WriteMsgHeader(struct Pkt *pkt,struct MemMessage *mm)
 {
-   char PktMsgHeader[SIZE_PKTMSGHEADER];
+   uint8_t PktMsgHeader[SIZE_PKTMSGHEADER];
 
    putuword(PktMsgHeader,PKTMSGHEADER_PKTTYPE,0x0002);
    putuword(PktMsgHeader,PKTMSGHEADER_ORIGNODE,mm->OrigNode.Node);
@@ -747,9 +747,9 @@ bool WritePath(struct Pkt *pkt,struct jbList *list)
       for(c=0;c<path->Paths;c++)
          if(path->Path[c][0]!=0)
          {
-            pktWrite(pkt,"\x01PATH: ",7);
-            pktWrite(pkt,path->Path[c],(uint32_t)strlen(path->Path[c]));
-            pktWrite(pkt,"\x0d",1);
+            pktWrite(pkt,(uint8_t *)"\x01PATH: ",7);
+            pktWrite(pkt,(uint8_t *)path->Path[c],(uint32_t)strlen(path->Path[c]));
+            pktWrite(pkt,(uint8_t *)"\x0d",1);
          }
 
    if(ioerror)
@@ -765,7 +765,7 @@ bool WriteSeenBy(struct Pkt *pkt,struct jbList *list)
    if(!(buf=mmMakeSeenByBuf(list)))
       return(FALSE);
 
-   pktWrite(pkt,buf,(uint32_t)strlen(buf));
+   pktWrite(pkt,(uint8_t *)buf,(uint32_t)strlen(buf));
 
    osFree(buf);
 
@@ -819,14 +819,14 @@ bool WriteEchoMail(struct MemMessage *mm,struct ConfigNode *node, struct Aka *ak
 
    sprintf(buf,"AREA:%s\x0d",mm->Area);
 
-   pktWrite(pkt,buf,(uint32_t)strlen(buf));
+   pktWrite(pkt,(uint8_t *)buf,(uint32_t)strlen(buf));
 
    if(ioerror)
       return(FALSE);
 
    for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
    {
-      pktWrite(pkt,chunk->Data,chunk->Length);
+      pktWrite(pkt,(uint8_t *)chunk->Data,chunk->Length);
       
       if(ioerror)
          return(FALSE);
@@ -889,7 +889,7 @@ bool WriteEchoMail(struct MemMessage *mm,struct ConfigNode *node, struct Aka *ak
    if(!WritePath(pkt,&mm->Path))
       return(FALSE);
 
-   pktWrite(pkt,"",1);
+   pktWrite(pkt,(uint8_t *)"",1);
 
    return(TRUE);
 }
@@ -947,13 +947,13 @@ bool WriteNetMail(struct MemMessage *mm,struct Node4D *dest,struct Aka *aka)
 
    for(chunk=(struct TextChunk *)mm->TextChunks.First;chunk;chunk=chunk->Next)
    {
-      pktWrite(pkt,chunk->Data,chunk->Length);
+      pktWrite(pkt,(uint8_t *)chunk->Data,chunk->Length);
 
       if(ioerror)
          return(FALSE);
    }
 
-   pktWrite(pkt,"",1);
+   pktWrite(pkt,(uint8_t *)"",1);
 
    return(TRUE);
 }
