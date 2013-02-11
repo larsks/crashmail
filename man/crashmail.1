@@ -7,6 +7,8 @@ crashmail \- A Fidonet *.JAM and MSG tosser
 [SCAN] [TOSS]
 [TOSSFILE filename] [TOSSDIR directory]
 [SCANAREA area] [SCANLIST filename]
+[SENDLIST address] [SENDQUERY address] [SENDUNLINKED address]
+[SENDHELP address] [SENDINFO address] [REMOVE address]
 [RESCAN area RESCANNODE node [RESCANMAX max]]
 [VERSION] [LOCK] [UNLOCK] [NOSECURITY]
 .SH DESCRIPTION
@@ -44,6 +46,27 @@ Scan all areas listed in the specified file.
 .I RESCANMAX max
 Rescans the specied area for the specied node. If RESCANMAX is specified,
 it sets the maximum number of messages to rescan.
+.PD
+.TP
+.I SENDQUERY address
+Send a list of linked areas to the REMOTESYSOP of the specified node.
+.PD
+.TP
+.I SENDLIST address
+Send a list of available areas to the REMOTESYSTEOP of specified node.
+.PD
+.TP
+.I SENDUNLINKED address
+Send a list of unlinked areas to the REMOTESYSOP of the specified node.
+.PD
+.TP
+.I SENDHELP address
+Send Areafix help file to the REMOTESYSOP on the specified node.
+.PD
+.TP
+.I SENDINFO address
+Send Areafix information (password, group access) to the REMOTESYSOP
+on the specified node.
 .PD
 .TP
 .I SETTINGS filename
