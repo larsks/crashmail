@@ -67,17 +67,17 @@ struct argument args[] = {
 	{ ARGTYPE_END,     NULL,           0,                 0    }
 };
 
-char PktMsgHeader[SIZE_PKTMSGHEADER];
-char PktHeader[SIZE_PKTHEADER];
+uint8_t PktMsgHeader[SIZE_PKTMSGHEADER];
+uint8_t PktHeader[SIZE_PKTHEADER];
 
 bool nomem,diskfull;
 
-uint16_t getuword(char *buf,uint32_t offset)
+uint16_t getuword(uint8_t *buf,uint32_t offset)
 {
    return (uint16_t)(buf[offset]+256*buf[offset+1]);
 }
 
-void putuword(char *buf,uint32_t offset,uint16_t num)
+void putuword(uint8_t *buf,uint32_t offset,uint16_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
@@ -232,7 +232,7 @@ int main(int argc, char **argv)
       PktHeader[PKTHEADER_PASSWORD+c]=0;
 
    if(args[ARG_PASSWORD].data)
-      strncpy(&PktHeader[PKTHEADER_PASSWORD],args[ARG_PASSWORD].data,8);
+      strncpy((char *)&PktHeader[PKTHEADER_PASSWORD],args[ARG_PASSWORD].data,8);
 
 	/* Create message header */
 
