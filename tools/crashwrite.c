@@ -46,35 +46,38 @@ char *ver="$VER: CrashWrite "VERSION" ("__COMMODORE_DATE__")";
 #define ARG_PKTFROMADDR 11
 #define ARG_PKTTOADDR   12
 #define ARG_PASSWORD    13
+#define ARG_FILENAME    14
 
-struct argument args[] =
-   { { ARGTYPE_STRING, "FROMNAME",      0,                 NULL },
-     { ARGTYPE_STRING, "FROMADDR",      0,                 NULL },
-     { ARGTYPE_STRING, "TONAME",        0,                 NULL },
-     { ARGTYPE_STRING, "TOADDR",        0,                 NULL },
-     { ARGTYPE_STRING, "SUBJECT",       0,                 NULL },
-     { ARGTYPE_STRING, "AREA",          0,                 NULL },
-     { ARGTYPE_STRING, "ORIGIN",        0,                 NULL },
-     { ARGTYPE_STRING, "DIR",           ARGFLAG_MANDATORY, NULL },
-     { ARGTYPE_STRING, "TEXT",          0,                 NULL },
-	  { ARGTYPE_BOOL,   "NOMSGID",       0,                 NULL },
-	  { ARGTYPE_BOOL,   "FILEATTACH",    0,                 NULL },
-     { ARGTYPE_STRING, "PKTFROMADDR",   0,                 NULL },
-     { ARGTYPE_STRING, "PKTTOADDR",     0,                 NULL },
-     { ARGTYPE_STRING, "PASSWORD",      0,                 NULL },
-     { ARGTYPE_END,     NULL,           0,                 0    } };
+struct argument args[] = {
+	{ ARGTYPE_STRING, "FROMNAME",      0,                 NULL },
+	{ ARGTYPE_STRING, "FROMADDR",      0,                 NULL },
+	{ ARGTYPE_STRING, "TONAME",        0,                 NULL },
+	{ ARGTYPE_STRING, "TOADDR",        0,                 NULL },
+	{ ARGTYPE_STRING, "SUBJECT",       0,                 NULL },
+	{ ARGTYPE_STRING, "AREA",          0,                 NULL },
+	{ ARGTYPE_STRING, "ORIGIN",        0,                 NULL },
+	{ ARGTYPE_STRING, "DIR",           ARGFLAG_MANDATORY, NULL },
+	{ ARGTYPE_STRING, "TEXT",          0,                 NULL },
+	{ ARGTYPE_BOOL,   "NOMSGID",       0,                 NULL },
+	{ ARGTYPE_BOOL,   "FILEATTACH",    0,                 NULL },
+	{ ARGTYPE_STRING, "PKTFROMADDR",   0,                 NULL },
+	{ ARGTYPE_STRING, "PKTTOADDR",     0,                 NULL },
+	{ ARGTYPE_STRING, "PASSWORD",      0,                 NULL },
+	{ ARGTYPE_STRING, "FILENAME",      0,                 NULL },
+	{ ARGTYPE_END,     NULL,           0,                 0    }
+};
 
-char PktMsgHeader[SIZE_PKTMSGHEADER];
-char PktHeader[SIZE_PKTHEADER];
+uint8_t PktMsgHeader[SIZE_PKTMSGHEADER];
+uint8_t PktHeader[SIZE_PKTHEADER];
 
 bool nomem,diskfull;
 
-uint16_t getuword(char *buf,uint32_t offset)
+uint16_t getuword(uint8_t *buf,uint32_t offset)
 {
    return (uint16_t)(buf[offset]+256*buf[offset+1]);
 }
 
-void putuword(char *buf,uint32_t offset,uint16_t num)
+void putuword(uint8_t *buf,uint32_t offset,uint16_t num)
 {
    buf[offset]=num%256;
    buf[offset+1]=num/256;
@@ -229,7 +232,7 @@ int main(int argc, char **argv)
       PktHeader[PKTHEADER_PASSWORD+c]=0;
 
    if(args[ARG_PASSWORD].data)
-      strncpy(&PktHeader[PKTHEADER_PASSWORD],args[ARG_PASSWORD].data,8);
+      strncpy((char *)&PktHeader[PKTHEADER_PASSWORD],args[ARG_PASSWORD].data,8);
 
 	/* Create message header */
 
@@ -265,14 +268,21 @@ int main(int argc, char **argv)
 
 	serial=0;
 
-   do
-   {
-      t=time(NULL);
-      pktnum = (t<<8) + serial;
-		serial++;
-      sprintf(pktname,"%08x.pkt",pktnum);
-      MakeFullPath(args[ARG_DIR].data,pktname,fullname,200);
-   } while(osExists(fullname));
+
+	if (args[ARG_FILENAME].data) {
+		MakeFullPath(args[ARG_DIR].data,args[ARG_FILENAME].data,fullname,200);
+		t=time(NULL);
+		pktnum = (t<<8) + serial;
+	} else {
+		do
+		{
+			t=time(NULL);
+			pktnum = (t<<8) + serial;
+			serial++;
+			sprintf(pktname,"%08x.pkt",pktnum);
+			MakeFullPath(args[ARG_DIR].data,pktname,fullname,200);
+		} while(osExists(fullname));
+	}
 
    if(!(ofh=osOpen(fullname,MODE_NEWFILE)))
    {
@@ -283,7 +293,7 @@ int main(int argc, char **argv)
       exit(OS_EXIT_ERROR);
    }
 
-   printf("Writing...\n");
+   printf("Writing: %s\n", fullname);
    printf(" From: %-36s (%u:%u/%u.%u)\n",fromname,from4d.Zone,from4d.Net,from4d.Node,from4d.Point);
    printf("   To: %-36s (%u:%u/%u.%u)\n",toname,to4d.Zone,to4d.Net,to4d.Node,to4d.Point);
    printf(" Subj: %s\n",subject);
