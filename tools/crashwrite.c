@@ -48,23 +48,24 @@ char *ver="$VER: CrashWrite "VERSION" ("__COMMODORE_DATE__")";
 #define ARG_PASSWORD    13
 #define ARG_FILENAME    14
 
-struct argument args[] =
-   { { ARGTYPE_STRING, "FROMNAME",      0,                 NULL },
-     { ARGTYPE_STRING, "FROMADDR",      0,                 NULL },
-     { ARGTYPE_STRING, "TONAME",        0,                 NULL },
-     { ARGTYPE_STRING, "TOADDR",        0,                 NULL },
-     { ARGTYPE_STRING, "SUBJECT",       0,                 NULL },
-     { ARGTYPE_STRING, "AREA",          0,                 NULL },
-     { ARGTYPE_STRING, "ORIGIN",        0,                 NULL },
-     { ARGTYPE_STRING, "DIR",           ARGFLAG_MANDATORY, NULL },
-     { ARGTYPE_STRING, "TEXT",          0,                 NULL },
-	  { ARGTYPE_BOOL,   "NOMSGID",       0,                 NULL },
-	  { ARGTYPE_BOOL,   "FILEATTACH",    0,                 NULL },
-     { ARGTYPE_STRING, "PKTFROMADDR",   0,                 NULL },
-     { ARGTYPE_STRING, "PKTTOADDR",     0,                 NULL },
-     { ARGTYPE_STRING, "PASSWORD",      0,                 NULL },
-     { ARGTYPE_STRING, "FILENAME",      0,                 NULL },
-     { ARGTYPE_END,     NULL,           0,                 0    } };
+struct argument args[] = {
+	{ ARGTYPE_STRING, "FROMNAME",      0,                 NULL },
+	{ ARGTYPE_STRING, "FROMADDR",      0,                 NULL },
+	{ ARGTYPE_STRING, "TONAME",        0,                 NULL },
+	{ ARGTYPE_STRING, "TOADDR",        0,                 NULL },
+	{ ARGTYPE_STRING, "SUBJECT",       0,                 NULL },
+	{ ARGTYPE_STRING, "AREA",          0,                 NULL },
+	{ ARGTYPE_STRING, "ORIGIN",        0,                 NULL },
+	{ ARGTYPE_STRING, "DIR",           ARGFLAG_MANDATORY, NULL },
+	{ ARGTYPE_STRING, "TEXT",          0,                 NULL },
+	{ ARGTYPE_BOOL,   "NOMSGID",       0,                 NULL },
+	{ ARGTYPE_BOOL,   "FILEATTACH",    0,                 NULL },
+	{ ARGTYPE_STRING, "PKTFROMADDR",   0,                 NULL },
+	{ ARGTYPE_STRING, "PKTTOADDR",     0,                 NULL },
+	{ ARGTYPE_STRING, "PASSWORD",      0,                 NULL },
+	{ ARGTYPE_STRING, "FILENAME",      0,                 NULL },
+	{ ARGTYPE_END,     NULL,           0,                 0    }
+};
 
 char PktMsgHeader[SIZE_PKTMSGHEADER];
 char PktHeader[SIZE_PKTHEADER];
