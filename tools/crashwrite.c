@@ -46,6 +46,7 @@ char *ver="$VER: CrashWrite "VERSION" ("__COMMODORE_DATE__")";
 #define ARG_PKTFROMADDR 11
 #define ARG_PKTTOADDR   12
 #define ARG_PASSWORD    13
+#define ARG_FILENAME    14
 
 struct argument args[] =
    { { ARGTYPE_STRING, "FROMNAME",      0,                 NULL },
@@ -62,6 +63,7 @@ struct argument args[] =
      { ARGTYPE_STRING, "PKTFROMADDR",   0,                 NULL },
      { ARGTYPE_STRING, "PKTTOADDR",     0,                 NULL },
      { ARGTYPE_STRING, "PASSWORD",      0,                 NULL },
+     { ARGTYPE_STRING, "FILENAME",      0,                 NULL },
      { ARGTYPE_END,     NULL,           0,                 0    } };
 
 char PktMsgHeader[SIZE_PKTMSGHEADER];
@@ -265,14 +267,18 @@ int main(int argc, char **argv)
 
 	serial=0;
 
-   do
-   {
-      t=time(NULL);
-      pktnum = (t<<8) + serial;
-		serial++;
-      sprintf(pktname,"%08x.pkt",pktnum);
-      MakeFullPath(args[ARG_DIR].data,pktname,fullname,200);
-   } while(osExists(fullname));
+	if (args[ARG_FILENAME].data) {
+		MakeFullPath(args[ARG_DIR].data,args[ARG_FILENAME].data,fullname,200);
+	} else {
+		do
+		{
+			t=time(NULL);
+			pktnum = (t<<8) + serial;
+			serial++;
+			sprintf(pktname,"%08x.pkt",pktnum);
+			MakeFullPath(args[ARG_DIR].data,pktname,fullname,200);
+		} while(osExists(fullname));
+	}
 
    if(!(ofh=osOpen(fullname,MODE_NEWFILE)))
    {
