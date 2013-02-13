@@ -267,8 +267,11 @@ int main(int argc, char **argv)
 
 	serial=0;
 
+
 	if (args[ARG_FILENAME].data) {
 		MakeFullPath(args[ARG_DIR].data,args[ARG_FILENAME].data,fullname,200);
+		t=time(NULL);
+		pktnum = (t<<8) + serial;
 	} else {
 		do
 		{
