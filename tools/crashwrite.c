@@ -293,7 +293,7 @@ int main(int argc, char **argv)
       exit(OS_EXIT_ERROR);
    }
 
-   printf("Writing...\n");
+   printf("Writing: %s\n", fullname);
    printf(" From: %-36s (%u:%u/%u.%u)\n",fromname,from4d.Zone,from4d.Net,from4d.Node,from4d.Point);
    printf("   To: %-36s (%u:%u/%u.%u)\n",toname,to4d.Zone,to4d.Net,to4d.Node,to4d.Point);
    printf(" Subj: %s\n",subject);
