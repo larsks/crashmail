@@ -161,6 +161,7 @@ bool msg_exportfunc(struct Area *area,bool (*handlefunc)(struct MemMessage *mm))
       if(!msg_ExportMSGNum(area,start,handlefunc,FALSE))
          return(FALSE);
 
+      ma->HighWater = start;
       start++;
    }
 
@@ -328,7 +329,6 @@ bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct M
 		}
 		else
 		{
-         ma->HighWater=num;
 
          Msg.Attr|=FLAG_SENT;
 
