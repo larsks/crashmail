@@ -60,9 +60,9 @@ bool msg_afterfunc(bool success)
 
    if(success && (config.cfg_msg_Flags & CFG_MSG_HIGHWATER)) {
      for(ma=(struct msg_Area *)msg_AreaList.First;ma;ma=ma->Next) {
-       LogWrite(5, DEBUG, "Area %s, old hwm = %d, new hwm = %d",
-                ma->area->Tagname, ma->OldHighWater, ma->HighWater);
        if(ma->HighWater != ma->OldHighWater) {
+         LogWrite(5, DEBUG, "Updating hwm for area %s, old = %d, new = %d",
+                  ma->area->Tagname, ma->OldHighWater, ma->HighWater);
          msg_WriteHighWater(ma);
        }
      }
