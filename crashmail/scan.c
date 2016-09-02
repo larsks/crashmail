@@ -51,27 +51,28 @@ bool Scan(void)
    if(!BeforeScanToss())
       return(FALSE);
 
-   for(area=(struct Area *)config.AreaList.First;area && !ctrlc;area=area->Next)
-      if(area->Messagebase && (area->AreaType == AREATYPE_ECHOMAIL || area->AreaType == AREATYPE_NETMAIL))
-		{
-         if(area->Messagebase->exportfunc)
-			{
-            if(area->AreaType == AREATYPE_NETMAIL && (config.cfg_Flags & CFG_NOEXPORTNETMAIL))
-            {
-               printf("Skipping area %s (NOEXPORTNETMAIL is set)\n", area->Tagname);
-            }
-            else
-            {
-               printf("Scanning area %s\n",area->Tagname);
-
-	            if(!(*area->Messagebase->exportfunc)(area,ScanHandle))
-   	         {
-          	      AfterScanToss(FALSE);
-            	   return(FALSE);
-	            }
-            }
+   for(area=(struct Area *)config.AreaList.First;area && !ctrlc;area=area->Next) {
+     LogWrite(5, DEBUG, "Found area %s", area->Tagname);
+     if(area->Messagebase && (area->AreaType == AREATYPE_ECHOMAIL || area->AreaType == AREATYPE_NETMAIL)) {
+       if(area->Messagebase->exportfunc) {
+         if(area->AreaType == AREATYPE_NETMAIL && (config.cfg_Flags & CFG_NOEXPORTNETMAIL)) {
+           LogWrite(4, DEBUG, "Skipping area %s (NOEXPORTNETMAIL is set)", area->Tagname);
+         } else {
+           LogWrite(4, DEBUG, "Scanning area %s", area->Tagname);
+           
+           if(!(*area->Messagebase->exportfunc)(area,ScanHandle))
+             {
+               AfterScanToss(FALSE);
+               return(FALSE);
+             }
          }
-      }
+       } else {
+         LogWrite(5, DEBUG, "Skipping area, it has no exportfunc.");
+       }
+     } else {
+       LogWrite(5, DEBUG, "Skiping area because it has no messagebase or area type is not echomail or netmail..");
+     }
+   }
 
    if(ctrlc)
    {

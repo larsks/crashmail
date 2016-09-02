@@ -58,10 +58,15 @@ bool msg_afterfunc(bool success)
 {
    struct msg_Area *ma;
 
-   if(success && (config.cfg_msg_Flags & CFG_MSG_HIGHWATER))
-      for(ma=(struct msg_Area *)msg_AreaList.First;ma;ma=ma->Next)
-         if(ma->HighWater != ma->OldHighWater)
-            msg_WriteHighWater(ma);
+   if(success && (config.cfg_msg_Flags & CFG_MSG_HIGHWATER)) {
+     for(ma=(struct msg_Area *)msg_AreaList.First;ma;ma=ma->Next) {
+       LogWrite(5, DEBUG, "Area %s, old hwm = %d, new hwm = %d",
+                ma->area->Tagname, ma->OldHighWater, ma->HighWater);
+       if(ma->HighWater != ma->OldHighWater) {
+         msg_WriteHighWater(ma);
+       }
+     }
+   }
 
    return(TRUE);
 }
@@ -175,6 +180,7 @@ bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct M
 	uint16_t oldattr;
    struct msg_Area *ma;
 
+   LogWrite(5, DEBUG, "Inspecting message %d", num);
    if(!(ma=msg_getarea(area)))
       return(FALSE);
 
@@ -187,6 +193,7 @@ bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct M
    if(!(fh=osOpen(buf,MODE_OLDFILE)))
    {
       /* Message doesn't exist */
+     LogWrite(5, DEBUG, "Can't open file '%s' for reading, skipping message.", buf);
       return(TRUE);
    }
 
@@ -201,6 +208,12 @@ bool msg_ExportMSGNum(struct Area *area,uint32_t num,bool (*handlefunc)(struct M
 	{
 		if((Msg.Attr & FLAG_SENT) || !(Msg.Attr & FLAG_LOCAL))
 		{
+                  if(Msg.Attr & FLAG_SENT) {
+                    LogWrite(5, DEBUG, "Skipping message since it's already sent.");
+                  }
+                  if(Msg.Attr & FLAG_LOCAL) {
+                    LogWrite(5, DEBUG, "Skipping message since it's local.");
+                  }
 			/* Don't touch if the message is sent or not local */
 			osClose(fh);
    	   return(TRUE);
