@@ -1228,6 +1228,9 @@ bool HandleNetmail(struct MemMessage *mm)
 
       if(aka || (config.cfg_Flags & CFG_NOROUTE))
       {
+        if(config.cfg_Flags & CFG_NOROUTE) {
+          LogWrite(4, DEBUG, "NOROUTE is specified in config. Importing message instead of routing.");
+        }
          for(tmparea=(struct Area *)config.AreaList.First;tmparea;tmparea=tmparea->Next)
             if(tmparea->AreaType == AREATYPE_NETMAIL) break;
       }
